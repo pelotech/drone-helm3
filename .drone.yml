@@ -1,0 +1,22 @@
+kind: pipeline
+type: docker
+name: default
+
+
+steps:
+  - name: test
+    image: golang:1.13
+    commands:
+      - go vet ./...
+  - name: build
+    image: golang:1.13
+    commands:
+      - go build -o build/drone-helm cmd/drone-helm/main.go
+  - name: publish
+    image: plugins/docker
+    auto_tag: true
+    settings:
+      dockerfile: Dockerfile
+      registry: '192.168.0.17:5000'
+      repo: 192.168.0.17:5000/drone-helm3
+      insecure: true
