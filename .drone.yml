@@ -8,6 +8,7 @@ steps:
     image: golang:1.13
     commands:
       - go vet ./...
+      - go test ./...
   - name: build
     image: golang:1.13
     commands:
