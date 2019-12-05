@@ -41,6 +41,10 @@ type execCmd struct {
 	*exec.Cmd
 }
 
+var Command = func() cmd {
+	return &execCmd{}
+}
+
 func (c *execCmd) Path(p string)                      { c.Cmd.Path = p }
 func (c *execCmd) Args(a []string)                    { c.Cmd.Args = a }
 func (c *execCmd) Env(e []string)                     { c.Cmd.Env = e }

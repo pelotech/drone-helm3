@@ -9,12 +9,18 @@ func TestInstall(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	cmd := NewMockcmd(ctrl)
-	cmd.EXPECT().
+	mCmd := NewMockcmd(ctrl)
+	originalCommand := Command
+	Command = func() cmd { return mCmd }
+	defer func() { Command = originalCommand }()
+
+	mCmd.EXPECT().
+		Path(HELM_BIN)
+	mCmd.EXPECT().
 		Args(gomock.Eq([]string{"install", "arg1", "arg2"}))
-	cmd.EXPECT().
+	mCmd.EXPECT().
 		Run().
 		Times(1)
 
-	install(cmd, []string{"arg1", "arg2"})
+	Install("arg1", "arg2")
 }
