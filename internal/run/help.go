@@ -4,12 +4,20 @@ import (
 	"os"
 )
 
-func Help(args ...string) error {
-	args = append([]string{"help"}, args...)
+type Help struct {
+	cmd cmd
+}
 
-	cmd := Command(HELM_BIN, args...)
-	cmd.Stdout(os.Stdout)
-	cmd.Stderr(os.Stderr)
+func (h *Help) Run() error {
+	return h.cmd.Run()
+}
 
-	return cmd.Run()
+func NewHelp() *Help {
+	h := Help{}
+
+	h.cmd = Command(HELM_BIN, "help")
+	h.cmd.Stdout(os.Stdout)
+	h.cmd.Stderr(os.Stderr)
+
+	return &h
 }

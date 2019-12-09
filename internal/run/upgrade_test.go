@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestUpgrade(t *testing.T) {
+func TestNewUpgrade(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -15,7 +15,7 @@ func TestUpgrade(t *testing.T) {
 
 	Command = func(path string, args ...string) cmd {
 		assert.Equal(t, HELM_BIN, path)
-		assert.Equal(t, []string{"upgrade", "arg1", "arg2"}, args)
+		assert.Equal(t, []string{"upgrade", "--install", "jonas_brothers_only_human", "at40"}, args)
 
 		return mCmd
 	}
@@ -29,5 +29,6 @@ func TestUpgrade(t *testing.T) {
 		Run().
 		Times(1)
 
-	Upgrade("arg1", "arg2")
+	u := NewUpgrade("jonas_brothers_only_human", "at40")
+	u.Run()
 }

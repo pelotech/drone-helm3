@@ -15,7 +15,7 @@ func TestHelp(t *testing.T) {
 
 	Command = func(path string, args ...string) cmd {
 		assert.Equal(t, HELM_BIN, path)
-		assert.Equal(t, []string{"help", "arg1", "arg2"}, args)
+		assert.Equal(t, []string{"help"}, args)
 		return mCmd
 	}
 	defer func() { Command = originalCommand }()
@@ -28,5 +28,6 @@ func TestHelp(t *testing.T) {
 		Run().
 		Times(1)
 
-	Help("arg1", "arg2")
+	h := NewHelp()
+	h.Run()
 }

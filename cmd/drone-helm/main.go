@@ -2,44 +2,34 @@ package main
 
 import (
 	"fmt"
-	"github.com/urfave/cli"
+	"github.com/kelseyhightower/envconfig"
 	"os"
 
-	"github.com/pelotech/drone-helm3/internal/run"
+	"github.com/pelotech/drone-helm3/internal/helm"
 )
 
 func main() {
-	app := cli.NewApp()
-	app.Name = "helm plugin"
-	app.Usage = "helm plugin"
-	app.Action = execute
-	app.Version = "0.0.1α"
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:   "helm_command",
-			Usage:  "Helm command to execute",
-			EnvVar: "PLUGIN_HELM_COMMAND,HELM_COMMAND",
-		},
-	}
+	var c helm.Config
 
-	if err := app.Run(os.Args); err != nil {
+	if err := envconfig.Process("plugin", &c); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+		return
 	}
-}
 
-
-func execute(c *cli.Context) error {
-	switch c.String("helm_command") {
-	case "upgrade":
-		run.Upgrade()
-	case "help":
-		run.Help()
-	default:
-		switch os.Getenv("DRONE_BUILD_EVENT") {
-		case "push", "tag", "deployment", "pull_request", "promote", "rollback":
-			run.Upgrade()
-		default:
-			run.Help()
+	// Make the plan
+	plan, err := helm.NewPlan(c)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error())
+		return
 	}
-	return nil
+
+	// Execute the plan
+	err = plan.Execute()
+
+	// Expect the plan to go off the rails
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error())
+		// Throw away the plan
+		os.Exit(1)
+	}
 }

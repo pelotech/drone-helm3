@@ -4,12 +4,25 @@ import (
 	"os"
 )
 
-func Upgrade(args ...string) error {
-	args = append([]string{"upgrade"}, args...)
-	cmd := Command(HELM_BIN, args...)
+type Upgrade struct {
+	Chart   string
+	Release string
+	cmd     cmd
+}
 
-	cmd.Stdout(os.Stdout)
-	cmd.Stderr(os.Stderr)
+func (u *Upgrade) Run() error {
+	return u.cmd.Run()
+}
 
-	return cmd.Run()
+func NewUpgrade(release, chart string) *Upgrade {
+	u := Upgrade{
+		Chart:   chart,
+		Release: release,
+		cmd:     Command(HELM_BIN, "upgrade", "--install", release, chart),
+	}
+
+	u.cmd.Stdout(os.Stdout)
+	u.cmd.Stderr(os.Stderr)
+
+	return &u
 }
