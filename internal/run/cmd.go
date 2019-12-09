@@ -7,7 +7,7 @@ import (
 	"syscall"
 )
 
-const HELM_BIN = "/usr/bin/helm"
+const helmBin = "/usr/bin/helm"
 
 // The cmd interface provides a generic form of exec.Cmd so that it can be mocked out in tests.
 type cmd interface {
@@ -43,7 +43,7 @@ type execCmd struct {
 	*exec.Cmd
 }
 
-var Command = func(path string, args ...string) cmd {
+var command = func(path string, args ...string) cmd {
 	return &execCmd{
 		Cmd: exec.Command(path, args...),
 	}

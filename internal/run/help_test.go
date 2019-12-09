@@ -11,14 +11,14 @@ func TestHelp(t *testing.T) {
 	defer ctrl.Finish()
 
 	mCmd := NewMockcmd(ctrl)
-	originalCommand := Command
+	originalCommand := command
 
-	Command = func(path string, args ...string) cmd {
-		assert.Equal(t, HELM_BIN, path)
+	command = func(path string, args ...string) cmd {
+		assert.Equal(t, helmBin, path)
 		assert.Equal(t, []string{"help"}, args)
 		return mCmd
 	}
-	defer func() { Command = originalCommand }()
+	defer func() { command = originalCommand }()
 
 	mCmd.EXPECT().
 		Stdout(gomock.Any())

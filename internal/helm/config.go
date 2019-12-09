@@ -5,9 +5,14 @@ import (
 	"strings"
 )
 
+// The Config struct captures the `settings` and `environment` blocks inthe application's drone
+// config. Configuration in drone's `settings` block arrives as uppercase env vars matching the
+// config key, prefixed with `PLUGIN_`. Config from the `environment` block is *not* prefixed; any
+// keys that are likely to be in that block (i.e. things that use `from_secret` need an explicit
+// `envconfig:` tag so that envconfig will look for a non-prefixed env var.
 type Config struct {
 	// Configuration for drone-helm itself
-	Command            HelmCommand `envconfig:"HELM_COMMAND"`      // Helm command to run
+	Command            helmCommand `envconfig:"HELM_COMMAND"`      // Helm command to run
 	DroneEvent         string      `envconfig:"DRONE_BUILD_EVENT"` // Drone event that invoked this plugin.
 	UpdateDependencies bool        `split_words:"true"`            // call `helm dependency update` before the main command
 	Repos              []string    `envconfig:"HELM_REPOS"`        // call `helm repo add` before the main command
@@ -37,14 +42,14 @@ type Config struct {
 	Force        bool   `` //
 }
 
-type HelmCommand string
+type helmCommand string
 
-// HelmCommand.Decode checks the given value against the list of known commands and generates a helpful error if the command is unknown.
-func (cmd *HelmCommand) Decode(value string) error {
+// helmCommand.Decode checks the given value against the list of known commands and generates a helpful error if the command is unknown.
+func (cmd *helmCommand) Decode(value string) error {
 	known := []string{"upgrade", "delete", "lint", "help"}
 	for _, c := range known {
 		if value == c {
-			*cmd = HelmCommand(value)
+			*cmd = helmCommand(value)
 			return nil
 		}
 	}
@@ -53,6 +58,6 @@ func (cmd *HelmCommand) Decode(value string) error {
 		return nil
 	}
 	known[len(known)-1] = fmt.Sprintf("or %s", known[len(known)-1])
-	return fmt.Errorf("Unknown command '%s'. If specified, command must be %s.",
+	return fmt.Errorf("unknown command '%s'. If specified, command must be %s",
 		value, strings.Join(known, ", "))
 }

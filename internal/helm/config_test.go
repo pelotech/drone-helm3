@@ -14,7 +14,7 @@ func TestConfigTestSuite(t *testing.T) {
 }
 
 func (suite *ConfigTestSuite) TestHelmCommandDecodeSuccess() {
-	cmd := HelmCommand("")
+	cmd := helmCommand("")
 	err := cmd.Decode("upgrade")
 	suite.Require().Nil(err)
 
@@ -22,7 +22,7 @@ func (suite *ConfigTestSuite) TestHelmCommandDecodeSuccess() {
 }
 
 func (suite *ConfigTestSuite) TestHelmCommandDecodeFailure() {
-	cmd := HelmCommand("")
+	cmd := helmCommand("")
 	err := cmd.Decode("execute order 66")
-	suite.EqualError(err, "Unknown command 'execute order 66'. If specified, command must be upgrade, delete, lint, or help.")
+	suite.EqualError(err, "unknown command 'execute order 66'. If specified, command must be upgrade, delete, lint, or help")
 }
