@@ -25,15 +25,13 @@ func (suite *PlanTestSuite) TestNewPlanUpgradeCommand() {
 
 	plan, err := NewPlan(cfg)
 	suite.Require().Nil(err)
-	suite.Equal(1, len(plan.steps))
+	suite.Require().Equal(1, len(plan.steps))
 
-	switch step := plan.steps[0].(type) {
-	case *run.Upgrade:
-		suite.Equal("billboard_top_100", step.Chart)
-		suite.Equal("post_malone_circles", step.Release)
-	default:
-		suite.Failf("Wrong type for step 1", "Expected Upgrade, got %T", step)
-	}
+	suite.Require().IsType(&run.Upgrade{}, plan.steps[0])
+	step, _ := plan.steps[0].(*run.Upgrade)
+
+	suite.Equal("billboard_top_100", step.Chart)
+	suite.Equal("post_malone_circles", step.Release)
 }
 
 func (suite *PlanTestSuite) TestNewPlanUpgradeFromDroneEvent() {
@@ -50,4 +48,16 @@ func (suite *PlanTestSuite) TestNewPlanUpgradeFromDroneEvent() {
 		suite.Require().Equal(1, len(plan.steps), fmt.Sprintf("for event type '%s'", event))
 		suite.IsType(&run.Upgrade{}, plan.steps[0], fmt.Sprintf("for event type '%s'", event))
 	}
+}
+
+func (suite *PlanTestSuite) TestNewPlanHelpCommand() {
+	cfg := Config{
+		Command: "help",
+	}
+
+	plan, err := NewPlan(cfg)
+	suite.Require().Nil(err)
+	suite.Equal(1, len(plan.steps))
+
+	suite.Require().IsType(&run.Help{}, plan.steps[0])
 }

@@ -6,7 +6,7 @@ TODO:
 * [x] Make a `Dockerfile` that's sufficient for launching the built image
 * [x] Make `cmd/drone-helm/main.go` actually invoke `helm`
 * [x] Make `golint` part of the build process (and make it pass)
-* [ ] Implement debug output
+* [x] Implement debug output
 * [ ] Flesh out `helm upgrade` until it's capable of working
 * [ ] Implement config settings for `upgrade`
 * [ ] Implement `helm lint`

@@ -1,34 +1,94 @@
 package run
 
 import (
+	"fmt"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"strings"
 	"testing"
 )
 
-func TestNewUpgrade(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+type UpgradeTestSuite struct {
+	suite.Suite
+	ctrl            *gomock.Controller
+	mockCmd         *Mockcmd
+	originalCommand func(string, ...string) cmd
+}
 
-	mCmd := NewMockcmd(ctrl)
-	originalCommand := command
+func (suite *UpgradeTestSuite) BeforeTest(_, _ string) {
+	suite.ctrl = gomock.NewController(suite.T())
+	suite.mockCmd = NewMockcmd(suite.ctrl)
+
+	suite.originalCommand = command
+	command = func(path string, args ...string) cmd { return suite.mockCmd }
+}
+
+func (suite *UpgradeTestSuite) AfterTest(_, _ string) {
+	command = suite.originalCommand
+}
+
+func TestUpgradeTestSuite(t *testing.T) {
+	suite.Run(t, new(UpgradeTestSuite))
+}
+
+func (suite *UpgradeTestSuite) TestPrepare() {
+	defer suite.ctrl.Finish()
+
+	u := Upgrade{
+		Chart:   "at40",
+		Release: "jonas_brothers_only_human",
+	}
 
 	command = func(path string, args ...string) cmd {
-		assert.Equal(t, helmBin, path)
-		assert.Equal(t, []string{"upgrade", "--install", "jonas_brothers_only_human", "at40"}, args)
+		suite.Equal(helmBin, path)
+		suite.Equal([]string{"upgrade", "--install", "jonas_brothers_only_human", "at40"}, args)
 
-		return mCmd
+		return suite.mockCmd
 	}
-	defer func() { command = originalCommand }()
 
-	mCmd.EXPECT().
+	suite.mockCmd.EXPECT().
 		Stdout(gomock.Any())
-	mCmd.EXPECT().
+	suite.mockCmd.EXPECT().
 		Stderr(gomock.Any())
-	mCmd.EXPECT().
+	suite.mockCmd.EXPECT().
 		Run().
 		Times(1)
 
-	u := NewUpgrade("jonas_brothers_only_human", "at40")
-	u.Run()
+	err := u.Prepare(Config{})
+	suite.Require().Nil(err)
+	u.Execute()
+}
+
+func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
+	u := Upgrade{
+		Chart:   "at40",
+		Release: "lewis_capaldi_someone_you_loved",
+	}
+
+	stdout := strings.Builder{}
+	stderr := strings.Builder{}
+	cfg := Config{
+		Debug:  true,
+		Stdout: &stdout,
+		Stderr: &stderr,
+	}
+
+	command = func(path string, args ...string) cmd {
+		suite.mockCmd.EXPECT().
+			String().
+			Return(fmt.Sprintf("%s %s", path, strings.Join(args, " ")))
+
+		return suite.mockCmd
+	}
+
+	suite.mockCmd.EXPECT().
+		Stdout(&stdout)
+	suite.mockCmd.EXPECT().
+		Stderr(&stderr)
+
+	u.Prepare(cfg)
+
+	want := fmt.Sprintf("Generated command: '%s --debug upgrade --install lewis_capaldi_someone_you_loved at40'\n", helmBin)
+	suite.Equal(want, stderr.String())
+	suite.Equal("", stdout.String())
 }

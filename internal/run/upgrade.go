@@ -1,31 +1,43 @@
 package run
 
 import (
-	"os"
+	"fmt"
 )
 
-// Upgrade is a step in a helm Plan that calls `helm upgrade`.
+// Upgrade is an execution step that calls `helm upgrade` when executed.
 type Upgrade struct {
 	Chart   string
 	Release string
-	cmd     cmd
+
+	ChartVersion string
+	Wait         bool
+	ReuseValues  bool
+	Timeout      string
+	Force        bool
+
+	cmd cmd
 }
 
-// Run launches the command.
-func (u *Upgrade) Run() error {
+// Execute executes the `helm upgrade` command.
+func (u *Upgrade) Execute() error {
 	return u.cmd.Run()
 }
 
-// NewUpgrade creates a new Upgrade.
-func NewUpgrade(release, chart string) *Upgrade {
-	u := Upgrade{
-		Chart:   chart,
-		Release: release,
-		cmd:     command(helmBin, "upgrade", "--install", release, chart),
+// Prepare gets the Upgrade ready to execute.
+func (u *Upgrade) Prepare(cfg Config) error {
+	args := []string{"upgrade", "--install", u.Release, u.Chart}
+
+	if cfg.Debug {
+		args = append([]string{"--debug"}, args...)
 	}
 
-	u.cmd.Stdout(os.Stdout)
-	u.cmd.Stderr(os.Stderr)
+	u.cmd = command(helmBin, args...)
+	u.cmd.Stdout(cfg.Stdout)
+	u.cmd.Stderr(cfg.Stderr)
 
-	return &u
+	if cfg.Debug {
+		fmt.Fprintf(cfg.Stderr, "Generated command: '%s'\n", u.cmd.String())
+	}
+
+	return nil
 }
