@@ -50,7 +50,7 @@ func (suite *HelpTestSuite) TestPrepare() {
 	h := Help{}
 	err := h.Prepare(cfg)
 	suite.Require().Nil(err)
-	h.Execute()
+	h.Execute(cfg)
 }
 
 func (suite *HelpTestSuite) TestPrepareDebugFlag() {

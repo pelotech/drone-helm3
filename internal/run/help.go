@@ -10,7 +10,7 @@ type Help struct {
 }
 
 // Execute executes the `helm help` command.
-func (h *Help) Execute() error {
+func (h *Help) Execute(_ Config) error {
 	return h.cmd.Run()
 }
 

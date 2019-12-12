@@ -1,89 +1,108 @@
 package helm
 
 import (
-	"errors"
 	"fmt"
 	"github.com/pelotech/drone-helm3/internal/run"
 	"os"
 )
 
+const kubeConfigTemplate = "/root/.kube/config.tpl"
+
 // A Step is one step in the plan.
 type Step interface {
 	Prepare(run.Config) error
-	Execute() error
+	Execute(run.Config) error
 }
 
 // A Plan is a series of steps to perform.
 type Plan struct {
-	steps []Step
+	steps  []Step
+	cfg    Config
+	runCfg run.Config
 }
 
 // NewPlan makes a plan for running a helm operation.
 func NewPlan(cfg Config) (*Plan, error) {
-	runCfg := run.Config{
-		Debug:          cfg.Debug,
-		KubeConfig:     cfg.KubeConfig,
-		Values:         cfg.Values,
-		StringValues:   cfg.StringValues,
-		ValuesFiles:    cfg.ValuesFiles,
-		Namespace:      cfg.Namespace,
-		Token:          cfg.Token,
-		SkipTLSVerify:  cfg.SkipTLSVerify,
-		Certificate:    cfg.Certificate,
-		APIServer:      cfg.APIServer,
-		ServiceAccount: cfg.ServiceAccount,
-		Stdout:         os.Stdout,
-		Stderr:         os.Stderr,
+	p := Plan{
+		cfg: cfg,
+		runCfg: run.Config{
+			Debug:        cfg.Debug,
+			KubeConfig:   cfg.KubeConfig,
+			Values:       cfg.Values,
+			StringValues: cfg.StringValues,
+			ValuesFiles:  cfg.ValuesFiles,
+			Namespace:    cfg.Namespace,
+			Stdout:       os.Stdout,
+			Stderr:       os.Stderr,
+		},
 	}
 
-	p := Plan{}
-	switch cfg.Command {
-	case "upgrade":
-		steps, err := upgrade(cfg, runCfg)
-		if err != nil {
-			return nil, err
+	p.steps = (*determineSteps(cfg))(cfg)
+
+	for i, step := range p.steps {
+		if cfg.Debug {
+			fmt.Fprintf(os.Stderr, "calling %T.Prepare (step %d)\n", step, i)
 		}
-		p.steps = steps
-	case "delete":
-		return nil, errors.New("not implemented")
-	case "lint":
-		return nil, errors.New("not implemented")
-	case "help":
-		steps, err := help(cfg, runCfg)
-		if err != nil {
+
+		if err := step.Prepare(p.runCfg); err != nil {
+			err = fmt.Errorf("while preparing %T step: %w", step, err)
 			return nil, err
-		}
-		p.steps = steps
-	default:
-		switch cfg.DroneEvent {
-		case "push", "tag", "deployment", "pull_request", "promote", "rollback":
-			steps, err := upgrade(cfg, runCfg)
-			if err != nil {
-				return nil, err
-			}
-			p.steps = steps
-		default:
-			return nil, errors.New("not implemented")
 		}
 	}
 
 	return &p, nil
 }
 
+// determineSteps is primarily for the tests' convenience: it allows testing the "which stuff should
+// we do" logic without building a config that meets all the steps' requirements.
+func determineSteps(cfg Config) *func(Config) []Step {
+	switch cfg.Command {
+	case "upgrade":
+		return &upgrade
+	case "delete":
+		panic("not implemented")
+	case "lint":
+		panic("not implemented")
+	case "help":
+		return &help
+	default:
+		switch cfg.DroneEvent {
+		case "push", "tag", "deployment", "pull_request", "promote", "rollback":
+			return &upgrade
+		default:
+			panic("not implemented")
+		}
+	}
+}
+
 // Execute runs each step in the plan, aborting and reporting on error
 func (p *Plan) Execute() error {
-	for _, step := range p.steps {
-		if err := step.Execute(); err != nil {
-			return err
+	for i, step := range p.steps {
+		if p.cfg.Debug {
+			fmt.Fprintf(os.Stderr, "calling %T.Execute (step %d)\n", step, i)
+		}
+
+		if err := step.Execute(p.runCfg); err != nil {
+			return fmt.Errorf("in execution step %d: %w", i, err)
 		}
 	}
 
 	return nil
 }
 
-func upgrade(cfg Config, runCfg run.Config) ([]Step, error) {
+var upgrade = func(cfg Config) []Step {
 	steps := make([]Step, 0)
-	upgrade := &run.Upgrade{
+
+	steps = append(steps, &run.InitKube{
+		SkipTLSVerify:  cfg.SkipTLSVerify,
+		Certificate:    cfg.Certificate,
+		APIServer:      cfg.APIServer,
+		ServiceAccount: cfg.ServiceAccount,
+		Token:          cfg.KubeToken,
+		TemplateFile:   kubeConfigTemplate,
+	})
+
+	steps = append(steps, &run.Upgrade{
 		Chart:        cfg.Chart,
 		Release:      cfg.Release,
 		ChartVersion: cfg.ChartVersion,
@@ -91,23 +110,12 @@ func upgrade(cfg Config, runCfg run.Config) ([]Step, error) {
 		ReuseValues:  cfg.ReuseValues,
 		Timeout:      cfg.Timeout,
 		Force:        cfg.Force,
-	}
-	if err := upgrade.Prepare(runCfg); err != nil {
-		err = fmt.Errorf("while preparing upgrade step: %w", err)
-		return steps, err
-	}
-	steps = append(steps, upgrade)
+	})
 
-	return steps, nil
+	return steps
 }
 
-func help(cfg Config, runCfg run.Config) ([]Step, error) {
+var help = func(cfg Config) []Step {
 	help := &run.Help{}
-
-	if err := help.Prepare(runCfg); err != nil {
-		err = fmt.Errorf("while preparing help step: %w", err)
-		return []Step{}, err
-	}
-
-	return []Step{help}, nil
+	return []Step{help}
 }

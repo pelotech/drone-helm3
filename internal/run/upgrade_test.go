@@ -41,7 +41,8 @@ func (suite *UpgradeTestSuite) TestPrepare() {
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
-		suite.Equal([]string{"upgrade", "--install", "jonas_brothers_only_human", "at40"}, args)
+		suite.Equal([]string{"--kubeconfig", "/root/.kube/config", "upgrade", "--install",
+			"jonas_brothers_only_human", "at40"}, args)
 
 		return suite.mockCmd
 	}
@@ -54,9 +55,44 @@ func (suite *UpgradeTestSuite) TestPrepare() {
 		Run().
 		Times(1)
 
-	err := u.Prepare(Config{})
+	cfg := Config{
+		KubeConfig: "/root/.kube/config",
+	}
+	err := u.Prepare(cfg)
 	suite.Require().Nil(err)
-	u.Execute()
+	u.Execute(cfg)
+}
+
+func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {
+	defer suite.ctrl.Finish()
+
+	u := Upgrade{
+		Chart:   "at40",
+		Release: "shaed_trampoline",
+	}
+
+	command = func(path string, args ...string) cmd {
+		suite.Equal(helmBin, path)
+		suite.Equal([]string{"--kubeconfig", "/root/.kube/config", "--namespace", "melt", "upgrade",
+			"--install", "shaed_trampoline", "at40"}, args)
+
+		return suite.mockCmd
+	}
+
+	suite.mockCmd.EXPECT().
+		Stdout(gomock.Any())
+	suite.mockCmd.EXPECT().
+		Stderr(gomock.Any())
+	suite.mockCmd.EXPECT().
+		Run()
+
+	cfg := Config{
+		Namespace:  "melt",
+		KubeConfig: "/root/.kube/config",
+	}
+	err := u.Prepare(cfg)
+	suite.Require().Nil(err)
+	u.Execute(cfg)
 }
 
 func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
@@ -68,9 +104,10 @@ func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
 	cfg := Config{
-		Debug:  true,
-		Stdout: &stdout,
-		Stderr: &stderr,
+		Debug:      true,
+		KubeConfig: "/root/.kube/config",
+		Stdout:     &stdout,
+		Stderr:     &stderr,
 	}
 
 	command = func(path string, args ...string) cmd {
@@ -88,7 +125,8 @@ func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 
 	u.Prepare(cfg)
 
-	want := fmt.Sprintf("Generated command: '%s --debug upgrade --install lewis_capaldi_someone_you_loved at40'\n", helmBin)
+	want := fmt.Sprintf("Generated command: '%s --debug --kubeconfig /root/.kube/config upgrade "+
+		"--install lewis_capaldi_someone_you_loved at40'\n", helmBin)
 	suite.Equal(want, stderr.String())
 	suite.Equal("", stdout.String())
 }

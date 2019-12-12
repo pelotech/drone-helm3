@@ -19,13 +19,19 @@ type Upgrade struct {
 }
 
 // Execute executes the `helm upgrade` command.
-func (u *Upgrade) Execute() error {
+func (u *Upgrade) Execute(_ Config) error {
 	return u.cmd.Run()
 }
 
 // Prepare gets the Upgrade ready to execute.
 func (u *Upgrade) Prepare(cfg Config) error {
-	args := []string{"upgrade", "--install", u.Release, u.Chart}
+	args := []string{"--kubeconfig", cfg.KubeConfig}
+
+	if cfg.Namespace != "" {
+		args = append(args, "--namespace", cfg.Namespace)
+	}
+
+	args = append(args, "upgrade", "--install", u.Release, u.Chart)
 
 	if cfg.Debug {
 		args = append([]string{"--debug"}, args...)

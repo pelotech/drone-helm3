@@ -7,7 +7,7 @@ TODO:
 * [x] Make `cmd/drone-helm/main.go` actually invoke `helm`
 * [x] Make `golint` part of the build process (and make it pass)
 * [x] Implement debug output
-* [ ] Flesh out `helm upgrade` until it's capable of working
+* [x] Flesh out `helm upgrade` until it's capable of working
 * [ ] Implement config settings for `upgrade`
 * [ ] Implement `helm lint`
 * [ ] Implement `helm delete`

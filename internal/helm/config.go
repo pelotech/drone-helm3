@@ -25,7 +25,7 @@ type Config struct {
 	StringValues   string   `split_words:"true"`
 	ValuesFiles    []string `split_words:"true"`
 	Namespace      string   ``
-	Token          string   `envconfig:"KUBERNETES_TOKEN"`
+	KubeToken      string   `envconfig:"KUBERNETES_TOKEN"`
 	SkipTLSVerify  bool     `envconfig:"SKIP_TLS_VERIFY"`
 	Certificate    string   `envconfig:"KUBERNETES_CERTIFICATE"`
 	APIServer      string   `envconfig:"API_SERVER"`
