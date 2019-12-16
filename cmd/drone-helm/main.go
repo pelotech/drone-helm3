@@ -19,8 +19,8 @@ func main() {
 	// Make the plan
 	plan, err := helm.NewPlan(c)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
-		return
+		fmt.Fprintf(os.Stderr, "%w\n", err)
+		os.Exit(1)
 	}
 
 	// Execute the plan
