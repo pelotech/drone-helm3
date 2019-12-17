@@ -26,6 +26,13 @@ func (u *Upgrade) Execute(_ Config) error {
 
 // Prepare gets the Upgrade ready to execute.
 func (u *Upgrade) Prepare(cfg Config) error {
+	if u.Chart == "" {
+		return fmt.Errorf("chart is required")
+	}
+	if u.Release == "" {
+		return fmt.Errorf("release is required")
+	}
+
 	args := []string{"--kubeconfig", cfg.KubeConfig}
 
 	if cfg.Namespace != "" {

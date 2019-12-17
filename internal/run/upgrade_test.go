@@ -136,6 +136,26 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 	suite.Require().Nil(err)
 }
 
+func (suite *UpgradeTestSuite) TestRequiresChartAndRelease() {
+	// These aren't really expected, but allowing them gives clearer test-failure messages
+	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
+
+	u := Upgrade{
+		Release: "seth_everman_unskippable_cutscene",
+	}
+
+	err := u.Prepare(Config{})
+	suite.EqualError(err, "chart is required", "Chart should be mandatory")
+
+	u = Upgrade{
+		Chart: "billboard_top_zero",
+	}
+
+	err = u.Prepare(Config{})
+	suite.EqualError(err, "release is required", "Release should be mandatory")
+}
+
 func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 	u := Upgrade{
 		Chart:   "at40",
