@@ -11,5 +11,15 @@ TODO:
 * [ ] Implement config settings for `upgrade`
 * [ ] Implement `helm lint`
 * [ ] Implement `helm delete`
+* [ ] Look for command-line flags added in helm3; implement them
 * [ ] EKS support
+* [ ] Dotenv support
+* [ ] Example drone config in this README
 * [ ] Change `.drone.yml` to use a real docker registry
+
+Nice-to-haves:
+
+* [ ] Cleanup() method on Steps to close open filehandles, etc.
+* [ ] Replace `fmt.Printf` with an actual logger
+* [ ] Replace `fmt.Errorf` with `github.com/pkg/errors.Wrap`, since the built-in `Unwrap` doesn't work the way `Cause` does
+* [ ] Deprecation warnings if there are environment variables that aren't applicable in helm3
