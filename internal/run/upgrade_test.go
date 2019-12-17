@@ -31,7 +31,7 @@ func TestUpgradeTestSuite(t *testing.T) {
 	suite.Run(t, new(UpgradeTestSuite))
 }
 
-func (suite *UpgradeTestSuite) TestPrepare() {
+func (suite *UpgradeTestSuite) TestPrepareAndExecute() {
 	defer suite.ctrl.Finish()
 
 	u := Upgrade{
@@ -79,12 +79,8 @@ func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {
 		return suite.mockCmd
 	}
 
-	suite.mockCmd.EXPECT().
-		Stdout(gomock.Any())
-	suite.mockCmd.EXPECT().
-		Stderr(gomock.Any())
-	suite.mockCmd.EXPECT().
-		Run()
+	suite.mockCmd.EXPECT().Stdout(gomock.Any())
+	suite.mockCmd.EXPECT().Stderr(gomock.Any())
 
 	cfg := Config{
 		Namespace:  "melt",
@@ -92,7 +88,72 @@ func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {
 	}
 	err := u.Prepare(cfg)
 	suite.Require().Nil(err)
-	u.Execute(cfg)
+}
+
+func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
+	defer suite.ctrl.Finish()
+
+	u := Upgrade{
+		Chart:        "hot_ac",
+		Release:      "maroon_5_memories",
+		ChartVersion: "radio_edit",        //-version
+		DryRun:       true,                //-run
+		Wait:         true,                //-wait
+		ReuseValues:  true,                //-values
+		Timeout:      "sit_in_the_corner", //-timeout
+		Force:        true,                //-force
+	}
+
+	cfg := Config{
+		KubeConfig:   "/root/.kube/config",
+		Values:       "age=35",
+		StringValues: "height=5ft10in",
+		ValuesFiles:  []string{"/usr/local/stats", "/usr/local/grades"},
+	}
+
+	command = func(path string, args ...string) cmd {
+		suite.Equal(helmBin, path)
+		suite.Equal([]string{"--kubeconfig", "/root/.kube/config", "upgrade", "--install",
+			"--version", "radio_edit",
+			"--dry-run",
+			"--wait",
+			"--reuse-values",
+			"--timeout", "sit_in_the_corner",
+			"--force",
+			"--set", "age=35",
+			"--set-string", "height=5ft10in",
+			"--values", "/usr/local/stats",
+			"--values", "/usr/local/grades",
+			"maroon_5_memories", "hot_ac"}, args)
+
+		return suite.mockCmd
+	}
+
+	suite.mockCmd.EXPECT().Stdout(gomock.Any())
+	suite.mockCmd.EXPECT().Stderr(gomock.Any())
+
+	err := u.Prepare(cfg)
+	suite.Require().Nil(err)
+}
+
+func (suite *UpgradeTestSuite) TestRequiresChartAndRelease() {
+	// These aren't really expected, but allowing them gives clearer test-failure messages
+	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
+
+	u := Upgrade{
+		Release: "seth_everman_unskippable_cutscene",
+	}
+
+	err := u.Prepare(Config{})
+	suite.EqualError(err, "chart is required", "Chart should be mandatory")
+
+	u = Upgrade{
+		Chart: "billboard_top_zero",
+	}
+
+	err = u.Prepare(Config{})
+	suite.EqualError(err, "release is required", "Release should be mandatory")
 }
 
 func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
@@ -125,7 +186,7 @@ func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 
 	u.Prepare(cfg)
 
-	want := fmt.Sprintf("Generated command: '%s --debug --kubeconfig /root/.kube/config upgrade "+
+	want := fmt.Sprintf("Generated command: '%s --kubeconfig /root/.kube/config --debug upgrade "+
 		"--install lewis_capaldi_someone_you_loved at40'\n", helmBin)
 	suite.Equal(want, stderr.String())
 	suite.Equal("", stdout.String())

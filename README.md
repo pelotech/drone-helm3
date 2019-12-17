@@ -8,7 +8,7 @@ TODO:
 * [x] Make `golint` part of the build process (and make it pass)
 * [x] Implement debug output
 * [x] Flesh out `helm upgrade` until it's capable of working
-* [ ] Implement config settings for `upgrade`
+* [x] Implement config settings for `upgrade`
 * [ ] Implement `helm lint`
 * [ ] Implement `helm delete`
 * [ ] Look for command-line flags added in helm3; implement them

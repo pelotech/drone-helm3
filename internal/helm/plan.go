@@ -106,6 +106,7 @@ var upgrade = func(cfg Config) []Step {
 		Chart:        cfg.Chart,
 		Release:      cfg.Release,
 		ChartVersion: cfg.ChartVersion,
+		DryRun:       cfg.DryRun,
 		Wait:         cfg.Wait,
 		ReuseValues:  cfg.ReuseValues,
 		Timeout:      cfg.Timeout,
