@@ -134,3 +134,30 @@ func (suite *LintTestSuite) TestPrepareWithDebugFlag() {
 	want := fmt.Sprintf("Generated command: '%s --debug lint ./scotland/top_40'\n", helmBin)
 	suite.Equal(want, stderr.String())
 }
+
+func (suite *LintTestSuite) TestPrepareWithNamespaceFlag() {
+	defer suite.ctrl.Finish()
+
+	cfg := Config{
+		Namespace: "table-service",
+	}
+
+	l := Lint{
+		Chart: "./wales/top_40",
+	}
+
+	actual := []string{}
+	command = func(path string, args ...string) cmd {
+		actual = args
+		return suite.mockCmd
+	}
+
+	suite.mockCmd.EXPECT().Stdout(gomock.Any())
+	suite.mockCmd.EXPECT().Stderr(gomock.Any())
+
+	err := l.Prepare(cfg)
+	suite.Require().Nil(err)
+
+	expected := []string{"--namespace", "table-service", "lint", "./wales/top_40"}
+	suite.Equal(expected, actual)
+}

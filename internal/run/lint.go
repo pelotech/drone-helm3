@@ -24,6 +24,9 @@ func (l *Lint) Prepare(cfg Config) error {
 
 	args := make([]string, 0)
 
+	if cfg.Namespace != "" {
+		args = append(args, "--namespace", cfg.Namespace)
+	}
 	if cfg.Debug {
 		args = append(args, "--debug")
 	}
