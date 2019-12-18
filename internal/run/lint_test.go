@@ -56,3 +56,35 @@ func (suite *LintTestSuite) TestPrepareAndExecute() {
 	suite.Require().Nil(err)
 	l.Execute(cfg)
 }
+
+func (suite *LintTestSuite) TestPrepareWithLintFlags() {
+	defer suite.ctrl.Finish()
+
+	cfg := Config{
+		Values:       "width=5",
+		StringValues: "version=2.0",
+		ValuesFiles:  []string{"/usr/local/underrides", "/usr/local/overrides"},
+	}
+
+	l := Lint{
+		Chart: "./uk/top_40",
+	}
+
+	command = func(path string, args ...string) cmd {
+		suite.Equal(helmBin, path)
+		suite.Equal([]string{"lint",
+			"--set", "width=5",
+			"--set-string", "version=2.0",
+			"--values", "/usr/local/underrides",
+			"--values", "/usr/local/overrides",
+			"./uk/top_40"}, args)
+
+		return suite.mockCmd
+	}
+
+	suite.mockCmd.EXPECT().Stdout(gomock.Any())
+	suite.mockCmd.EXPECT().Stderr(gomock.Any())
+
+	err := l.Prepare(cfg)
+	suite.Require().Nil(err)
+}

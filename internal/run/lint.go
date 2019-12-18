@@ -18,7 +18,19 @@ func (l *Lint) Execute(_ Config) error {
 
 // Prepare gets the Lint ready to execute.
 func (l *Lint) Prepare(cfg Config) error {
-	args := []string{"lint", l.Chart}
+	args := []string{"lint"}
+
+	if cfg.Values != "" {
+		args = append(args, "--set", cfg.Values)
+	}
+	if cfg.StringValues != "" {
+		args = append(args, "--set-string", cfg.StringValues)
+	}
+	for _, vFile := range cfg.ValuesFiles {
+		args = append(args, "--values", vFile)
+	}
+
+	args = append(args, l.Chart)
 
 	l.cmd = command(helmBin, args...)
 	l.cmd.Stdout(cfg.Stdout)
