@@ -1,8 +1,10 @@
 package run
 
 import (
+	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
+	"strings"
 	"testing"
 )
 
@@ -87,4 +89,36 @@ func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 
 	err := l.Prepare(cfg)
 	suite.Require().Nil(err)
+}
+
+func (suite *LintTestSuite) TestPrepareWithDebugFlag() {
+	defer suite.ctrl.Finish()
+
+	stderr := strings.Builder{}
+
+	cfg := Config{
+		Debug:  true,
+		Stderr: &stderr,
+	}
+
+	l := Lint{
+		Chart: "./scotland/top_40",
+	}
+
+	command = func(path string, args ...string) cmd {
+		suite.mockCmd.EXPECT().
+			String().
+			Return(fmt.Sprintf("%s %s", path, strings.Join(args, " ")))
+
+		return suite.mockCmd
+	}
+
+	suite.mockCmd.EXPECT().Stdout(gomock.Any())
+	suite.mockCmd.EXPECT().Stderr(gomock.Any())
+
+	err := l.Prepare(cfg)
+	suite.Require().Nil(err)
+
+	want := fmt.Sprintf("Generated command: '%s --debug lint ./scotland/top_40'\n", helmBin)
+	suite.Equal(want, stderr.String())
 }
