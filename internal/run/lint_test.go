@@ -59,6 +59,18 @@ func (suite *LintTestSuite) TestPrepareAndExecute() {
 	l.Execute(cfg)
 }
 
+func (suite *LintTestSuite) TestPrepareRequiresChart() {
+	// These aren't really expected, but allowing them gives clearer test-failure messages
+	suite.mockCmd.EXPECT().Stdout(gomock.Any())
+	suite.mockCmd.EXPECT().Stderr(gomock.Any())
+
+	cfg := Config{}
+	l := Lint{}
+
+	err := l.Prepare(cfg)
+	suite.EqualError(err, "chart is required", "Chart should be mandatory")
+}
+
 func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 	defer suite.ctrl.Finish()
 

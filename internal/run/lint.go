@@ -18,6 +18,10 @@ func (l *Lint) Execute(_ Config) error {
 
 // Prepare gets the Lint ready to execute.
 func (l *Lint) Prepare(cfg Config) error {
+	if l.Chart == "" {
+		return fmt.Errorf("chart is required")
+	}
+
 	args := make([]string, 0)
 
 	if cfg.Debug {
