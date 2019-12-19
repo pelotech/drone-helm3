@@ -7,8 +7,7 @@ import (
 // Lint is an execution step that calls `helm lint` when executed.
 type Lint struct {
 	Chart string
-
-	cmd cmd
+	cmd   cmd
 }
 
 // Execute executes the `helm lint` command.
