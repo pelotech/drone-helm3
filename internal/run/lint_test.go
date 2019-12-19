@@ -61,8 +61,8 @@ func (suite *LintTestSuite) TestPrepareAndExecute() {
 
 func (suite *LintTestSuite) TestPrepareRequiresChart() {
 	// These aren't really expected, but allowing them gives clearer test-failure messages
-	suite.mockCmd.EXPECT().Stdout(gomock.Any())
-	suite.mockCmd.EXPECT().Stderr(gomock.Any())
+	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
 	cfg := Config{}
 	l := Lint{}
@@ -96,8 +96,8 @@ func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 		return suite.mockCmd
 	}
 
-	suite.mockCmd.EXPECT().Stdout(gomock.Any())
-	suite.mockCmd.EXPECT().Stderr(gomock.Any())
+	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
 	err := l.Prepare(cfg)
 	suite.Require().Nil(err)
@@ -126,7 +126,7 @@ func (suite *LintTestSuite) TestPrepareWithDebugFlag() {
 	}
 
 	suite.mockCmd.EXPECT().Stdout(gomock.Any())
-	suite.mockCmd.EXPECT().Stderr(gomock.Any())
+	suite.mockCmd.EXPECT().Stderr(&stderr)
 
 	err := l.Prepare(cfg)
 	suite.Require().Nil(err)
@@ -152,8 +152,8 @@ func (suite *LintTestSuite) TestPrepareWithNamespaceFlag() {
 		return suite.mockCmd
 	}
 
-	suite.mockCmd.EXPECT().Stdout(gomock.Any())
-	suite.mockCmd.EXPECT().Stderr(gomock.Any())
+	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
 	err := l.Prepare(cfg)
 	suite.Require().Nil(err)
