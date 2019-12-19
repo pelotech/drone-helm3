@@ -17,11 +17,16 @@ steps:
     image: golang:1.13
     commands:
       - go build -o build/drone-helm cmd/drone-helm/main.go
-  - name: publish
+  - name: publish_linux_amd64
     image: plugins/docker
-    auto_tag: true
     settings:
+      auto_tag: true
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo:
+        from_secret: plugin_repo
       dockerfile: Dockerfile
-      registry: '192.168.0.17:5000'
-      repo: 192.168.0.17:5000/drone-helm3
-      insecure: true
+    when:
+      event: [ tag, push ]
