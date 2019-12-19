@@ -34,8 +34,15 @@ func TestLintTestSuite(t *testing.T) {
 func (suite *LintTestSuite) TestPrepareAndExecute() {
 	defer suite.ctrl.Finish()
 
+	stdout := strings.Builder{}
+	stderr := strings.Builder{}
+
 	l := Lint{
 		Chart: "./epic/mychart",
+	}
+	cfg := Config{
+		Stdout: &stdout,
+		Stderr: &stderr,
 	}
 
 	command = func(path string, args ...string) cmd {
@@ -46,14 +53,13 @@ func (suite *LintTestSuite) TestPrepareAndExecute() {
 	}
 
 	suite.mockCmd.EXPECT().
-		Stdout(gomock.Any())
+		Stdout(&stdout)
 	suite.mockCmd.EXPECT().
-		Stderr(gomock.Any())
+		Stderr(&stderr)
 	suite.mockCmd.EXPECT().
 		Run().
 		Times(1)
 
-	cfg := Config{}
 	err := l.Prepare(cfg)
 	suite.Require().Nil(err)
 	l.Execute(cfg)
