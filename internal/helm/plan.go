@@ -60,7 +60,7 @@ func determineSteps(cfg Config) *func(Config) []Step {
 	case "upgrade":
 		return &upgrade
 	case "delete":
-		panic("not implemented")
+		return &del
 	case "lint":
 		panic("not implemented")
 	case "help":
@@ -69,6 +69,8 @@ func determineSteps(cfg Config) *func(Config) []Step {
 		switch cfg.DroneEvent {
 		case "push", "tag", "deployment", "pull_request", "promote", "rollback":
 			return &upgrade
+		case "delete":
+			return &del
 		default:
 			panic("not implemented")
 		}
@@ -114,6 +116,23 @@ var upgrade = func(cfg Config) []Step {
 	})
 
 	return steps
+}
+
+var del = func(cfg Config) []Step {
+	return []Step{
+		&run.InitKube{
+			SkipTLSVerify:  cfg.SkipTLSVerify,
+			Certificate:    cfg.Certificate,
+			APIServer:      cfg.APIServer,
+			ServiceAccount: cfg.ServiceAccount,
+			Token:          cfg.KubeToken,
+			TemplateFile:   kubeConfigTemplate,
+		},
+		&run.Delete{
+			Release: cfg.Release,
+			DryRun:  cfg.DryRun,
+		},
+	}
 }
 
 var help = func(cfg Config) []Step {
