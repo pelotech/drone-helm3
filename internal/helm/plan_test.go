@@ -137,6 +137,20 @@ func (suite *PlanTestSuite) TestUpgrade() {
 	suite.Equal(expected, upgrade)
 }
 
+func (suite *PlanTestSuite) TestLint() {
+	cfg := Config{
+		Chart: "./flow",
+	}
+
+	steps := lint(cfg)
+	suite.Equal(1, len(steps))
+
+	want := &run.Lint{
+		Chart: "./flow",
+	}
+	suite.Equal(want, steps[0])
+}
+
 func (suite *PlanTestSuite) TestDeterminePlanUpgradeCommand() {
 	cfg := Config{
 		Command: "upgrade",
@@ -154,6 +168,15 @@ func (suite *PlanTestSuite) TestDeterminePlanUpgradeFromDroneEvent() {
 		stepsMaker := determineSteps(cfg)
 		suite.Same(&upgrade, stepsMaker, fmt.Sprintf("for event type '%s'", event))
 	}
+}
+
+func (suite *PlanTestSuite) TestDeterminePlanLintCommand() {
+	cfg := Config{
+		Command: "lint",
+	}
+
+	stepsMaker := determineSteps(cfg)
+	suite.Same(&lint, stepsMaker)
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanHelpCommand() {
