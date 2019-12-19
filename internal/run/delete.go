@@ -8,8 +8,7 @@ import (
 type Delete struct {
 	Release string
 	DryRun  bool
-
-	cmd cmd
+	cmd     cmd
 }
 
 // Execute executes the `helm upgrade` command.
