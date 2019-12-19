@@ -87,43 +87,24 @@ func (suite *PlanTestSuite) TestNewPlanAbortsOnError() {
 
 func (suite *PlanTestSuite) TestUpgrade() {
 	cfg := Config{
-		KubeToken:      "cXVlZXIgY2hhcmFjdGVyCg==",
-		SkipTLSVerify:  true,
-		Certificate:    "b2Ygd29rZW5lc3MK",
-		APIServer:      "123.456.78.9",
-		ServiceAccount: "helmet",
-		ChartVersion:   "seventeen",
-		DryRun:         true,
-		Wait:           true,
-		ReuseValues:    true,
-		Timeout:        "go sit in the corner",
-		Chart:          "billboard_top_100",
-		Release:        "post_malone_circles",
-		Force:          true,
+		ChartVersion: "seventeen",
+		DryRun:       true,
+		Wait:         true,
+		ReuseValues:  true,
+		Timeout:      "go sit in the corner",
+		Chart:        "billboard_top_100",
+		Release:      "post_malone_circles",
+		Force:        true,
 	}
 
 	steps := upgrade(cfg)
-
-	suite.Equal(2, len(steps))
-
+	suite.Require().Equal(2, len(steps), "upgrade should return 2 steps")
 	suite.Require().IsType(&run.InitKube{}, steps[0])
-	init, _ := steps[0].(*run.InitKube)
-
-	var expected Step = &run.InitKube{
-		SkipTLSVerify:  cfg.SkipTLSVerify,
-		Certificate:    cfg.Certificate,
-		APIServer:      cfg.APIServer,
-		ServiceAccount: cfg.ServiceAccount,
-		Token:          cfg.KubeToken,
-		TemplateFile:   kubeConfigTemplate,
-	}
-
-	suite.Equal(expected, init)
 
 	suite.Require().IsType(&run.Upgrade{}, steps[1])
 	upgrade, _ := steps[1].(*run.Upgrade)
 
-	expected = &run.Upgrade{
+	expected := &run.Upgrade{
 		Chart:        cfg.Chart,
 		Release:      cfg.Release,
 		ChartVersion: cfg.ChartVersion,
@@ -135,6 +116,68 @@ func (suite *PlanTestSuite) TestUpgrade() {
 	}
 
 	suite.Equal(expected, upgrade)
+}
+
+func (suite *PlanTestSuite) TestDel() {
+	cfg := Config{
+		KubeToken:      "b2YgbXkgYWZmZWN0aW9u",
+		SkipTLSVerify:  true,
+		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
+		APIServer:      "98.765.43.21",
+		ServiceAccount: "greathelm",
+		DryRun:         true,
+		Timeout:        "think about what you did",
+		Release:        "jetta_id_love_to_change_the_world",
+	}
+
+	steps := uninstall(cfg)
+	suite.Require().Equal(2, len(steps), "uninstall should return 2 steps")
+
+	suite.Require().IsType(&run.InitKube{}, steps[0])
+	init, _ := steps[0].(*run.InitKube)
+	var expected Step = &run.InitKube{
+		SkipTLSVerify:  true,
+		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
+		APIServer:      "98.765.43.21",
+		ServiceAccount: "greathelm",
+		Token:          "b2YgbXkgYWZmZWN0aW9u",
+		TemplateFile:   kubeConfigTemplate,
+	}
+
+	suite.Equal(expected, init)
+
+	suite.Require().IsType(&run.Uninstall{}, steps[1])
+	actual, _ := steps[1].(*run.Uninstall)
+	expected = &run.Uninstall{
+		Release: "jetta_id_love_to_change_the_world",
+		DryRun:  true,
+	}
+	suite.Equal(expected, actual)
+}
+
+func (suite *PlanTestSuite) TestInitKube() {
+	cfg := Config{
+		KubeToken:      "cXVlZXIgY2hhcmFjdGVyCg==",
+		SkipTLSVerify:  true,
+		Certificate:    "b2Ygd29rZW5lc3MK",
+		APIServer:      "123.456.78.9",
+		ServiceAccount: "helmet",
+	}
+
+	steps := initKube(cfg)
+	suite.Require().Equal(1, len(steps), "initKube should return one step")
+	suite.Require().IsType(&run.InitKube{}, steps[0])
+	init, _ := steps[0].(*run.InitKube)
+
+	expected := &run.InitKube{
+		SkipTLSVerify:  true,
+		Certificate:    "b2Ygd29rZW5lc3MK",
+		APIServer:      "123.456.78.9",
+		ServiceAccount: "helmet",
+		Token:          "cXVlZXIgY2hhcmFjdGVyCg==",
+		TemplateFile:   kubeConfigTemplate,
+	}
+	suite.Equal(expected, init)
 }
 
 func (suite *PlanTestSuite) TestLint() {
@@ -168,6 +211,31 @@ func (suite *PlanTestSuite) TestDeterminePlanUpgradeFromDroneEvent() {
 		stepsMaker := determineSteps(cfg)
 		suite.Same(&upgrade, stepsMaker, fmt.Sprintf("for event type '%s'", event))
 	}
+}
+
+func (suite *PlanTestSuite) TestDeterminePlanUninstallCommand() {
+	cfg := Config{
+		Command: "uninstall",
+	}
+	stepsMaker := determineSteps(cfg)
+	suite.Same(&uninstall, stepsMaker)
+}
+
+// helm_command = delete is provided as an alias for backwards-compatibility with drone-helm
+func (suite *PlanTestSuite) TestDeterminePlanDeleteCommand() {
+	cfg := Config{
+		Command: "delete",
+	}
+	stepsMaker := determineSteps(cfg)
+	suite.Same(&uninstall, stepsMaker)
+}
+
+func (suite *PlanTestSuite) TestDeterminePlanDeleteFromDroneEvent() {
+	cfg := Config{
+		DroneEvent: "delete",
+	}
+	stepsMaker := determineSteps(cfg)
+	suite.Same(&uninstall, stepsMaker)
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanLintCommand() {

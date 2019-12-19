@@ -59,8 +59,8 @@ func determineSteps(cfg Config) *func(Config) []Step {
 	switch cfg.Command {
 	case "upgrade":
 		return &upgrade
-	case "delete":
-		panic("not implemented")
+	case "uninstall", "delete":
+		return &uninstall
 	case "lint":
 		return &lint
 	case "help":
@@ -69,6 +69,8 @@ func determineSteps(cfg Config) *func(Config) []Step {
 		switch cfg.DroneEvent {
 		case "push", "tag", "deployment", "pull_request", "promote", "rollback":
 			return &upgrade
+		case "delete":
+			return &uninstall
 		default:
 			panic("not implemented")
 		}
@@ -91,16 +93,7 @@ func (p *Plan) Execute() error {
 }
 
 var upgrade = func(cfg Config) []Step {
-	steps := make([]Step, 0)
-
-	steps = append(steps, &run.InitKube{
-		SkipTLSVerify:  cfg.SkipTLSVerify,
-		Certificate:    cfg.Certificate,
-		APIServer:      cfg.APIServer,
-		ServiceAccount: cfg.ServiceAccount,
-		Token:          cfg.KubeToken,
-		TemplateFile:   kubeConfigTemplate,
-	})
+	steps := initKube(cfg)
 
 	steps = append(steps, &run.Upgrade{
 		Chart:        cfg.Chart,
@@ -111,6 +104,16 @@ var upgrade = func(cfg Config) []Step {
 		ReuseValues:  cfg.ReuseValues,
 		Timeout:      cfg.Timeout,
 		Force:        cfg.Force,
+	})
+
+	return steps
+}
+
+var uninstall = func(cfg Config) []Step {
+	steps := initKube(cfg)
+	steps = append(steps, &run.Uninstall{
+		Release: cfg.Release,
+		DryRun:  cfg.DryRun,
 	})
 
 	return steps
@@ -127,4 +130,17 @@ var lint = func(cfg Config) []Step {
 var help = func(cfg Config) []Step {
 	help := &run.Help{}
 	return []Step{help}
+}
+
+func initKube(cfg Config) []Step {
+	return []Step{
+		&run.InitKube{
+			SkipTLSVerify:  cfg.SkipTLSVerify,
+			Certificate:    cfg.Certificate,
+			APIServer:      cfg.APIServer,
+			ServiceAccount: cfg.ServiceAccount,
+			Token:          cfg.KubeToken,
+			TemplateFile:   kubeConfigTemplate,
+		},
+	}
 }
