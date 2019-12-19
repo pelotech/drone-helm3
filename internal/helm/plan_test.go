@@ -87,43 +87,24 @@ func (suite *PlanTestSuite) TestNewPlanAbortsOnError() {
 
 func (suite *PlanTestSuite) TestUpgrade() {
 	cfg := Config{
-		KubeToken:      "cXVlZXIgY2hhcmFjdGVyCg==",
-		SkipTLSVerify:  true,
-		Certificate:    "b2Ygd29rZW5lc3MK",
-		APIServer:      "123.456.78.9",
-		ServiceAccount: "helmet",
-		ChartVersion:   "seventeen",
-		DryRun:         true,
-		Wait:           true,
-		ReuseValues:    true,
-		Timeout:        "go sit in the corner",
-		Chart:          "billboard_top_100",
-		Release:        "post_malone_circles",
-		Force:          true,
+		ChartVersion: "seventeen",
+		DryRun:       true,
+		Wait:         true,
+		ReuseValues:  true,
+		Timeout:      "go sit in the corner",
+		Chart:        "billboard_top_100",
+		Release:      "post_malone_circles",
+		Force:        true,
 	}
 
 	steps := upgrade(cfg)
-
-	suite.Equal(2, len(steps))
-
+	suite.Require().Equal(2, len(steps), "upgrade should return 2 steps")
 	suite.Require().IsType(&run.InitKube{}, steps[0])
-	init, _ := steps[0].(*run.InitKube)
-
-	var expected Step = &run.InitKube{
-		SkipTLSVerify:  cfg.SkipTLSVerify,
-		Certificate:    cfg.Certificate,
-		APIServer:      cfg.APIServer,
-		ServiceAccount: cfg.ServiceAccount,
-		Token:          cfg.KubeToken,
-		TemplateFile:   kubeConfigTemplate,
-	}
-
-	suite.Equal(expected, init)
 
 	suite.Require().IsType(&run.Upgrade{}, steps[1])
 	upgrade, _ := steps[1].(*run.Upgrade)
 
-	expected = &run.Upgrade{
+	expected := &run.Upgrade{
 		Chart:        cfg.Chart,
 		Release:      cfg.Release,
 		ChartVersion: cfg.ChartVersion,
@@ -172,6 +153,31 @@ func (suite *PlanTestSuite) TestDel() {
 		DryRun:  true,
 	}
 	suite.Equal(expected, actual)
+}
+
+func (suite *PlanTestSuite) TestInitKube() {
+	cfg := Config{
+		KubeToken:      "cXVlZXIgY2hhcmFjdGVyCg==",
+		SkipTLSVerify:  true,
+		Certificate:    "b2Ygd29rZW5lc3MK",
+		APIServer:      "123.456.78.9",
+		ServiceAccount: "helmet",
+	}
+
+	steps := initKube(cfg)
+	suite.Require().Equal(1, len(steps), "initKube should return one step")
+	suite.Require().IsType(&run.InitKube{}, steps[0])
+	init, _ := steps[0].(*run.InitKube)
+
+	expected := &run.InitKube{
+		SkipTLSVerify:  true,
+		Certificate:    "b2Ygd29rZW5lc3MK",
+		APIServer:      "123.456.78.9",
+		ServiceAccount: "helmet",
+		Token:          "cXVlZXIgY2hhcmFjdGVyCg==",
+		TemplateFile:   kubeConfigTemplate,
+	}
+	suite.Equal(expected, init)
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanUpgradeCommand() {

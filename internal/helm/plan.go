@@ -93,16 +93,7 @@ func (p *Plan) Execute() error {
 }
 
 var upgrade = func(cfg Config) []Step {
-	steps := make([]Step, 0)
-
-	steps = append(steps, &run.InitKube{
-		SkipTLSVerify:  cfg.SkipTLSVerify,
-		Certificate:    cfg.Certificate,
-		APIServer:      cfg.APIServer,
-		ServiceAccount: cfg.ServiceAccount,
-		Token:          cfg.KubeToken,
-		TemplateFile:   kubeConfigTemplate,
-	})
+	steps := initKube(cfg)
 
 	steps = append(steps, &run.Upgrade{
 		Chart:        cfg.Chart,
@@ -119,6 +110,21 @@ var upgrade = func(cfg Config) []Step {
 }
 
 var del = func(cfg Config) []Step {
+	steps := initKube(cfg)
+	steps = append(steps, &run.Delete{
+		Release: cfg.Release,
+		DryRun:  cfg.DryRun,
+	})
+
+	return steps
+}
+
+var help = func(cfg Config) []Step {
+	help := &run.Help{}
+	return []Step{help}
+}
+
+func initKube(cfg Config) []Step {
 	return []Step{
 		&run.InitKube{
 			SkipTLSVerify:  cfg.SkipTLSVerify,
@@ -128,14 +134,5 @@ var del = func(cfg Config) []Step {
 			Token:          cfg.KubeToken,
 			TemplateFile:   kubeConfigTemplate,
 		},
-		&run.Delete{
-			Release: cfg.Release,
-			DryRun:  cfg.DryRun,
-		},
 	}
-}
-
-var help = func(cfg Config) []Step {
-	help := &run.Help{}
-	return []Step{help}
 }
