@@ -10,7 +10,7 @@ The plugin is inpsired by [drone-helm](https://github.com/ipedrazas/drone-helm),
 
 ## Example configuration
 
-These examples give a minimal and sufficient configuration for each use-case. For a full description of each case, see [docs/lint_example.yml](docs/lint_example.yml), [docs/upgrade_example.yml](docs/upgrade_example.yml), and [docs/delete_example.yml](docs/delete_example.yml).
+These examples give a minimal and sufficient configuration for each use-case. For a full description of each case, see [docs/lint_example.yml](docs/lint_example.yml), [docs/upgrade_example.yml](docs/upgrade_example.yml), and [docs/uninstall_example.yml](docs/uninstall_example.yml).
 
 ### Linting
 
@@ -43,10 +43,10 @@ steps:
 
 ```yaml
 steps:
-  - name: delete
+  - name: uninstall
     image: pelotech/drone-helm3
     settings:
-      helm_command: delete
+      helm_command: uninstall
       release: my-project
     environment:
       API_SERVER: https://my.kubernetes.installation/clusters/a-1234
