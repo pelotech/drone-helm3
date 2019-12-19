@@ -130,8 +130,8 @@ func (suite *PlanTestSuite) TestDel() {
 		Release:        "jetta_id_love_to_change_the_world",
 	}
 
-	steps := del(cfg)
-	suite.Require().Equal(2, len(steps), "del should return 2 steps")
+	steps := uninstall(cfg)
+	suite.Require().Equal(2, len(steps), "uninstall should return 2 steps")
 
 	suite.Require().IsType(&run.InitKube{}, steps[0])
 	init, _ := steps[0].(*run.InitKube)
@@ -146,9 +146,9 @@ func (suite *PlanTestSuite) TestDel() {
 
 	suite.Equal(expected, init)
 
-	suite.Require().IsType(&run.Delete{}, steps[1])
-	actual, _ := steps[1].(*run.Delete)
-	expected = &run.Delete{
+	suite.Require().IsType(&run.Uninstall{}, steps[1])
+	actual, _ := steps[1].(*run.Uninstall)
+	expected = &run.Uninstall{
 		Release: "jetta_id_love_to_change_the_world",
 		DryRun:  true,
 	}
@@ -213,12 +213,21 @@ func (suite *PlanTestSuite) TestDeterminePlanUpgradeFromDroneEvent() {
 	}
 }
 
+func (suite *PlanTestSuite) TestDeterminePlanUninstallCommand() {
+	cfg := Config{
+		Command: "uninstall",
+	}
+	stepsMaker := determineSteps(cfg)
+	suite.Same(&uninstall, stepsMaker)
+}
+
+// helm_command = delete is provided as an alias for backwards-compatibility with drone-helm
 func (suite *PlanTestSuite) TestDeterminePlanDeleteCommand() {
 	cfg := Config{
 		Command: "delete",
 	}
 	stepsMaker := determineSteps(cfg)
-	suite.Same(&del, stepsMaker)
+	suite.Same(&uninstall, stepsMaker)
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanDeleteFromDroneEvent() {
@@ -226,7 +235,7 @@ func (suite *PlanTestSuite) TestDeterminePlanDeleteFromDroneEvent() {
 		DroneEvent: "delete",
 	}
 	stepsMaker := determineSteps(cfg)
-	suite.Same(&del, stepsMaker)
+	suite.Same(&uninstall, stepsMaker)
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanLintCommand() {

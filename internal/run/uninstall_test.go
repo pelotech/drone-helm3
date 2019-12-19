@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-type DeleteTestSuite struct {
+type UninstallTestSuite struct {
 	suite.Suite
 	ctrl            *gomock.Controller
 	mockCmd         *Mockcmd
@@ -16,7 +16,7 @@ type DeleteTestSuite struct {
 	originalCommand func(string, ...string) cmd
 }
 
-func (suite *DeleteTestSuite) BeforeTest(_, _ string) {
+func (suite *UninstallTestSuite) BeforeTest(_, _ string) {
 	suite.ctrl = gomock.NewController(suite.T())
 	suite.mockCmd = NewMockcmd(suite.ctrl)
 
@@ -27,18 +27,18 @@ func (suite *DeleteTestSuite) BeforeTest(_, _ string) {
 	}
 }
 
-func (suite *DeleteTestSuite) AfterTest(_, _ string) {
+func (suite *UninstallTestSuite) AfterTest(_, _ string) {
 	command = suite.originalCommand
 }
 
-func TestDeleteTestSuite(t *testing.T) {
-	suite.Run(t, new(DeleteTestSuite))
+func TestUninstallTestSuite(t *testing.T) {
+	suite.Run(t, new(UninstallTestSuite))
 }
 
-func (suite *DeleteTestSuite) TestPrepareAndExecute() {
+func (suite *UninstallTestSuite) TestPrepareAndExecute() {
 	defer suite.ctrl.Finish()
 
-	d := Delete{
+	u := Uninstall{
 		Release: "zayde_wølf_king",
 	}
 
@@ -61,15 +61,15 @@ func (suite *DeleteTestSuite) TestPrepareAndExecute() {
 	cfg := Config{
 		KubeConfig: "/root/.kube/config",
 	}
-	suite.NoError(d.Prepare(cfg))
-	expected := []string{"--kubeconfig", "/root/.kube/config", "delete", "zayde_wølf_king"}
+	suite.NoError(u.Prepare(cfg))
+	expected := []string{"--kubeconfig", "/root/.kube/config", "uninstall", "zayde_wølf_king"}
 	suite.Equal(expected, actual)
 
-	d.Execute(cfg)
+	u.Execute(cfg)
 }
 
-func (suite *DeleteTestSuite) TestPrepareDryRunFlag() {
-	d := Delete{
+func (suite *UninstallTestSuite) TestPrepareDryRunFlag() {
+	u := Uninstall{
 		Release: "firefox_ak_wildfire",
 		DryRun:  true,
 	}
@@ -80,13 +80,13 @@ func (suite *DeleteTestSuite) TestPrepareDryRunFlag() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
-	suite.NoError(d.Prepare(cfg))
-	expected := []string{"--kubeconfig", "/root/.kube/config", "delete", "--dry-run", "firefox_ak_wildfire"}
+	suite.NoError(u.Prepare(cfg))
+	expected := []string{"--kubeconfig", "/root/.kube/config", "uninstall", "--dry-run", "firefox_ak_wildfire"}
 	suite.Equal(expected, suite.actualArgs)
 }
 
-func (suite *DeleteTestSuite) TestPrepareNamespaceFlag() {
-	d := Delete{
+func (suite *UninstallTestSuite) TestPrepareNamespaceFlag() {
+	u := Uninstall{
 		Release: "carly_simon_run_away_with_me",
 	}
 	cfg := Config{
@@ -97,14 +97,14 @@ func (suite *DeleteTestSuite) TestPrepareNamespaceFlag() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
-	suite.NoError(d.Prepare(cfg))
+	suite.NoError(u.Prepare(cfg))
 	expected := []string{"--kubeconfig", "/root/.kube/config",
-		"--namespace", "emotion", "delete", "carly_simon_run_away_with_me"}
+		"--namespace", "emotion", "uninstall", "carly_simon_run_away_with_me"}
 	suite.Equal(expected, suite.actualArgs)
 }
 
-func (suite *DeleteTestSuite) TestPrepareDebugFlag() {
-	d := Delete{
+func (suite *UninstallTestSuite) TestPrepareDebugFlag() {
+	u := Uninstall{
 		Release: "just_a_band_huff_and_puff",
 	}
 	stderr := strings.Builder{}
@@ -125,17 +125,17 @@ func (suite *DeleteTestSuite) TestPrepareDebugFlag() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(&stderr).AnyTimes()
 
-	suite.NoError(d.Prepare(cfg))
+	suite.NoError(u.Prepare(cfg))
 	suite.Equal(fmt.Sprintf("Generated command: '%s --kubeconfig /root/.kube/config "+
-		"--debug delete just_a_band_huff_and_puff'\n", helmBin), stderr.String())
+		"--debug uninstall just_a_band_huff_and_puff'\n", helmBin), stderr.String())
 }
 
-func (suite *DeleteTestSuite) TestPrepareRequiresRelease() {
+func (suite *UninstallTestSuite) TestPrepareRequiresRelease() {
 	// These aren't really expected, but allowing them gives clearer test-failure messages
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
-	d := Delete{}
-	err := d.Prepare(Config{})
-	suite.EqualError(err, "release is required", "Delete.Release should be mandatory")
+	u := Uninstall{}
+	err := u.Prepare(Config{})
+	suite.EqualError(err, "release is required", "Uninstall.Release should be mandatory")
 }

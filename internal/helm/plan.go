@@ -59,8 +59,8 @@ func determineSteps(cfg Config) *func(Config) []Step {
 	switch cfg.Command {
 	case "upgrade":
 		return &upgrade
-	case "delete":
-		return &del
+	case "uninstall", "delete":
+		return &uninstall
 	case "lint":
 		return &lint
 	case "help":
@@ -70,7 +70,7 @@ func determineSteps(cfg Config) *func(Config) []Step {
 		case "push", "tag", "deployment", "pull_request", "promote", "rollback":
 			return &upgrade
 		case "delete":
-			return &del
+			return &uninstall
 		default:
 			panic("not implemented")
 		}
@@ -109,9 +109,9 @@ var upgrade = func(cfg Config) []Step {
 	return steps
 }
 
-var del = func(cfg Config) []Step {
+var uninstall = func(cfg Config) []Step {
 	steps := initKube(cfg)
-	steps = append(steps, &run.Delete{
+	steps = append(steps, &run.Uninstall{
 		Release: cfg.Release,
 		DryRun:  cfg.DryRun,
 	})
