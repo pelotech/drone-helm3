@@ -180,6 +180,20 @@ func (suite *PlanTestSuite) TestInitKube() {
 	suite.Equal(expected, init)
 }
 
+func (suite *PlanTestSuite) TestLint() {
+	cfg := Config{
+		Chart: "./flow",
+	}
+
+	steps := lint(cfg)
+	suite.Equal(1, len(steps))
+
+	want := &run.Lint{
+		Chart: "./flow",
+	}
+	suite.Equal(want, steps[0])
+}
+
 func (suite *PlanTestSuite) TestDeterminePlanUpgradeCommand() {
 	cfg := Config{
 		Command: "upgrade",
@@ -213,6 +227,15 @@ func (suite *PlanTestSuite) TestDeterminePlanDeleteFromDroneEvent() {
 	}
 	stepsMaker := determineSteps(cfg)
 	suite.Same(&del, stepsMaker)
+}
+
+func (suite *PlanTestSuite) TestDeterminePlanLintCommand() {
+	cfg := Config{
+		Command: "lint",
+	}
+
+	stepsMaker := determineSteps(cfg)
+	suite.Same(&lint, stepsMaker)
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanHelpCommand() {

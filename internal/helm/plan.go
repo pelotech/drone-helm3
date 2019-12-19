@@ -62,7 +62,7 @@ func determineSteps(cfg Config) *func(Config) []Step {
 	case "delete":
 		return &del
 	case "lint":
-		panic("not implemented")
+		return &lint
 	case "help":
 		return &help
 	default:
@@ -117,6 +117,14 @@ var del = func(cfg Config) []Step {
 	})
 
 	return steps
+}
+
+var lint = func(cfg Config) []Step {
+	lint := &run.Lint{
+		Chart: cfg.Chart,
+	}
+
+	return []Step{lint}
 }
 
 var help = func(cfg Config) []Step {
