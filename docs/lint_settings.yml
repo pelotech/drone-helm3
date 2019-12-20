@@ -32,5 +32,4 @@ steps:
       repos: "eDeath=https://github.com/bug/e-death,idMaker=https://github.com/nmarks/id-maker"
 
       # Give the --namespace flag to all helm commands.
-      # TODO: I don't think this setting has any effect on linting; should it be documented?
       namespace: my_kube_subset
