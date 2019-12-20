@@ -1,0 +1,36 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: lint
+    image: pelotech/drone-helm3
+    settings:
+      # Helm_command must be set to "lint" in order to lint :)
+      helm_command: lint
+
+      # Mandatory; must be a path to a chart directory.
+      chart: ./charts/bloge
+
+      # Produce debug output from drone-helm itself and send --debug to all helm commands.
+      debug: true
+
+      # The string given here will be passed verbatim to --set.
+      values: some=local,helm=values
+
+      # The string given here will be passed verbatim to --set-string.
+      string_values: "notAnInt=5"
+
+      # Each file will be passed to --values. Filenames must not contain commas.
+      values_files: "values/underrides.yml,values/overrides.yml"
+
+      # Call `helm dependency update` before linting.
+      update_dependencies: true
+
+      # Call `helm repo add` for each repo before linting. Repo names and urls must not contain commas.
+      repos: "eDeath=https://github.com/bug/e-death,idMaker=https://github.com/nmarks/id-maker"
+
+      # Give the --namespace flag to all helm commands.
+      # TODO: I don't think this setting has any effect on linting; should it be documented?
+      namespace: my_kube_subset
