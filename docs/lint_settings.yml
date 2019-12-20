@@ -26,9 +26,11 @@ steps:
       values_files: "values/underrides.yml,values/overrides.yml"
 
       # Call `helm dependency update` before linting.
+      # Note: this setting is on the v1.0 roadmap, but not yet implemented.
       update_dependencies: true
 
       # Call `helm repo add` for each repo before linting. Repo names and urls must not contain commas.
+      # Note: this setting is on the v1.0 roadmap, but not yet implemented.
       repos: "eDeath=https://github.com/bug/e-death,idMaker=https://github.com/nmarks/id-maker"
 
       # Give the --namespace flag to all helm commands.
