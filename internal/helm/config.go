@@ -25,7 +25,7 @@ type Config struct {
 	SkipTLSVerify      bool     `envconfig:"SKIP_TLS_VERIFY"`        // Put insecure-skip-tls-verify in .kube/config
 	Certificate        string   `envconfig:"KUBERNETES_CERTIFICATE"` // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
 	APIServer          string   `envconfig:"API_SERVER"`             // The Kubernetes cluster's API endpoint
-	ServiceAccount     string   `envconfig:"SERVICE_ACCOUNT"`        // Account to use for connecting to the Kubernetes cluster
+	ServiceAccount     string   `split_words:"true"`                 // Account to use for connecting to the Kubernetes cluster
 	ChartVersion       string   `split_words:"true"`                 // Specific chart version to use in `helm upgrade`
 	DryRun             bool     `split_words:"true"`                 // Pass --dry-run to applicable helm commands
 	Wait               bool     ``                                   // Pass --wait to applicable helm commands
@@ -36,7 +36,15 @@ type Config struct {
 	Force              bool     ``                                   // Pass --force to applicable helm commands
 }
 
-// Populate reads environment variables into the Config.
+// Populate reads environment variables into the Config, accounting for several possible formats.
 func (cfg *Config) Populate() error {
-	return envconfig.Process("plugin", cfg)
+	if err := envconfig.Process("plugin", cfg); err != nil {
+		return err
+	}
+
+	if err := envconfig.Process("", cfg); err != nil {
+		return err
+	}
+
+	return nil
 }

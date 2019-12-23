@@ -18,6 +18,10 @@ func TestConfigTestSuite(t *testing.T) {
 }
 
 func (suite *ConfigTestSuite) TestPopulateWithPluginPrefix() {
+	suite.unsetenv("HELM_COMMAND")
+	suite.unsetenv("UPDATE_DEPENDENCIES")
+	suite.unsetenv("DEBUG")
+
 	suite.setenv("PLUGIN_HELM_COMMAND", "execute order 66")
 	suite.setenv("PLUGIN_UPDATE_DEPENDENCIES", "true")
 	suite.setenv("PLUGIN_DEBUG", "true")
@@ -28,6 +32,33 @@ func (suite *ConfigTestSuite) TestPopulateWithPluginPrefix() {
 	suite.Equal("execute order 66", cfg.Command)
 	suite.True(cfg.UpdateDependencies)
 	suite.True(cfg.Debug)
+}
+
+func (suite *ConfigTestSuite) TestPopulateWithNoPrefix() {
+	suite.unsetenv("PLUGIN_HELM_COMMAND")
+	suite.unsetenv("PLUGIN_UPDATE_DEPENDENCIES")
+	suite.unsetenv("PLUGIN_DEBUG")
+
+	suite.setenv("HELM_COMMAND", "execute order 66")
+	suite.setenv("UPDATE_DEPENDENCIES", "true")
+	suite.setenv("DEBUG", "true")
+
+	cfg := Config{}
+	cfg.Populate()
+
+	suite.Equal("execute order 66", cfg.Command)
+	suite.True(cfg.UpdateDependencies)
+	suite.True(cfg.Debug)
+}
+
+func (suite *ConfigTestSuite) TestPopulateWithConflictingVariables() {
+	suite.setenv("PLUGIN_HELM_COMMAND", "execute order 66")
+	suite.setenv("HELM_COMMAND", "defend the jedi")
+
+	cfg := Config{}
+	cfg.Populate()
+
+	suite.Equal("defend the jedi", cfg.Command)
 }
 
 func (suite *ConfigTestSuite) setenv(key, val string) {
