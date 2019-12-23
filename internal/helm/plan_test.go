@@ -32,7 +32,6 @@ func (suite *PlanTestSuite) TestNewPlan() {
 	cfg := Config{
 		Command:      "help",
 		Debug:        false,
-		KubeConfig:   "/branch/.sfere/profig",
 		Values:       "steadfastness,forthrightness",
 		StringValues: "tensile_strength,flexibility",
 		ValuesFiles:  []string{"/root/price_inventory.yml"},
@@ -41,7 +40,6 @@ func (suite *PlanTestSuite) TestNewPlan() {
 
 	runCfg := run.Config{
 		Debug:        false,
-		KubeConfig:   "/branch/.sfere/profig",
 		Values:       "steadfastness,forthrightness",
 		StringValues: "tensile_strength,flexibility",
 		ValuesFiles:  []string{"/root/price_inventory.yml"},
@@ -142,6 +140,7 @@ func (suite *PlanTestSuite) TestDel() {
 		ServiceAccount: "greathelm",
 		Token:          "b2YgbXkgYWZmZWN0aW9u",
 		TemplateFile:   kubeConfigTemplate,
+		ConfigFile:     kubeConfigFile,
 	}
 
 	suite.Equal(expected, init)
@@ -176,6 +175,7 @@ func (suite *PlanTestSuite) TestInitKube() {
 		ServiceAccount: "helmet",
 		Token:          "cXVlZXIgY2hhcmFjdGVyCg==",
 		TemplateFile:   kubeConfigTemplate,
+		ConfigFile:     kubeConfigFile,
 	}
 	suite.Equal(expected, init)
 }

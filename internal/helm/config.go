@@ -19,8 +19,7 @@ type Config struct {
 	Prefix             string      ``                              // Prefix to use when looking up secret env vars
 
 	// Global helm config
-	Debug          bool     ``                                                // global helm flag (also applies to drone-helm itself)
-	KubeConfig     string   `split_words:"true" default:"/root/.kube/config"` // path to the kube config file
+	Debug          bool     `` // global helm flag (also applies to drone-helm itself)
 	Values         string   ``
 	StringValues   string   `split_words:"true"`
 	ValuesFiles    []string `split_words:"true"`

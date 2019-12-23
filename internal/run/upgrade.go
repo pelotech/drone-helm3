@@ -33,7 +33,7 @@ func (u *Upgrade) Prepare(cfg Config) error {
 		return fmt.Errorf("release is required")
 	}
 
-	args := []string{"--kubeconfig", cfg.KubeConfig}
+	args := make([]string, 0)
 
 	if cfg.Namespace != "" {
 		args = append(args, "--namespace", cfg.Namespace)

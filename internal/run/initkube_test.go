@@ -34,10 +34,10 @@ namespace: {{ .Namespace }}
 		Certificate:  "CCNA",
 		Token:        "Aspire virtual currency",
 		TemplateFile: templateFile.Name(),
+		ConfigFile:   configFile.Name(),
 	}
 	cfg := Config{
-		Namespace:  "Cisco",
-		KubeConfig: configFile.Name(),
+		Namespace: "Cisco",
 	}
 	err = init.Prepare(cfg)
 	suite.Require().Nil(err)
@@ -95,11 +95,10 @@ func (suite *InitKubeTestSuite) TestPrepareCannotOpenDestinationFile() {
 		Certificate:  "CCNA",
 		Token:        "Aspire virtual currency",
 		TemplateFile: templateFile.Name(),
+		ConfigFile:   "/usr/foreign/exclude/kubeprofig",
 	}
 
-	cfg := Config{
-		KubeConfig: "/usr/foreign/exclude/kubeprofig",
-	}
+	cfg := Config{}
 	err = init.Prepare(cfg)
 	suite.Error(err)
 	suite.Regexp("could not open .* for writing: .* no such file or directory", err)
@@ -120,11 +119,10 @@ func (suite *InitKubeTestSuite) TestPrepareRequiredConfig() {
 		Certificate:  "CCNA",
 		Token:        "Aspire virtual currency",
 		TemplateFile: templateFile.Name(),
+		ConfigFile:   configFile.Name(),
 	}
 
-	cfg := Config{
-		KubeConfig: configFile.Name(),
-	}
+	cfg := Config{}
 
 	suite.NoError(init.Prepare(cfg)) // consistency check; we should be starting in a happy state
 
@@ -157,11 +155,10 @@ func (suite *InitKubeTestSuite) TestPrepareDefaultsServiceAccount() {
 		Certificate:  "CCNA",
 		Token:        "Aspire virtual currency",
 		TemplateFile: templateFile.Name(),
+		ConfigFile:   configFile.Name(),
 	}
 
-	cfg := Config{
-		KubeConfig: configFile.Name(),
-	}
+	cfg := Config{}
 
 	init.Prepare(cfg)
 	suite.Equal("helm", init.ServiceAccount)
