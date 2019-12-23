@@ -58,7 +58,11 @@ steps:
 
 The setting names for drone-helm3 are backwards-compatible with those for drone-helm, so the only mandatory step is to update the `image` clause so that drone uses the new plugin.
 
-There are several settings that no longer have any effect:
+There are some recommended changes, though:
+
+* If your `service_account` is currently `tiller`, change it to a service account with more restricted permissions.
+    * If possible, remove the tiller account entirely, since its superuser status presents a security risk.
+* Remove outdated settings that have no effect in drone-helm3:
 
 * `purge` -- this is the default behavior in Helm 3
 * `recreate_pods`
@@ -67,5 +71,3 @@ There are several settings that no longer have any effect:
 * `canary_image`
 * `client_only`
 * `stable_repo_url`
-
-If your `.drone.yml` contains those settings, we recommend removing them.
