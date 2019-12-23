@@ -1,6 +1,8 @@
 package helm
 
-import ()
+import (
+	"github.com/kelseyhightower/envconfig"
+)
 
 // The Config struct captures the `settings` and `environment` blocks in the application's drone
 // config. Configuration in drone's `settings` block arrives as uppercase env vars matching the
@@ -32,4 +34,9 @@ type Config struct {
 	Chart              string   ``                                   // Chart argument to use in applicable helm commands
 	Release            string   ``                                   // Release argument to use in applicable helm commands
 	Force              bool     ``                                   // Pass --force to applicable helm commands
+}
+
+// Populate reads environment variables into the Config.
+func (cfg *Config) Populate() error {
+	return envconfig.Process("plugin", cfg)
 }

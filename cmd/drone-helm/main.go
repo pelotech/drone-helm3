@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/kelseyhightower/envconfig"
 	"os"
 
 	"github.com/pelotech/drone-helm3/internal/helm"
@@ -11,7 +10,7 @@ import (
 func main() {
 	var c helm.Config
 
-	if err := envconfig.Process("plugin", &c); err != nil {
+	if err := c.Populate(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
