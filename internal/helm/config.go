@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// The Config struct captures the `settings` and `environment` blocks inthe application's drone
+// The Config struct captures the `settings` and `environment` blocks in the application's drone
 // config. Configuration in drone's `settings` block arrives as uppercase env vars matching the
 // config key, prefixed with `PLUGIN_`. Config from the `environment` block is *not* prefixed; any
 // keys that are likely to be in that block (i.e. things that use `from_secret` need an explicit
