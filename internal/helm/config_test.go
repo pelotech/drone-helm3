@@ -27,7 +27,7 @@ func (suite *ConfigTestSuite) TestPopulateWithPluginPrefix() {
 	suite.setenv("PLUGIN_DEBUG", "true")
 
 	cfg := Config{}
-	cfg.Populate()
+	suite.Require().NoError(cfg.Populate())
 
 	suite.Equal("execute order 66", cfg.Command)
 	suite.True(cfg.UpdateDependencies)
@@ -44,7 +44,7 @@ func (suite *ConfigTestSuite) TestPopulateWithNoPrefix() {
 	suite.setenv("DEBUG", "true")
 
 	cfg := Config{}
-	cfg.Populate()
+	suite.Require().NoError(cfg.Populate())
 
 	suite.Equal("execute order 66", cfg.Command)
 	suite.True(cfg.UpdateDependencies)
@@ -56,7 +56,7 @@ func (suite *ConfigTestSuite) TestPopulateWithConflictingVariables() {
 	suite.setenv("HELM_COMMAND", "defend the jedi")
 
 	cfg := Config{}
-	cfg.Populate()
+	suite.Require().NoError(cfg.Populate())
 
 	suite.Equal("defend the jedi", cfg.Command)
 }
