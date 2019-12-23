@@ -62,9 +62,6 @@ steps:
       # Reuse the values from a previous release.
       reuse_values: true
 
-      # Put the kubernetes config file used for the deploy in an alternate location.
-      kube_config: /root/.spherernetes/config
-
       # Produce debug output from drone-helm itself and send --debug to all helm commands.
       debug: true
 
