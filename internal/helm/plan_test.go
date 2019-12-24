@@ -20,6 +20,7 @@ func TestPlanTestSuite(t *testing.T) {
 
 func (suite *PlanTestSuite) TestNewPlan() {
 	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
 	stepOne := NewMockStep(ctrl)
 	stepTwo := NewMockStep(ctrl)
 
@@ -63,6 +64,7 @@ func (suite *PlanTestSuite) TestNewPlan() {
 
 func (suite *PlanTestSuite) TestNewPlanAbortsOnError() {
 	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
 	stepOne := NewMockStep(ctrl)
 	stepTwo := NewMockStep(ctrl)
 
