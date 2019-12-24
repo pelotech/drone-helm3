@@ -87,6 +87,51 @@ func (suite *PlanTestSuite) TestNewPlanAbortsOnError() {
 	suite.EqualError(err, "while preparing *helm.MockStep step: I'm starry Dave, aye, cat blew that")
 }
 
+func (suite *PlanTestSuite) TestExecute() {
+	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
+	stepOne := NewMockStep(ctrl)
+	stepTwo := NewMockStep(ctrl)
+
+	runCfg := run.Config{}
+
+	plan := Plan{
+		steps:  []Step{stepOne, stepTwo},
+		runCfg: runCfg,
+	}
+
+	stepOne.EXPECT().
+		Execute(runCfg).
+		Times(1)
+	stepTwo.EXPECT().
+		Execute(runCfg).
+		Times(1)
+
+	suite.NoError(plan.Execute())
+}
+
+func (suite *PlanTestSuite) TestExecuteAbortsOnError() {
+	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
+	stepOne := NewMockStep(ctrl)
+	stepTwo := NewMockStep(ctrl)
+
+	runCfg := run.Config{}
+
+	plan := Plan{
+		steps:  []Step{stepOne, stepTwo},
+		runCfg: runCfg,
+	}
+
+	stepOne.EXPECT().
+		Execute(runCfg).
+		Times(1).
+		Return(fmt.Errorf("oh, he'll gnaw"))
+
+	err := plan.Execute()
+	suite.EqualError(err, "in execution step 0: oh, he'll gnaw")
+}
+
 func (suite *PlanTestSuite) TestUpgrade() {
 	cfg := Config{
 		ChartVersion: "seventeen",
