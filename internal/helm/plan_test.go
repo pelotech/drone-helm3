@@ -129,7 +129,7 @@ func (suite *PlanTestSuite) TestExecuteAbortsOnError() {
 		Return(fmt.Errorf("oh, he'll gnaw"))
 
 	err := plan.Execute()
-	suite.EqualError(err, "in execution step 0: oh, he'll gnaw")
+	suite.EqualError(err, "while executing *helm.MockStep step: oh, he'll gnaw")
 }
 
 func (suite *PlanTestSuite) TestUpgrade() {
