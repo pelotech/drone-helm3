@@ -10,7 +10,7 @@ The plugin is inpsired by [drone-helm](https://github.com/ipedrazas/drone-helm),
 
 ## Example configuration
 
-The examples below give a minimal and sufficient configuration for each use-case. For a full description of each command's settings, see [docs/lint_settings.yml](docs/lint_settings.yml), [docs/upgrade_settings.yml](docs/upgrade_settings.yml), and [docs/uninstall_settings.yml](docs/uninstall_settings.yml).
+The examples below give a minimal and sufficient configuration for each use-case. For a full description of each command's settings, see [docs/parameter_reference.md](docs/parameter_reference.md).
 
 ### Linting
 
