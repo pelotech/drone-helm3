@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cfg, err := helm.NewConfig()
+	cfg, err := helm.NewConfig(os.Stdout, os.Stderr)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())

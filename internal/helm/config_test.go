@@ -3,6 +3,7 @@ package helm
 import (
 	"github.com/stretchr/testify/suite"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -27,7 +28,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithPluginPrefix() {
 	suite.setenv("PLUGIN_UPDATE_DEPENDENCIES", "true")
 	suite.setenv("PLUGIN_DEBUG", "true")
 
-	cfg, err := NewConfig()
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
 	suite.Equal("execute order 66", cfg.Command)
@@ -45,7 +46,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithNoPrefix() {
 	suite.setenv("UPDATE_DEPENDENCIES", "true")
 	suite.setenv("DEBUG", "true")
 
-	cfg, err := NewConfig()
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
 	suite.Equal("execute order 66", cfg.Command)
@@ -60,7 +61,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithConfigurablePrefix() {
 	suite.setenv("PLUGIN_PREFIX", "prix_fixe")
 	suite.setenv("PRIX_FIXE_API_SERVER", "your waiter this evening")
 
-	cfg, err := NewConfig()
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
 	suite.Equal("prix_fixe", cfg.Prefix)
@@ -72,7 +73,7 @@ func (suite *ConfigTestSuite) TestPrefixSettingDoesNotAffectPluginPrefix() {
 	suite.setenv("PLUGIN_HELM_COMMAND", "wake me up")
 	suite.setenv("IXFREP_PLUGIN_HELM_COMMAND", "send me to sleep inside")
 
-	cfg, err := NewConfig()
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
 	suite.Equal("wake me up", cfg.Command)
@@ -84,7 +85,7 @@ func (suite *ConfigTestSuite) TestPrefixSettingMustHavePluginPrefix() {
 	suite.setenv("HELM_COMMAND", "gimme more")
 	suite.setenv("REFPIX_HELM_COMMAND", "gimme less")
 
-	cfg, err := NewConfig()
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
 	suite.Equal("gimme more", cfg.Command)
@@ -98,11 +99,50 @@ func (suite *ConfigTestSuite) TestNewConfigWithConflictingVariables() {
 	suite.setenv("TIMEOUT", "5m0s")
 	suite.setenv("PROD_TIMEOUT", "2m30s") // values from prefixed env vars override those from non-prefixed ones
 
-	cfg, err := NewConfig()
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
 	suite.Equal("defend the jedi", cfg.Command)
 	suite.Equal("2m30s", cfg.Timeout)
+}
+
+func (suite *ConfigTestSuite) TestNewConfigSetsWriters() {
+	stdout := &strings.Builder{}
+	stderr := &strings.Builder{}
+	cfg, err := NewConfig(stdout, stderr)
+	suite.Require().NoError(err)
+
+	suite.Equal(stdout, cfg.Stdout)
+	suite.Equal(stderr, cfg.Stderr)
+}
+
+func (suite *ConfigTestSuite) TestLogDebug() {
+	suite.setenv("DEBUG", "true")
+	suite.setenv("HELM_COMMAND", "upgrade")
+
+	stderr := strings.Builder{}
+	stdout := strings.Builder{}
+	_, err := NewConfig(&stdout, &stderr)
+	suite.Require().NoError(err)
+
+	suite.Equal("", stdout.String())
+
+	suite.Regexp(`^Generated config: \{Command:upgrade.*\}`, stderr.String())
+}
+
+func (suite *ConfigTestSuite) TestLogDebugCensorsKubeToken() {
+	stderr := &strings.Builder{}
+	kubeToken := "I'm shy! Don't put me in your build logs!"
+	cfg := Config{
+		Debug:     true,
+		KubeToken: kubeToken,
+		Stderr:    stderr,
+	}
+
+	cfg.logDebug()
+
+	suite.Contains(stderr.String(), "KubeToken:(redacted)")
+	suite.Equal(kubeToken, cfg.KubeToken) // The actual config value should be left unchanged
 }
 
 func (suite *ConfigTestSuite) setenv(key, val string) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
-	"os"
+	"strings"
 	"testing"
 
 	"github.com/pelotech/drone-helm3/internal/run"
@@ -29,6 +29,8 @@ func (suite *PlanTestSuite) TestNewPlan() {
 	}
 	defer func() { help = origHelp }()
 
+	stdout := strings.Builder{}
+	stderr := strings.Builder{}
 	cfg := Config{
 		Command:      "help",
 		Debug:        false,
@@ -36,6 +38,8 @@ func (suite *PlanTestSuite) TestNewPlan() {
 		StringValues: "tensile_strength,flexibility",
 		ValuesFiles:  []string{"/root/price_inventory.yml"},
 		Namespace:    "outer",
+		Stdout:       &stdout,
+		Stderr:       &stderr,
 	}
 
 	runCfg := run.Config{
@@ -44,8 +48,8 @@ func (suite *PlanTestSuite) TestNewPlan() {
 		StringValues: "tensile_strength,flexibility",
 		ValuesFiles:  []string{"/root/price_inventory.yml"},
 		Namespace:    "outer",
-		Stdout:       os.Stdout,
-		Stderr:       os.Stderr,
+		Stdout:       &stdout,
+		Stderr:       &stderr,
 	}
 
 	stepOne.EXPECT().

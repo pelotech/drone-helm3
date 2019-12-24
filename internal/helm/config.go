@@ -1,7 +1,9 @@
 package helm
 
 import (
+	"fmt"
 	"github.com/kelseyhightower/envconfig"
+	"io"
 )
 
 // The Config struct captures the `settings` and `environment` blocks in the application's drone
@@ -33,11 +35,17 @@ type Config struct {
 	Chart              string   ``                                   // Chart argument to use in applicable helm commands
 	Release            string   ``                                   // Release argument to use in applicable helm commands
 	Force              bool     ``                                   // Pass --force to applicable helm commands
+
+	Stdout io.Writer `ignored:"true"`
+	Stderr io.Writer `ignored:"true"`
 }
 
 // NewConfig creates a Config and reads environment variables into it, accounting for several possible formats.
-func NewConfig() (*Config, error) {
-	cfg := Config{}
+func NewConfig(stdout, stderr io.Writer) (*Config, error) {
+	cfg := Config{
+		Stdout: stdout,
+		Stderr: stderr,
+	}
 	if err := envconfig.Process("plugin", &cfg); err != nil {
 		return nil, err
 	}
@@ -54,5 +62,16 @@ func NewConfig() (*Config, error) {
 		}
 	}
 
+	if cfg.Debug && cfg.Stderr != nil {
+		cfg.logDebug()
+	}
+
 	return &cfg, nil
+}
+
+func (cfg Config) logDebug() {
+	if cfg.KubeToken != "" {
+		cfg.KubeToken = "(redacted)"
+	}
+	fmt.Fprintf(cfg.Stderr, "Generated config: %+v\n", cfg)
 }
