@@ -56,18 +56,16 @@ steps:
 
 ## Upgrading from drone-helm
 
-The setting names for drone-helm3 are backwards-compatible with those for drone-helm, so the only mandatory step is to update the `image` clause so that drone uses the new plugin.
+drone-helm3 is largely backwards-compatible with drone-helm. There are some known differences:
 
-There are some recommended changes, though:
+* `prefix` must be supplied via the `settings` block, not `environment`.
+* Several settings no longer have any effect:
+    * `purge` -- this is the default behavior in Helm 3
+    * `recreate_pods`
+    * `tiller_ns`
+    * `upgrade`
+    * `canary_image`
+    * `client_only`
+    * `stable_repo_url`
 
-* If your `service_account` is currently `tiller`, change it to a service account with more restricted permissions.
-    * If possible, remove the tiller account entirely, since its superuser status presents a security risk.
-* Remove outdated settings that have no effect in drone-helm3:
-
-* `purge` -- this is the default behavior in Helm 3
-* `recreate_pods`
-* `tiller_ns`
-* `upgrade`
-* `canary_image`
-* `client_only`
-* `stable_repo_url`
+Since helm 3 does not require Tiller, we also recommend switching to a service account with less-expansive permissions.
