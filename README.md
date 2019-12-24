@@ -23,7 +23,7 @@ steps:
       chart: ./
 ```
 
-### Deployment
+### Installation
 
 ```yaml
 steps:
@@ -39,7 +39,7 @@ steps:
         from_secret: kubernetes_token
 ```
 
-### Deletion
+### Uninstallation
 
 ```yaml
 steps:
