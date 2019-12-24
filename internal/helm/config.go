@@ -42,8 +42,16 @@ func (cfg *Config) Populate() error {
 		return err
 	}
 
+	prefix := cfg.Prefix
+
 	if err := envconfig.Process("", cfg); err != nil {
 		return err
+	}
+
+	if prefix != "" {
+		if err := envconfig.Process(cfg.Prefix, cfg); err != nil {
+			return err
+		}
 	}
 
 	return nil
