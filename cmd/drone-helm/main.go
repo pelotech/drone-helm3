@@ -8,15 +8,15 @@ import (
 )
 
 func main() {
-	var c helm.Config
+	cfg, err := helm.NewConfig()
 
-	if err := c.Populate(); err != nil {
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
 
 	// Make the plan
-	plan, err := helm.NewPlan(c)
+	plan, err := helm.NewPlan(*cfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%w\n", err)
 		os.Exit(1)

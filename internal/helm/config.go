@@ -35,23 +35,24 @@ type Config struct {
 	Force              bool     ``                                   // Pass --force to applicable helm commands
 }
 
-// Populate reads environment variables into the Config, accounting for several possible formats.
-func (cfg *Config) Populate() error {
-	if err := envconfig.Process("plugin", cfg); err != nil {
-		return err
+// NewConfig creates a Config and reads environment variables into it, accounting for several possible formats.
+func NewConfig() (*Config, error) {
+	cfg := Config{}
+	if err := envconfig.Process("plugin", &cfg); err != nil {
+		return nil, err
 	}
 
 	prefix := cfg.Prefix
 
-	if err := envconfig.Process("", cfg); err != nil {
-		return err
+	if err := envconfig.Process("", &cfg); err != nil {
+		return nil, err
 	}
 
 	if prefix != "" {
-		if err := envconfig.Process(cfg.Prefix, cfg); err != nil {
-			return err
+		if err := envconfig.Process(cfg.Prefix, &cfg); err != nil {
+			return nil, err
 		}
 	}
 
-	return nil
+	return &cfg, nil
 }
