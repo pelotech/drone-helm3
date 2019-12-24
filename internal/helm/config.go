@@ -6,9 +6,8 @@ import (
 
 // The Config struct captures the `settings` and `environment` blocks in the application's drone
 // config. Configuration in drone's `settings` block arrives as uppercase env vars matching the
-// config key, prefixed with `PLUGIN_`. Config from the `environment` block is *not* prefixed; any
-// keys that are likely to be in that block (i.e. things that use `from_secret` need an explicit
-// `envconfig:` tag so that envconfig will look for a non-prefixed env var.
+// config key, prefixed with `PLUGIN_`. Config from the `environment` block is uppercased, but does
+// not have the `PLUGIN_` prefix. It may, however, be prefixed with the value in `$PLUGIN_PREFIX`.
 type Config struct {
 	// Configuration for drone-helm itself
 	Command            string   `envconfig:"HELM_COMMAND"`           // Helm command to run
