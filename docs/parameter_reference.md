@@ -90,7 +90,7 @@ values_files: [ "./over_9", "000.yml" ]
 
 Because the prefix setting is meta-configuration, it has some inherent edge-cases. Here is what it does in the cases we've thought of:
 
-Unlike the other settings, it must be declared in the `settings` block, not `environment`.
+Unlike the other settings, it must be declared in the `settings` block, not `environment`:
 
 ```yaml
 settings:
@@ -99,7 +99,7 @@ environment:
   prefix: armet # no effect
 ```
 
-It does not apply to configuration in the `settings` block, only in `environment`.
+It does not apply to configuration in the `settings` block, only in `environment`:
 
 ```yaml
 settings:
@@ -109,7 +109,7 @@ environment:
   helm_timeout: 2m # timeout will be 2 minutes
 ```
 
-If the environment contains a variable in non-prefixed form, it will still be applied.
+If the environment contains a variable in non-prefixed form, it will still be applied:
 
 ```yaml
 settings:
@@ -118,7 +118,7 @@ environment:
   timeout: 2m # timeout will be 2 minutes
 ```
 
-If the environment contains both the prefixed and non-prefixed forms, drone-helm3 will use the prefixed form.
+If the environment contains both the prefixed and non-prefixed forms, drone-helm3 will use the prefixed form:
 
 ```yaml
 settings:
