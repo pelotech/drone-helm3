@@ -16,6 +16,8 @@ func (l *Lint) Execute(_ Config) error {
 }
 
 // Prepare gets the Lint ready to execute.
+// Note: mandatory settings are documented in README.md, and the full list of settings is in docs/lint_settings.yml.
+// Any additions or deletions here should be reflected there.
 func (l *Lint) Prepare(cfg Config) error {
 	if l.Chart == "" {
 		return fmt.Errorf("chart is required")
