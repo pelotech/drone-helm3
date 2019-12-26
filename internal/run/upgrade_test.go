@@ -41,8 +41,7 @@ func (suite *UpgradeTestSuite) TestPrepareAndExecute() {
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
-		suite.Equal([]string{"--kubeconfig", "/root/.kube/config", "upgrade", "--install",
-			"jonas_brothers_only_human", "at40"}, args)
+		suite.Equal([]string{"upgrade", "--install", "jonas_brothers_only_human", "at40"}, args)
 
 		return suite.mockCmd
 	}
@@ -55,9 +54,7 @@ func (suite *UpgradeTestSuite) TestPrepareAndExecute() {
 		Run().
 		Times(1)
 
-	cfg := Config{
-		KubeConfig: "/root/.kube/config",
-	}
+	cfg := Config{}
 	err := u.Prepare(cfg)
 	suite.Require().Nil(err)
 	u.Execute(cfg)
@@ -73,8 +70,7 @@ func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
-		suite.Equal([]string{"--kubeconfig", "/root/.kube/config", "--namespace", "melt", "upgrade",
-			"--install", "shaed_trampoline", "at40"}, args)
+		suite.Equal([]string{"--namespace", "melt", "upgrade", "--install", "shaed_trampoline", "at40"}, args)
 
 		return suite.mockCmd
 	}
@@ -83,8 +79,7 @@ func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {
 	suite.mockCmd.EXPECT().Stderr(gomock.Any())
 
 	cfg := Config{
-		Namespace:  "melt",
-		KubeConfig: "/root/.kube/config",
+		Namespace: "melt",
 	}
 	err := u.Prepare(cfg)
 	suite.Require().Nil(err)
@@ -105,7 +100,6 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 	}
 
 	cfg := Config{
-		KubeConfig:   "/root/.kube/config",
 		Values:       "age=35",
 		StringValues: "height=5ft10in",
 		ValuesFiles:  []string{"/usr/local/stats", "/usr/local/grades"},
@@ -113,7 +107,7 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
-		suite.Equal([]string{"--kubeconfig", "/root/.kube/config", "upgrade", "--install",
+		suite.Equal([]string{"upgrade", "--install",
 			"--version", "radio_edit",
 			"--dry-run",
 			"--wait",
@@ -165,10 +159,9 @@ func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
 	cfg := Config{
-		Debug:      true,
-		KubeConfig: "/root/.kube/config",
-		Stdout:     &stdout,
-		Stderr:     &stderr,
+		Debug:  true,
+		Stdout: &stdout,
+		Stderr: &stderr,
 	}
 
 	command = func(path string, args ...string) cmd {
@@ -186,7 +179,7 @@ func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 
 	u.Prepare(cfg)
 
-	want := fmt.Sprintf("Generated command: '%s --kubeconfig /root/.kube/config --debug upgrade "+
+	want := fmt.Sprintf("Generated command: '%s --debug upgrade "+
 		"--install lewis_capaldi_someone_you_loved at40'\n", helmBin)
 	suite.Equal(want, stderr.String())
 	suite.Equal("", stdout.String())

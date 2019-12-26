@@ -25,6 +25,8 @@ func (u *Upgrade) Execute(_ Config) error {
 }
 
 // Prepare gets the Upgrade ready to execute.
+// Note: mandatory settings are documented in README.md, and the full list of settings is in docs/upgrade_settings.yml.
+// Any additions or deletions here should be reflected there.
 func (u *Upgrade) Prepare(cfg Config) error {
 	if u.Chart == "" {
 		return fmt.Errorf("chart is required")
@@ -33,7 +35,7 @@ func (u *Upgrade) Prepare(cfg Config) error {
 		return fmt.Errorf("release is required")
 	}
 
-	args := []string{"--kubeconfig", cfg.KubeConfig}
+	args := make([]string, 0)
 
 	if cfg.Namespace != "" {
 		args = append(args, "--namespace", cfg.Namespace)

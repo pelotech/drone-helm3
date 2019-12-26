@@ -8,7 +8,6 @@ import (
 type Config struct {
 	HelmCommand  string
 	Debug        bool
-	KubeConfig   string
 	Values       string
 	StringValues string
 	ValuesFiles  []string

@@ -16,6 +16,7 @@ type InitKube struct {
 	ServiceAccount string
 	Token          string
 	TemplateFile   string
+	ConfigFile     string
 
 	template   *template.Template
 	configFile io.WriteCloser
@@ -34,7 +35,7 @@ type kubeValues struct {
 // Execute generates a kubernetes config file from drone-helm3's template.
 func (i *InitKube) Execute(cfg Config) error {
 	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "writing kubeconfig file to %s\n", cfg.KubeConfig)
+		fmt.Fprintf(cfg.Stderr, "writing kubeconfig file to %s\n", i.ConfigFile)
 	}
 	defer i.configFile.Close()
 	return i.template.Execute(i.configFile, i.values)
@@ -49,9 +50,6 @@ func (i *InitKube) Prepare(cfg Config) error {
 	}
 	if i.Token == "" {
 		return errors.New("token is needed to deploy")
-	}
-	if i.Certificate == "" && !i.SkipTLSVerify {
-		return errors.New("certificate is needed to deploy")
 	}
 
 	if i.ServiceAccount == "" {
@@ -76,16 +74,16 @@ func (i *InitKube) Prepare(cfg Config) error {
 	}
 
 	if cfg.Debug {
-		if _, err := os.Stat(cfg.KubeConfig); err != nil {
+		if _, err := os.Stat(i.ConfigFile); err != nil {
 			// non-nil err here isn't an actual error state; the kubeconfig just doesn't exist
 			fmt.Fprint(cfg.Stderr, "creating ")
 		} else {
 			fmt.Fprint(cfg.Stderr, "truncating ")
 		}
-		fmt.Fprintf(cfg.Stderr, "kubeconfig file at %s\n", cfg.KubeConfig)
+		fmt.Fprintf(cfg.Stderr, "kubeconfig file at %s\n", i.ConfigFile)
 	}
 
-	i.configFile, err = os.Create(cfg.KubeConfig)
+	i.configFile, err = os.Create(i.ConfigFile)
 	if err != nil {
 		return fmt.Errorf("could not open kubeconfig file for writing: %w", err)
 	}

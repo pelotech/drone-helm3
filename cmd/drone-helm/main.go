@@ -2,22 +2,21 @@ package main
 
 import (
 	"fmt"
-	"github.com/kelseyhightower/envconfig"
 	"os"
 
 	"github.com/pelotech/drone-helm3/internal/helm"
 )
 
 func main() {
-	var c helm.Config
+	cfg, err := helm.NewConfig(os.Stdout, os.Stderr)
 
-	if err := envconfig.Process("plugin", &c); err != nil {
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
 
 	// Make the plan
-	plan, err := helm.NewPlan(c)
+	plan, err := helm.NewPlan(*cfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%w\n", err)
 		os.Exit(1)
