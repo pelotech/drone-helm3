@@ -58,11 +58,9 @@ func (suite *UninstallTestSuite) TestPrepareAndExecute() {
 		Run().
 		Times(1)
 
-	cfg := Config{
-		KubeConfig: "/root/.kube/config",
-	}
+	cfg := Config{}
 	suite.NoError(u.Prepare(cfg))
-	expected := []string{"--kubeconfig", "/root/.kube/config", "uninstall", "zayde_wølf_king"}
+	expected := []string{"uninstall", "zayde_wølf_king"}
 	suite.Equal(expected, actual)
 
 	u.Execute(cfg)
@@ -73,15 +71,13 @@ func (suite *UninstallTestSuite) TestPrepareDryRunFlag() {
 		Release: "firefox_ak_wildfire",
 		DryRun:  true,
 	}
-	cfg := Config{
-		KubeConfig: "/root/.kube/config",
-	}
+	cfg := Config{}
 
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
 	suite.NoError(u.Prepare(cfg))
-	expected := []string{"--kubeconfig", "/root/.kube/config", "uninstall", "--dry-run", "firefox_ak_wildfire"}
+	expected := []string{"uninstall", "--dry-run", "firefox_ak_wildfire"}
 	suite.Equal(expected, suite.actualArgs)
 }
 
@@ -90,16 +86,14 @@ func (suite *UninstallTestSuite) TestPrepareNamespaceFlag() {
 		Release: "carly_simon_run_away_with_me",
 	}
 	cfg := Config{
-		KubeConfig: "/root/.kube/config",
-		Namespace:  "emotion",
+		Namespace: "emotion",
 	}
 
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
 	suite.NoError(u.Prepare(cfg))
-	expected := []string{"--kubeconfig", "/root/.kube/config",
-		"--namespace", "emotion", "uninstall", "carly_simon_run_away_with_me"}
+	expected := []string{"--namespace", "emotion", "uninstall", "carly_simon_run_away_with_me"}
 	suite.Equal(expected, suite.actualArgs)
 }
 
@@ -109,9 +103,8 @@ func (suite *UninstallTestSuite) TestPrepareDebugFlag() {
 	}
 	stderr := strings.Builder{}
 	cfg := Config{
-		KubeConfig: "/root/.kube/config",
-		Debug:      true,
-		Stderr:     &stderr,
+		Debug:  true,
+		Stderr: &stderr,
 	}
 
 	command = func(path string, args ...string) cmd {
@@ -126,8 +119,8 @@ func (suite *UninstallTestSuite) TestPrepareDebugFlag() {
 	suite.mockCmd.EXPECT().Stderr(&stderr).AnyTimes()
 
 	suite.NoError(u.Prepare(cfg))
-	suite.Equal(fmt.Sprintf("Generated command: '%s --kubeconfig /root/.kube/config "+
-		"--debug uninstall just_a_band_huff_and_puff'\n", helmBin), stderr.String())
+	suite.Equal(fmt.Sprintf("Generated command: '%s --debug "+
+		"uninstall just_a_band_huff_and_puff'\n", helmBin), stderr.String())
 }
 
 func (suite *UninstallTestSuite) TestPrepareRequiresRelease() {
