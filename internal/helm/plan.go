@@ -26,6 +26,7 @@ func NewPlan(cfg Config) (*Plan, error) {
 	p := Plan{
 		cfg: cfg,
 		runCfg: run.Config{
+			HelmCommand:  string(cfg.Command),
 			Debug:        cfg.Debug,
 			KubeConfig:   cfg.KubeConfig,
 			Values:       cfg.Values,

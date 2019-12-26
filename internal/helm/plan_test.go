@@ -40,6 +40,7 @@ func (suite *PlanTestSuite) TestNewPlan() {
 	}
 
 	runCfg := run.Config{
+		HelmCommand:  "help",
 		Debug:        false,
 		KubeConfig:   "/branch/.sfere/profig",
 		Values:       "steadfastness,forthrightness",
@@ -251,13 +252,6 @@ func (suite *PlanTestSuite) TestDeterminePlanHelpCommand() {
 	cfg := Config{
 		Command: "help",
 	}
-
-	stepsMaker := determineSteps(cfg)
-	suite.Same(&help, stepsMaker)
-}
-
-func (suite *PlanTestSuite) TestDeterminePlanHelpOnUnknown() {
-	cfg := Config{}
 
 	stepsMaker := determineSteps(cfg)
 	suite.Same(&help, stepsMaker)

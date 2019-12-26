@@ -38,9 +38,6 @@ func (suite *HelpTestSuite) TestPrepare() {
 		Stdout(&stdout)
 	mCmd.EXPECT().
 		Stderr(&stderr)
-	mCmd.EXPECT().
-		Run().
-		Times(1)
 
 	cfg := Config{
 		Stdout: &stdout,
@@ -49,8 +46,33 @@ func (suite *HelpTestSuite) TestPrepare() {
 
 	h := Help{}
 	err := h.Prepare(cfg)
-	suite.Require().Nil(err)
-	h.Execute(cfg)
+	suite.NoError(err)
+}
+
+func (suite *HelpTestSuite) TestExecute() {
+	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
+	mCmd := NewMockcmd(ctrl)
+	originalCommand := command
+	command = func(_ string, _ ...string) cmd {
+		return mCmd
+	}
+	defer func() { command = originalCommand }()
+
+	mCmd.EXPECT().
+		Run().
+		Times(2)
+
+	cfg := Config{
+		HelmCommand: "help",
+	}
+	help := Help{
+		cmd: mCmd,
+	}
+	suite.NoError(help.Execute(cfg))
+
+	cfg.HelmCommand = "get down on friday"
+	suite.EqualError(help.Execute(cfg), "unknown command 'get down on friday'")
 }
 
 func (suite *HelpTestSuite) TestPrepareDebugFlag() {
