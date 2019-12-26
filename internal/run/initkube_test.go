@@ -187,13 +187,6 @@ func (suite *InitKubeTestSuite) TestPrepareRequiredConfig() {
 	init.APIServer = "Sysadmin"
 	init.Token = ""
 	suite.Error(init.Prepare(cfg), "Token should be required.")
-
-	init.Token = "Aspire virtual currency"
-	init.Certificate = ""
-	suite.Error(init.Prepare(cfg), "Certificate should be required.")
-
-	init.SkipTLSVerify = true
-	suite.NoError(init.Prepare(cfg), "Certificate should not be required if SkipTLSVerify is true")
 }
 
 func (suite *InitKubeTestSuite) TestPrepareDefaultsServiceAccount() {
