@@ -72,7 +72,7 @@ func determineSteps(cfg Config) *func(Config) []Step {
 		case "delete":
 			return &uninstall
 		default:
-			panic("not implemented")
+			return &help
 		}
 	}
 }

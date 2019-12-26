@@ -255,3 +255,10 @@ func (suite *PlanTestSuite) TestDeterminePlanHelpCommand() {
 	stepsMaker := determineSteps(cfg)
 	suite.Same(&help, stepsMaker)
 }
+
+func (suite *PlanTestSuite) TestDeterminePlanHelpOnUnknown() {
+	cfg := Config{}
+
+	stepsMaker := determineSteps(cfg)
+	suite.Same(&help, stepsMaker)
+}
