@@ -7,7 +7,6 @@ import (
 // Config contains configuration applicable to all helm commands
 type Config struct {
 	Debug        bool
-	KubeConfig   string
 	Values       string
 	StringValues string
 	ValuesFiles  []string
