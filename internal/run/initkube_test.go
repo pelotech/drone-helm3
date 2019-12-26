@@ -1,7 +1,6 @@
 package run
 
 import (
-	"github.com/go-yaml/yaml"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"os"
@@ -93,10 +92,6 @@ func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
 		suite.Contains(string(contents), expected)
 	}
 
-	// the generated config should be valid yaml, with no repeated keys
-	conf := map[string]interface{}{}
-	suite.NoError(yaml.UnmarshalStrict(contents, &conf))
-
 	// test the other branch of the certificate/SkipTLSVerify conditional
 	init.SkipTLSVerify = true
 	init.Certificate = ""
@@ -106,9 +101,6 @@ func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
 	contents, err = ioutil.ReadFile(configFile.Name())
 	suite.Require().NoError(err)
 	suite.Contains(string(contents), "insecure-skip-tls-verify: true")
-
-	conf = map[string]interface{}{}
-	suite.NoError(yaml.UnmarshalStrict(contents, &conf))
 }
 
 func (suite *InitKubeTestSuite) TestPrepareParseError() {
