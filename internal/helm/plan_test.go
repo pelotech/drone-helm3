@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
-	"os"
+	"strings"
 	"testing"
 
 	"github.com/pelotech/drone-helm3/internal/run"
@@ -29,25 +29,27 @@ func (suite *PlanTestSuite) TestNewPlan() {
 	}
 	defer func() { help = origHelp }()
 
+	stdout := strings.Builder{}
+	stderr := strings.Builder{}
 	cfg := Config{
 		Command:      "help",
 		Debug:        false,
-		KubeConfig:   "/branch/.sfere/profig",
 		Values:       "steadfastness,forthrightness",
 		StringValues: "tensile_strength,flexibility",
 		ValuesFiles:  []string{"/root/price_inventory.yml"},
 		Namespace:    "outer",
+		Stdout:       &stdout,
+		Stderr:       &stderr,
 	}
 
 	runCfg := run.Config{
 		Debug:        false,
-		KubeConfig:   "/branch/.sfere/profig",
 		Values:       "steadfastness,forthrightness",
 		StringValues: "tensile_strength,flexibility",
 		ValuesFiles:  []string{"/root/price_inventory.yml"},
 		Namespace:    "outer",
-		Stdout:       os.Stdout,
-		Stderr:       os.Stderr,
+		Stdout:       &stdout,
+		Stderr:       &stderr,
 	}
 
 	stepOne.EXPECT().
@@ -142,6 +144,7 @@ func (suite *PlanTestSuite) TestDel() {
 		ServiceAccount: "greathelm",
 		Token:          "b2YgbXkgYWZmZWN0aW9u",
 		TemplateFile:   kubeConfigTemplate,
+		ConfigFile:     kubeConfigFile,
 	}
 
 	suite.Equal(expected, init)
@@ -176,6 +179,7 @@ func (suite *PlanTestSuite) TestInitKube() {
 		ServiceAccount: "helmet",
 		Token:          "cXVlZXIgY2hhcmFjdGVyCg==",
 		TemplateFile:   kubeConfigTemplate,
+		ConfigFile:     kubeConfigFile,
 	}
 	suite.Equal(expected, init)
 }

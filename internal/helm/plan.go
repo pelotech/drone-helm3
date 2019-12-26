@@ -6,7 +6,10 @@ import (
 	"os"
 )
 
-const kubeConfigTemplate = "/root/.kube/config.tpl"
+const (
+	kubeConfigTemplate = "/root/.kube/config.tpl"
+	kubeConfigFile     = "/root/.kube/config"
+)
 
 // A Step is one step in the plan.
 type Step interface {
@@ -27,13 +30,12 @@ func NewPlan(cfg Config) (*Plan, error) {
 		cfg: cfg,
 		runCfg: run.Config{
 			Debug:        cfg.Debug,
-			KubeConfig:   cfg.KubeConfig,
 			Values:       cfg.Values,
 			StringValues: cfg.StringValues,
 			ValuesFiles:  cfg.ValuesFiles,
 			Namespace:    cfg.Namespace,
-			Stdout:       os.Stdout,
-			Stderr:       os.Stderr,
+			Stdout:       cfg.Stdout,
+			Stderr:       cfg.Stderr,
 		},
 	}
 
@@ -82,7 +84,7 @@ func determineSteps(cfg Config) *func(Config) []Step {
 func (p *Plan) Execute() error {
 	for i, step := range p.steps {
 		if p.cfg.Debug {
-			fmt.Fprintf(os.Stderr, "calling %T.Execute (step %d)\n", step, i)
+			fmt.Fprintf(p.cfg.Stderr, "calling %T.Execute (step %d)\n", step, i)
 		}
 
 		if err := step.Execute(p.runCfg); err != nil {
@@ -142,6 +144,7 @@ func initKube(cfg Config) []Step {
 			ServiceAccount: cfg.ServiceAccount,
 			Token:          cfg.KubeToken,
 			TemplateFile:   kubeConfigTemplate,
+			ConfigFile:     kubeConfigFile,
 		},
 	}
 }
