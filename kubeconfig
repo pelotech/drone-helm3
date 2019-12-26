@@ -3,7 +3,7 @@ clusters:
 - cluster:
 {{- if eq .SkipTLSVerify true }}
     insecure-skip-tls-verify: true
-{{- else }}
+{{- else if .Certificate }}
     certificate-authority-data: {{ .Certificate }}
 {{- end}}
     server: {{ .APIServer }}
