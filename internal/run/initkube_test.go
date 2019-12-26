@@ -1,12 +1,12 @@
 package run
 
 import (
+	"github.com/stretchr/testify/suite"
+	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
-	"text/template"
-	// "github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	"testing"
+	"text/template"
 )
 
 type InitKubeTestSuite struct {
@@ -56,6 +56,59 @@ certificate: CCNA
 namespace: Cisco
 `
 	suite.Equal(want, string(conf))
+}
+
+func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
+	configFile, err := tempfile("kubeconfig********.yml", "")
+	defer os.Remove(configFile.Name())
+	suite.Require().NoError(err)
+
+	cfg := Config{
+		Namespace: "marshmallow",
+	}
+	init := InitKube{
+		ConfigFile:     configFile.Name(),
+		TemplateFile:   "../../assets/kubeconfig.tpl", // the actual kubeconfig template
+		APIServer:      "https://kube.cluster/peanut",
+		ServiceAccount: "chef",
+		Token:          "eWVhaCB3ZSB0b2tpbic=",
+		Certificate:    "d293LCB5b3UgYXJlIHNvIGNvb2wgZm9yIHNtb2tpbmcgd2VlZCDwn5mE",
+	}
+	suite.Require().NoError(init.Prepare(cfg))
+	suite.Require().NoError(init.Execute(cfg))
+
+	contents, err := ioutil.ReadFile(configFile.Name())
+	suite.Require().NoError(err)
+
+	// each setting should be reflected in the generated file
+	expectations := []string{
+		"namespace: marshmallow",
+		"server: https://kube.cluster/peanut",
+		"user: chef",
+		"name: chef",
+		"token: eWVhaCB3ZSB0b2tpbic",
+		"certificate-authority-data: d293LCB5b3UgYXJlIHNvIGNvb2wgZm9yIHNtb2tpbmcgd2VlZCDwn5mE",
+	}
+	for _, expected := range expectations {
+		suite.Contains(string(contents), expected)
+	}
+
+	// the generated config should be valid yaml, with no repeated keys
+	conf := map[string]interface{}{}
+	suite.NoError(yaml.UnmarshalStrict(contents, &conf))
+
+	// test the other branch of the certificate/SkipTLSVerify conditional
+	init.SkipTLSVerify = true
+	init.Certificate = ""
+
+	suite.Require().NoError(init.Prepare(cfg))
+	suite.Require().NoError(init.Execute(cfg))
+	contents, err = ioutil.ReadFile(configFile.Name())
+	suite.Require().NoError(err)
+	suite.Contains(string(contents), "insecure-skip-tls-verify: true")
+
+	conf = map[string]interface{}{}
+	suite.NoError(yaml.UnmarshalStrict(contents, &conf))
 }
 
 func (suite *InitKubeTestSuite) TestPrepareParseError() {

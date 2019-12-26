@@ -8,4 +8,5 @@ require (
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f // indirect
 	golang.org/x/tools v0.0.0-20191209225234-22774f7dae43 // indirect
+	gopkg.in/yaml.v2 v2.2.2
 )

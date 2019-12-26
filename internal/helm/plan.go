@@ -88,7 +88,7 @@ func (p *Plan) Execute() error {
 		}
 
 		if err := step.Execute(p.runCfg); err != nil {
-			return fmt.Errorf("in execution step %d: %w", i, err)
+			return fmt.Errorf("while executing %T step: %w", step, err)
 		}
 	}
 
