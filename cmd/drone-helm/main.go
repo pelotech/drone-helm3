@@ -28,7 +28,7 @@ func main() {
 
 	// Expect the plan to go off the rails
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		// Throw away the plan
 		os.Exit(1)
 	}
