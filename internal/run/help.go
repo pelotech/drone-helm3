@@ -6,7 +6,8 @@ import (
 
 // Help is a step in a helm Plan that calls `helm help`.
 type Help struct {
-	cmd cmd
+	HelmCommand string
+	cmd         cmd
 }
 
 // Execute executes the `helm help` command.
@@ -15,10 +16,10 @@ func (h *Help) Execute(cfg Config) error {
 		return fmt.Errorf("while running '%s': %w", h.cmd.String(), err)
 	}
 
-	if cfg.HelmCommand == "help" {
+	if h.HelmCommand == "help" {
 		return nil
 	}
-	return fmt.Errorf("unknown command '%s'", cfg.HelmCommand)
+	return fmt.Errorf("unknown command '%s'", h.HelmCommand)
 }
 
 // Prepare gets the Help ready to execute.

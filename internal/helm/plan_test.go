@@ -43,7 +43,6 @@ func (suite *PlanTestSuite) TestNewPlan() {
 	}
 
 	runCfg := run.Config{
-		HelmCommand:  "help",
 		Debug:        false,
 		Values:       "steadfastness,forthrightness",
 		StringValues: "tensile_strength,flexibility",

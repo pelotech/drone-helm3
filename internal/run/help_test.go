@@ -63,15 +63,14 @@ func (suite *HelpTestSuite) TestExecute() {
 		Run().
 		Times(2)
 
-	cfg := Config{
-		HelmCommand: "help",
-	}
+	cfg := Config{}
 	help := Help{
-		cmd: mCmd,
+		HelmCommand: "help",
+		cmd:         mCmd,
 	}
 	suite.NoError(help.Execute(cfg))
 
-	cfg.HelmCommand = "get down on friday"
+	help.HelmCommand = "get down on friday"
 	suite.EqualError(help.Execute(cfg), "unknown command 'get down on friday'")
 }
 

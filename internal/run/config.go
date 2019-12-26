@@ -6,7 +6,6 @@ import (
 
 // Config contains configuration applicable to all helm commands
 type Config struct {
-	HelmCommand  string
 	Debug        bool
 	Values       string
 	StringValues string

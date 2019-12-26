@@ -29,7 +29,6 @@ func NewPlan(cfg Config) (*Plan, error) {
 	p := Plan{
 		cfg: cfg,
 		runCfg: run.Config{
-			HelmCommand:  string(cfg.Command),
 			Debug:        cfg.Debug,
 			Values:       cfg.Values,
 			StringValues: cfg.StringValues,
@@ -132,7 +131,9 @@ var lint = func(cfg Config) []Step {
 }
 
 var help = func(cfg Config) []Step {
-	help := &run.Help{}
+	help := &run.Help{
+		HelmCommand: cfg.Command,
+	}
 	return []Step{help}
 }
 
