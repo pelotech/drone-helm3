@@ -1,13 +1,5 @@
 # Parameter reference
 
-## Something here about how to specify non-string types
-
-* boolean
-* list\<string\>
-* duration
-
-## Mention that everything can be settings or environment
-
 ## Global
 | Param name          | Type            | Purpose |
 |---------------------|-----------------|---------|
@@ -66,6 +58,10 @@ Uninstallations are triggered when the `helm_command` setting is "uninstall" or 
 | dry_run                | boolean  |          | Pass `--dry-run` to `helm uninstall`. |
 | timeout                | duration |          | Timeout for any *individual* Kubernetes operation. The uninstallation's full runtime may exceed this duration. |
 | skip_tls_verify        | boolean  |          | Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. |
+
+### Where to put settings
+
+Any setting (with the exception of `prefix`; [see below](#user-content-using-the-prefix-setting)), can go in either the `settings` or `environment` section.
 
 ### Formatting non-string values
 
