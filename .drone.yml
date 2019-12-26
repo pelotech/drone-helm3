@@ -30,3 +30,12 @@ steps:
       dockerfile: Dockerfile
     when:
       event: [ tag, push ]
+
+  # Example configuration for publishing to a local registry for testing.
+  # - name: publish_locally
+  #   image: plugins/docker
+  #   settings:
+  #     dockerfile: Dockerfile
+  #     insecure: true
+  #     registry: 0.0.0.0:5000
+  #     repo: 0.0.0.0:5000/drone-helm3
