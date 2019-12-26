@@ -67,6 +67,7 @@ func determineSteps(cfg Config) *func(Config) []Step {
 		return &help
 	default:
 		switch cfg.DroneEvent {
+		// Note: These events are documented in docs/upgrade_settings.yml. Any changes here should be reflected there.
 		case "push", "tag", "deployment", "pull_request", "promote", "rollback":
 			return &upgrade
 		case "delete":
