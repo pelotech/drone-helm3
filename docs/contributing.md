@@ -28,21 +28,21 @@ golint -set_exit_status ./cmd/... ./internal/...
 
 If you have [the Drone cli tool](https://docs.drone.io/cli/install/) installed, you can also use `drone exec --include test --include lint`.
 
-## Using the plugin locally
+## Testing the plugin end-to-end
 
-The internal tests can't test drone-helm3's integration with drone and helm themselves. However, you can build and run a local image to test a change end-to-end.
+Although we aim to make the internal tests as thorough as possible, they can't test drone-helm3's integration with drone and helm themselves. However, you can test a change manually by building an image and running it with a fixture repository.
 
 You will need:
 
-* A Docker image registry. See [docs.docker.com/registry/](https://docs.docker.com/registry/) for information on standing up a local registry.
-* You will also need [the Drone cli tool](https://docs.drone.io/cli/install/).
-* A fixture repo--a repo with a `.drone.yml` and a helm chart.
-* Access to a kubernetes cluster.
+* Access to a docker image registry. This document assumes you'll use [Docker Hub](https://hub.docker.com).
+* [The Drone cli tool](https://docs.drone.io/cli/install/).
+* A fixture repository--a directory with a `.drone.yml` and a helm chart. If you don't have one handy, try adding a `.drone.yml` to a chart from [Helm's "stable" repository](https://github.com/helm/charts/tree/master/stable/).
+* Access to a kubernetes cluster (unless `lint` or `dry_run` is sufficient for your purposes).
 
-Once you have a local registry, uncomment the `publish_locally` step in `.drone.yml` and replace the `0.0.0.0`s with your computer's local IP address.
+Once you have what you need, you can publish and consume an image with your changes:
 
-Now you can run `drone exec --include test --include lint --include publish_locally` to build an image and publish it to your local registry.
-
-Finally, configure your fixture repo to use the locally-published image, e.g. `image: 192.168.0.1:5000/drone-helm3`.
-
-Now you can use `drone exec` in the fixture repo to verify your changes.
+1. [Create a repository on Docker Hub](https://hub.docker.com/repository/create). This document assumes you've called it drone-helm3-testing.
+1. Create a `.secrets` file with your docker credentials (see [example.secrets](./example.secrets) for an example). While you can use your Docker Hub password, it's better to [generate an access token](https://hub.docker.com/settings/security) and use that instead.
+1. Use Drone to build and publish an image with your changes: `drone exec --secret-file ./secrets --event push`
+1. In the `.drone.yml` of your fixture repository, set the `image` for each relevant stanza to `your_dockerhub_username/drone-helm3-testing`
+1. Use `drone exec` in the fixture repo to verify your changes.
