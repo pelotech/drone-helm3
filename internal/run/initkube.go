@@ -51,9 +51,6 @@ func (i *InitKube) Prepare(cfg Config) error {
 	if i.Token == "" {
 		return errors.New("token is needed to deploy")
 	}
-	if i.Certificate == "" && !i.SkipTLSVerify {
-		return errors.New("certificate is needed to deploy")
-	}
 
 	if i.ServiceAccount == "" {
 		i.ServiceAccount = "helm"
