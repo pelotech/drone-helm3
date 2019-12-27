@@ -59,6 +59,7 @@ steps:
 drone-helm3 is largely backwards-compatible with drone-helm. There are some known differences:
 
 * `prefix` must be supplied via the `settings` block, not `environment`.
+* EKS is not supported. See [#5](https://github.com/pelotech/drone-helm3/issues/5) for more information.
 * Several settings no longer have any effect:
     * `purge` -- this is the default behavior in Helm 3
     * `recreate_pods`
