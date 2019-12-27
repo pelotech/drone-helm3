@@ -4,7 +4,7 @@
 | Param name          | Type            | Purpose |
 |---------------------|-----------------|---------|
 | helm_command        | string          | Indicates the operation to perform. Recommended, but not required. Valid options are `upgrade`, `uninstall`, `lint`, and `help`. |
-| update_dependencies | boolean         | Calls `helm dependency update` before running the main command. **Not currently implemented**; see [#25](https://github.com/pelotech/drone-helm3/issues/25).|
+| update_dependencies | boolean         | Calls `helm dependency update` before running the main command.|
 | helm_repos          | list\<string\>  | Calls `helm repo add $repo` before running the main command. Each string should be formatted as `repo_name=https://repo.url/`. **Not currently implemented**; see [#26](https://github.com/pelotech/drone-helm3/issues/26). |
 | namespace           | string          | Kubernetes namespace to use for this operation. |
 | prefix              | string          | Expect environment variables to be prefixed with the given string. For more details, see "Using the prefix setting" below. **Not currently implemented**; see [#19](https://github.com/pelotech/drone-helm3/issues/19). |
