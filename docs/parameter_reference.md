@@ -58,6 +58,7 @@ Uninstallations are triggered when the `helm_command` setting is "uninstall" or 
 | dry_run                | boolean  |          | Pass `--dry-run` to `helm uninstall`. |
 | timeout                | duration |          | Timeout for any *individual* Kubernetes operation. The uninstallation's full runtime may exceed this duration. |
 | skip_tls_verify        | boolean  |          | Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. |
+| chart                  | string   |          | Required when the global `update_dependencies` parameter is true. No effect otherwise. |
 
 ### Where to put settings
 
