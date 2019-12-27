@@ -23,6 +23,8 @@ type Config struct {
 	ValuesFiles        []string `split_words:"true"`                 // Arguments to pass to --values in applicable helm commands
 	Namespace          string   ``                                   // Kubernetes namespace for all helm commands
 	KubeToken          string   `envconfig:"KUBERNETES_TOKEN"`       // Kubernetes authentication token to put in .kube/config
+	EKSCluster         string   `envconfig:"EKS_CLUSTER"`            // AWS EKS Cluster ID to put in .kube/config
+	EKSRoleARN         string   `envconfig:"EKS_ROLE_ARN"`           // AWS IAM role resource name to put in .kube/config
 	SkipTLSVerify      bool     `envconfig:"SKIP_TLS_VERIFY"`        // Put insecure-skip-tls-verify in .kube/config
 	Certificate        string   `envconfig:"KUBERNETES_CERTIFICATE"` // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
 	APIServer          string   `envconfig:"API_SERVER"`             // The Kubernetes cluster's API endpoint

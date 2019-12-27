@@ -133,6 +133,33 @@ func (suite *InitKubeTestSuite) TestPrepareRequiredConfig() {
 	suite.Error(init.Prepare(cfg), "Token should be required.")
 }
 
+func (suite *InitKubeTestSuite) TestPrepareEKSConfig() {
+	templateFile, err := tempfile("kubeconfig********.yml.tpl", "hurgity burgity")
+	defer os.Remove(templateFile.Name())
+	suite.Require().Nil(err)
+
+	configFile, err := tempfile("kubeconfig********.yml", "")
+	defer os.Remove(configFile.Name())
+	suite.Require().Nil(err)
+
+	init := InitKube{
+		TemplateFile: templateFile.Name(),
+		ConfigFile:   configFile.Name(),
+		APIServer:    "eks.aws.amazonaws.com",
+		EKSCluster:   "it-is-an-eks-parrot",
+		EKSRoleARN:   "arn:aws:iam::19691207:role/mrPraline",
+	}
+
+	cfg := Config{}
+
+	suite.NoError(init.Prepare(cfg))
+	suite.Equal(init.values.EKSCluster, "it-is-an-eks-parrot")
+	suite.Equal(init.values.EKSRoleARN, "arn:aws:iam::19691207:role/mrPraline")
+
+	init.Token = "cGluaW5nIGZvciB0aGUgZmrDtnJkcw=="
+	suite.EqualError(init.Prepare(cfg), "token cannot be used simultaneously with eksCluster")
+}
+
 func (suite *InitKubeTestSuite) TestPrepareDefaultsServiceAccount() {
 	templateFile, err := tempfile("kubeconfig********.yml.tpl", "hurgity burgity")
 	defer os.Remove(templateFile.Name())

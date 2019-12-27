@@ -142,6 +142,8 @@ func initKube(cfg Config) []Step {
 			APIServer:      cfg.APIServer,
 			ServiceAccount: cfg.ServiceAccount,
 			Token:          cfg.KubeToken,
+			EKSCluster:     cfg.EKSCluster,
+			EKSRoleARN:     cfg.EKSRoleARN,
 			TemplateFile:   kubeConfigTemplate,
 			ConfigFile:     kubeConfigFile,
 		},

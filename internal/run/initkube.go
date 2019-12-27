@@ -15,6 +15,8 @@ type InitKube struct {
 	APIServer      string
 	ServiceAccount string
 	Token          string
+	EKSCluster     string
+	EKSRoleARN     string
 	TemplateFile   string
 	ConfigFile     string
 
@@ -30,6 +32,8 @@ type kubeValues struct {
 	Namespace      string
 	ServiceAccount string
 	Token          string
+	EKSCluster     string
+	EKSRoleARN     string
 }
 
 // Execute generates a kubernetes config file from drone-helm3's template.
@@ -48,8 +52,11 @@ func (i *InitKube) Prepare(cfg Config) error {
 	if i.APIServer == "" {
 		return errors.New("an API Server is needed to deploy")
 	}
-	if i.Token == "" {
+	if i.Token == "" && i.EKSCluster == "" {
 		return errors.New("token is needed to deploy")
+	}
+	if i.Token != "" && i.EKSCluster != "" {
+		return errors.New("token cannot be used simultaneously with eksCluster")
 	}
 
 	if i.ServiceAccount == "" {
@@ -70,6 +77,8 @@ func (i *InitKube) Prepare(cfg Config) error {
 		APIServer:      i.APIServer,
 		ServiceAccount: i.ServiceAccount,
 		Token:          i.Token,
+		EKSCluster:     i.EKSCluster,
+		EKSRoleARN:     i.EKSRoleARN,
 		Namespace:      cfg.Namespace,
 	}
 

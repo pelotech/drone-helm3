@@ -78,6 +78,23 @@ func (suite *KubeconfigTestSuite) TestSetsSkipTLSVerify() {
 	suite.Contains(contents, "insecure-skip-tls-verify: true")
 }
 
+func (suite *KubeconfigTestSuite) TestSetsEKSCluster() {
+	suite.initKube.Token = ""
+	suite.initKube.EKSCluster = "it-is-an-eks-parrot"
+	contents := suite.generateKubeconfig(Config{})
+	suite.Contains(contents, "command: aws-iam-authenticator")
+	suite.Contains(contents, `- "it-is-an-eks-parrot"`)
+}
+
+func (suite *KubeconfigTestSuite) TestSetsEKSRoleARN() {
+	suite.initKube.Token = ""
+	suite.initKube.EKSCluster = "it-is-an-eks-parrot"
+	suite.initKube.EKSRoleARN = "arn:aws:iam::19691207:role/mrPraline"
+	contents := suite.generateKubeconfig(Config{})
+	suite.Contains(contents, `- "-r"`)
+	suite.Contains(contents, `- "arn:aws:iam::19691207:role/mrPraline"`)
+}
+
 func (suite *KubeconfigTestSuite) generateKubeconfig(cfg Config) string {
 	suite.Require().NoError(suite.initKube.Prepare(cfg))
 	suite.Require().NoError(suite.initKube.Execute(cfg))

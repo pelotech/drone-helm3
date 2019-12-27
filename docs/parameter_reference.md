@@ -30,7 +30,9 @@ Installations are triggered when the `helm_command` setting is "upgrade." They c
 | chart                  | string         | yes      | The chart to use for this installation. |
 | release                | string         | yes      | The release name for helm to use. |
 | api_server             | string         | yes      | API endpoint for the Kubernetes cluster. |
-| kubernetes_token       | string         | yes      | Token for authenticating to Kubernetes. |
+| kubernetes_token       | string         | yes, unless using EKS | Token for authenticating to Kubernetes. |
+| eks_cluster            | string         |          | AWS EKS cluster ID. |
+| eks_role_arn           | string         |          | AWS IAM role ARN for EKS authentication. |
 | service_account        | string         |          | Service account for authenticating to Kubernetes. Default is `helm`. |
 | kubernetes_certificate | string         |          | Base64 encoded TLS certificate used by the Kubernetes cluster's certificate authority. |
 | chart_version          | string         |          | Specific chart version to install. |
@@ -52,7 +54,9 @@ Uninstallations are triggered when the `helm_command` setting is "uninstall" or 
 |------------------------|----------|----------|---------|
 | release                | string   | yes      | The release name for helm to use. |
 | api_server             | string   | yes      | API endpoint for the Kubernetes cluster. |
-| kubernetes_token       | string   | yes      | Token for authenticating to Kubernetes. |
+| kubernetes_token       | string   | yes, unless using EKS | Token for authenticating to Kubernetes. |
+| eks_cluster            | string   |          | AWS EKS cluster ID. |
+| eks_role_arn           | string   |          | AWS IAM role ARN for EKS authentication. |
 | service_account        | string   |          | Service account for authenticating to Kubernetes. Default is `helm`. |
 | kubernetes_certificate | string   |          | Base64 encoded TLS certificate used by the Kubernetes cluster's certificate authority. |
 | dry_run                | boolean  |          | Pass `--dry-run` to `helm uninstall`. |

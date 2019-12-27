@@ -212,6 +212,8 @@ func (suite *PlanTestSuite) TestInitKube() {
 		Certificate:    "b2Ygd29rZW5lc3MK",
 		APIServer:      "123.456.78.9",
 		ServiceAccount: "helmet",
+		EKSCluster:     "eks_reader",
+		EKSRoleARN:     "arn:aws:iam::9631085:role/eksSpangleRole",
 	}
 
 	steps := initKube(cfg)
@@ -225,6 +227,8 @@ func (suite *PlanTestSuite) TestInitKube() {
 		APIServer:      "123.456.78.9",
 		ServiceAccount: "helmet",
 		Token:          "cXVlZXIgY2hhcmFjdGVyCg==",
+		EKSCluster:     "eks_reader",
+		EKSRoleARN:     "arn:aws:iam::9631085:role/eksSpangleRole",
 		TemplateFile:   kubeConfigTemplate,
 		ConfigFile:     kubeConfigFile,
 	}
