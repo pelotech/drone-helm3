@@ -69,7 +69,6 @@ func determineSteps(cfg Config) *func(Config) []Step {
 		return &help
 	default:
 		switch cfg.DroneEvent {
-		// Note: These events are documented in docs/upgrade_settings.yml. Any changes here should be reflected there.
 		case "push", "tag", "deployment", "pull_request", "promote", "rollback":
 			return &upgrade
 		case "delete":
@@ -97,7 +96,9 @@ func (p *Plan) Execute() error {
 
 var upgrade = func(cfg Config) []Step {
 	steps := initKube(cfg)
-
+	if cfg.UpdateDependencies {
+		steps = append(steps, depUpdate(cfg)...)
+	}
 	steps = append(steps, &run.Upgrade{
 		Chart:        cfg.Chart,
 		Release:      cfg.Release,
@@ -114,6 +115,9 @@ var upgrade = func(cfg Config) []Step {
 
 var uninstall = func(cfg Config) []Step {
 	steps := initKube(cfg)
+	if cfg.UpdateDependencies {
+		steps = append(steps, depUpdate(cfg)...)
+	}
 	steps = append(steps, &run.Uninstall{
 		Release: cfg.Release,
 		DryRun:  cfg.DryRun,
@@ -123,11 +127,15 @@ var uninstall = func(cfg Config) []Step {
 }
 
 var lint = func(cfg Config) []Step {
-	lint := &run.Lint{
-		Chart: cfg.Chart,
+	steps := make([]Step, 0)
+	if cfg.UpdateDependencies {
+		steps = append(steps, depUpdate(cfg)...)
 	}
+	steps = append(steps, &run.Lint{
+		Chart: cfg.Chart,
+	})
 
-	return []Step{lint}
+	return steps
 }
 
 var help = func(cfg Config) []Step {
@@ -147,6 +155,14 @@ func initKube(cfg Config) []Step {
 			Token:          cfg.KubeToken,
 			TemplateFile:   kubeConfigTemplate,
 			ConfigFile:     kubeConfigFile,
+		},
+	}
+}
+
+func depUpdate(cfg Config) []Step {
+	return []Step{
+		&run.DepUpdate{
+			Chart: cfg.Chart,
 		},
 	}
 }

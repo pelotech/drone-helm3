@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	"io"
+	"regexp"
 )
+
+var justNumbers = regexp.MustCompile(`^\d+$`)
 
 // The Config struct captures the `settings` and `environment` blocks in the application's drone
 // config. Configuration in drone's `settings` block arrives as uppercase env vars matching the
@@ -60,6 +63,10 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		if err := envconfig.Process(cfg.Prefix, &cfg); err != nil {
 			return nil, err
 		}
+	}
+
+	if justNumbers.MatchString(cfg.Timeout) {
+		cfg.Timeout = fmt.Sprintf("%ss", cfg.Timeout)
 	}
 
 	if cfg.Debug && cfg.Stderr != nil {
