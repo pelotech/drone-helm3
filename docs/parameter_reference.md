@@ -68,6 +68,7 @@ Any setting (with the exception of `prefix`; [see below](#user-content-using-the
 
 * Booleans can be yaml's `true` and `false` literals or the strings `"true"` and `"false"`.
 * Durations are strings formatted with the syntax accepted by [golang's ParseDuration function](https://golang.org/pkg/time/#ParseDuration) (e.g. 5m30s)
+  * For backward-compatibility with drone-helm, a duration can also be an integer, in which case it will be interpreted to mean seconds.
 * List\<string\>s can be a yaml sequence or a comma-separated string.
 
 All of the following are equivalent:
