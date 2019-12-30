@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pelotech/drone-helm3/internal/run"
 	"os"
+	"strings"
 )
 
 const (
@@ -96,6 +97,7 @@ func (p *Plan) Execute() error {
 
 var upgrade = func(cfg Config) []Step {
 	steps := initKube(cfg)
+	steps = append(steps, addRepos(cfg)...)
 	if cfg.UpdateDependencies {
 		steps = append(steps, depUpdate(cfg)...)
 	}
@@ -127,7 +129,7 @@ var uninstall = func(cfg Config) []Step {
 }
 
 var lint = func(cfg Config) []Step {
-	steps := make([]Step, 0)
+	steps := addRepos(cfg)
 	if cfg.UpdateDependencies {
 		steps = append(steps, depUpdate(cfg)...)
 	}
@@ -155,6 +157,23 @@ func initKube(cfg Config) []Step {
 			ConfigFile:     kubeConfigFile,
 		},
 	}
+}
+
+func addRepos(cfg Config) []Step {
+	steps := make([]Step, 0)
+	for _, repo := range cfg.AddRepos {
+		split := strings.SplitN(repo, "=", 2)
+		if len(split) != 2 {
+			fmt.Fprintf(cfg.Stderr, "Warning: skipping bad repo spec '%s'.\n", repo)
+			continue
+		}
+		steps = append(steps, &run.AddRepo{
+			Name: split[0],
+			URL:  split[1],
+		})
+	}
+
+	return steps
 }
 
 func depUpdate(cfg Config) []Step {
