@@ -96,6 +96,7 @@ func (p *Plan) Execute() error {
 
 var upgrade = func(cfg Config) []Step {
 	steps := initKube(cfg)
+	steps = append(steps, addRepos(cfg)...)
 	if cfg.UpdateDependencies {
 		steps = append(steps, depUpdate(cfg)...)
 	}
@@ -127,7 +128,7 @@ var uninstall = func(cfg Config) []Step {
 }
 
 var lint = func(cfg Config) []Step {
-	steps := make([]Step, 0)
+	steps := addRepos(cfg)
 	if cfg.UpdateDependencies {
 		steps = append(steps, depUpdate(cfg)...)
 	}
@@ -157,6 +158,17 @@ func initKube(cfg Config) []Step {
 			ConfigFile:     kubeConfigFile,
 		},
 	}
+}
+
+func addRepos(cfg Config) []Step {
+	steps := make([]Step, 0)
+	for _, repo := range cfg.AddRepos {
+		steps = append(steps, &run.AddRepo{
+			Repo: repo,
+		})
+	}
+
+	return steps
 }
 
 func depUpdate(cfg Config) []Step {

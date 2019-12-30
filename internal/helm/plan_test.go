@@ -177,6 +177,17 @@ func (suite *PlanTestSuite) TestUpgradeWithUpdateDependencies() {
 	suite.IsType(&run.DepUpdate{}, steps[1])
 }
 
+func (suite *PlanTestSuite) TestUpgradeWithAddRepos() {
+	cfg := Config{
+		AddRepos: []string{
+			"machine=https://github.com/harold_finch/themachine",
+		},
+	}
+	steps := upgrade(cfg)
+	suite.Require().True(len(steps) > 1, "upgrade should generate at least two steps")
+	suite.IsType(&run.AddRepo{}, steps[1])
+}
+
 func (suite *PlanTestSuite) TestUninstall() {
 	cfg := Config{
 		KubeToken:      "b2YgbXkgYWZmZWN0aW9u",
@@ -268,6 +279,24 @@ func (suite *PlanTestSuite) TestDepUpdate() {
 	suite.Equal(expected, update)
 }
 
+func (suite *PlanTestSuite) TestAddRepos() {
+	cfg := Config{
+		AddRepos: []string{
+			"first=https://add.repos/one",
+			"second=https://add.repos/two",
+		},
+	}
+	steps := addRepos(cfg)
+	suite.Require().Equal(2, len(steps), "addRepos should add one step per repo")
+	suite.Require().IsType(&run.AddRepo{}, steps[0])
+	suite.Require().IsType(&run.AddRepo{}, steps[1])
+	first := steps[0].(*run.AddRepo)
+	second := steps[1].(*run.AddRepo)
+
+	suite.Equal(first.Repo, "first=https://add.repos/one")
+	suite.Equal(second.Repo, "second=https://add.repos/two")
+}
+
 func (suite *PlanTestSuite) TestLint() {
 	cfg := Config{
 		Chart: "./flow",
@@ -289,6 +318,15 @@ func (suite *PlanTestSuite) TestLintWithUpdateDependencies() {
 	steps := lint(cfg)
 	suite.Require().Equal(2, len(steps), "lint should have a second step when DepUpdate is true")
 	suite.IsType(&run.DepUpdate{}, steps[0])
+}
+
+func (suite *PlanTestSuite) TestLintWithAddRepos() {
+	cfg := Config{
+		AddRepos: []string{"friendczar=https://github.com/logan_pierce/friendczar"},
+	}
+	steps := lint(cfg)
+	suite.Require().True(len(steps) > 0, "lint should return at least one step")
+	suite.IsType(&run.AddRepo{}, steps[0])
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanUpgradeCommand() {
