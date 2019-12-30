@@ -74,7 +74,7 @@ func determineSteps(cfg Config) *func(Config) []Step {
 		case "delete":
 			return &uninstall
 		default:
-			panic("not implemented")
+			return &help
 		}
 	}
 }
@@ -96,7 +96,10 @@ func (p *Plan) Execute() error {
 
 var upgrade = func(cfg Config) []Step {
 	steps := initKube(cfg)
-
+	steps = append(steps, addRepos(cfg)...)
+	if cfg.UpdateDependencies {
+		steps = append(steps, depUpdate(cfg)...)
+	}
 	steps = append(steps, &run.Upgrade{
 		Chart:        cfg.Chart,
 		Release:      cfg.Release,
@@ -113,6 +116,9 @@ var upgrade = func(cfg Config) []Step {
 
 var uninstall = func(cfg Config) []Step {
 	steps := initKube(cfg)
+	if cfg.UpdateDependencies {
+		steps = append(steps, depUpdate(cfg)...)
+	}
 	steps = append(steps, &run.Uninstall{
 		Release: cfg.Release,
 		DryRun:  cfg.DryRun,
@@ -122,15 +128,21 @@ var uninstall = func(cfg Config) []Step {
 }
 
 var lint = func(cfg Config) []Step {
-	lint := &run.Lint{
-		Chart: cfg.Chart,
+	steps := addRepos(cfg)
+	if cfg.UpdateDependencies {
+		steps = append(steps, depUpdate(cfg)...)
 	}
+	steps = append(steps, &run.Lint{
+		Chart: cfg.Chart,
+	})
 
-	return []Step{lint}
+	return steps
 }
 
 var help = func(cfg Config) []Step {
-	help := &run.Help{}
+	help := &run.Help{
+		HelmCommand: cfg.Command,
+	}
 	return []Step{help}
 }
 
@@ -144,6 +156,25 @@ func initKube(cfg Config) []Step {
 			Token:          cfg.KubeToken,
 			TemplateFile:   kubeConfigTemplate,
 			ConfigFile:     kubeConfigFile,
+		},
+	}
+}
+
+func addRepos(cfg Config) []Step {
+	steps := make([]Step, 0)
+	for _, repo := range cfg.AddRepos {
+		steps = append(steps, &run.AddRepo{
+			Repo: repo,
+		})
+	}
+
+	return steps
+}
+
+func depUpdate(cfg Config) []Step {
+	return []Step{
+		&run.DepUpdate{
+			Chart: cfg.Chart,
 		},
 	}
 }

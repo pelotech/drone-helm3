@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	"io"
+	"regexp"
 )
+
+var justNumbers = regexp.MustCompile(`^\d+$`)
 
 // The Config struct captures the `settings` and `environment` blocks in the application's drone
 // config. Configuration in drone's `settings` block arrives as uppercase env vars matching the
@@ -15,7 +18,7 @@ type Config struct {
 	Command            string   `envconfig:"HELM_COMMAND"`           // Helm command to run
 	DroneEvent         string   `envconfig:"DRONE_BUILD_EVENT"`      // Drone event that invoked this plugin.
 	UpdateDependencies bool     `split_words:"true"`                 // Call `helm dependency update` before the main command
-	Repos              []string `envconfig:"HELM_REPOS"`             // Call `helm repo add` before the main command
+	AddRepos           []string `envconfig:"HELM_REPOS"`             // Call `helm repo add` before the main command
 	Prefix             string   ``                                   // Prefix to use when looking up secret env vars
 	Debug              bool     ``                                   // Generate debug output and pass --debug to all helm commands
 	Values             string   ``                                   // Argument to pass to --set in applicable helm commands
@@ -60,6 +63,10 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		if err := envconfig.Process(cfg.Prefix, &cfg); err != nil {
 			return nil, err
 		}
+	}
+
+	if justNumbers.MatchString(cfg.Timeout) {
+		cfg.Timeout = fmt.Sprintf("%ss", cfg.Timeout)
 	}
 
 	if cfg.Debug && cfg.Stderr != nil {
