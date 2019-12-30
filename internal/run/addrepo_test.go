@@ -46,8 +46,7 @@ func (suite *AddRepoTestSuite) TestPrepareAndExecute() {
 		Stderr: &stderr,
 	}
 	a := AddRepo{
-		Name: "edeath",
-		URL:  "https://github.com/n_marks/e-death",
+		Repo: "edeath=https://github.com/n_marks/e-death",
 	}
 
 	suite.mockCmd.EXPECT().
@@ -58,8 +57,8 @@ func (suite *AddRepoTestSuite) TestPrepareAndExecute() {
 		Times(1)
 
 	suite.Require().NoError(a.Prepare(cfg))
-	suite.Equal(suite.commandPath, helmBin)
-	suite.Equal(suite.commandArgs, []string{"repo", "add", "edeath", "https://github.com/n_marks/e-death"})
+	suite.Equal(helmBin, suite.commandPath)
+	suite.Equal([]string{"repo", "add", "edeath", "https://github.com/n_marks/e-death"}, suite.commandArgs)
 
 	suite.mockCmd.EXPECT().
 		Run().
@@ -69,23 +68,33 @@ func (suite *AddRepoTestSuite) TestPrepareAndExecute() {
 
 }
 
-func (suite *AddRepoTestSuite) TestRequiredFields() {
+func (suite *AddRepoTestSuite) TestPrepareRepoIsRequired() {
 	// These aren't really expected, but allowing them gives clearer test-failure messages
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 	cfg := Config{}
-	a := AddRepo{
-		Name: "idgen",
-	}
+	a := AddRepo{}
 
 	err := a.Prepare(cfg)
-	suite.EqualError(err, "repo URL is required")
+	suite.EqualError(err, "repo is required")
+}
 
-	a.Name = ""
-	a.URL = "https://github.com/n_marks/idgen"
+func (suite *AddRepoTestSuite) TestPrepareMalformedRepo() {
+	a := AddRepo{
+		Repo: "dwim",
+	}
+	err := a.Prepare(Config{})
+	suite.EqualError(err, "bad repo spec 'dwim'")
+}
 
-	err = a.Prepare(cfg)
-	suite.EqualError(err, "repo name is required")
+func (suite *AddRepoTestSuite) TestPrepareWithEqualSignInURL() {
+	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
+	a := AddRepo{
+		Repo: "samaritan=https://github.com/arthur_claypool/samaritan?version=2.1",
+	}
+	suite.NoError(a.Prepare(Config{}))
+	suite.Contains(suite.commandArgs, "https://github.com/arthur_claypool/samaritan?version=2.1")
 }
 
 func (suite *AddRepoTestSuite) TestNamespaceFlag() {
@@ -95,8 +104,7 @@ func (suite *AddRepoTestSuite) TestNamespaceFlag() {
 		Namespace: "alliteration",
 	}
 	a := AddRepo{
-		Name: "edeath",
-		URL:  "https://github.com/theater_guy/e-death",
+		Repo: "edeath=https://github.com/theater_guy/e-death",
 	}
 
 	suite.NoError(a.Prepare(cfg))
@@ -124,8 +132,7 @@ func (suite *AddRepoTestSuite) TestDebugFlag() {
 		Stderr: &stderr,
 	}
 	a := AddRepo{
-		Name: "edeath",
-		URL:  "https://github.com/the_bug/e-death",
+		Repo: "edeath=https://github.com/the_bug/e-death",
 	}
 
 	suite.Require().NoError(a.Prepare(cfg))

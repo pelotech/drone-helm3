@@ -293,45 +293,8 @@ func (suite *PlanTestSuite) TestAddRepos() {
 	first := steps[0].(*run.AddRepo)
 	second := steps[1].(*run.AddRepo)
 
-	suite.Equal(first.Name, "first")
-	suite.Equal(first.URL, "https://add.repos/one")
-	suite.Equal(second.Name, "second")
-	suite.Equal(second.URL, "https://add.repos/two")
-}
-
-func (suite *PlanTestSuite) TestAddNoRepos() {
-	cfg := Config{
-		AddRepos: []string{},
-	}
-	steps := addRepos(cfg)
-	suite.Equal(0, len(steps), "adding no repos should take zero steps")
-}
-
-func (suite *PlanTestSuite) TestAddReposWithMalformedRepoSpec() {
-	stderr := strings.Builder{}
-	cfg := Config{
-		AddRepos: []string{
-			"dwim",
-		},
-		Stderr: &stderr,
-	}
-	steps := addRepos(cfg)
-	suite.Equal(len(steps), 0)
-	suite.Equal("Warning: skipping bad repo spec 'dwim'.\n", stderr.String())
-}
-
-func (suite *PlanTestSuite) TestAddReposWithEqualsInURL() {
-	cfg := Config{
-		AddRepos: []string{
-			"samaritan=https://github.com/arthur_claypool/samaritan?version=2.1",
-		},
-		Stderr: &strings.Builder{},
-	}
-	steps := addRepos(cfg)
-	suite.Require().Equal(1, len(steps))
-	suite.Require().IsType(&run.AddRepo{}, steps[0])
-	addRepo := steps[0].(*run.AddRepo)
-	suite.Equal("https://github.com/arthur_claypool/samaritan?version=2.1", addRepo.URL)
+	suite.Equal(first.Repo, "first=https://add.repos/one")
+	suite.Equal(second.Repo, "second=https://add.repos/two")
 }
 
 func (suite *PlanTestSuite) TestLint() {

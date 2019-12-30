@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/pelotech/drone-helm3/internal/run"
 	"os"
-	"strings"
 )
 
 const (
@@ -162,14 +161,8 @@ func initKube(cfg Config) []Step {
 func addRepos(cfg Config) []Step {
 	steps := make([]Step, 0)
 	for _, repo := range cfg.AddRepos {
-		split := strings.SplitN(repo, "=", 2)
-		if len(split) != 2 {
-			fmt.Fprintf(cfg.Stderr, "Warning: skipping bad repo spec '%s'.\n", repo)
-			continue
-		}
 		steps = append(steps, &run.AddRepo{
-			Name: split[0],
-			URL:  split[1],
+			Repo: repo,
 		})
 	}
 

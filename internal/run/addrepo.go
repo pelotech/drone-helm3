@@ -2,12 +2,12 @@ package run
 
 import (
 	"fmt"
+	"strings"
 )
 
 // AddRepo is an execution step that calls `helm repo add` when executed.
 type AddRepo struct {
-	Name string
-	URL  string
+	Repo string
 	cmd  cmd
 }
 
@@ -18,12 +18,16 @@ func (a *AddRepo) Execute(_ Config) error {
 
 // Prepare gets the AddRepo ready to execute.
 func (a *AddRepo) Prepare(cfg Config) error {
-	if a.Name == "" {
-		return fmt.Errorf("repo name is required")
+	if a.Repo == "" {
+		return fmt.Errorf("repo is required")
 	}
-	if a.URL == "" {
-		return fmt.Errorf("repo URL is required")
+	split := strings.SplitN(a.Repo, "=", 2)
+	if len(split) != 2 {
+		return fmt.Errorf("bad repo spec '%s'", a.Repo)
 	}
+
+	name := split[0]
+	url := split[1]
 
 	args := make([]string, 0)
 
@@ -34,7 +38,7 @@ func (a *AddRepo) Prepare(cfg Config) error {
 		args = append(args, "--debug")
 	}
 
-	args = append(args, "repo", "add", a.Name, a.URL)
+	args = append(args, "repo", "add", name, url)
 
 	a.cmd = command(helmBin, args...)
 	a.cmd.Stdout(cfg.Stdout)
