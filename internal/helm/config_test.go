@@ -106,6 +106,13 @@ func (suite *ConfigTestSuite) TestNewConfigWithConflictingVariables() {
 	suite.Equal("2m30s", cfg.Timeout)
 }
 
+func (suite *ConfigTestSuite) TestNewConfigInfersNumbersAreSeconds() {
+	suite.setenv("PLUGIN_TIMEOUT", "42")
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	suite.Require().NoError(err)
+	suite.Equal("42s", cfg.Timeout)
+}
+
 func (suite *ConfigTestSuite) TestNewConfigSetsWriters() {
 	stdout := &strings.Builder{}
 	stderr := &strings.Builder{}

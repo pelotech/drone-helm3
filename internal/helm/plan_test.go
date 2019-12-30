@@ -167,7 +167,17 @@ func (suite *PlanTestSuite) TestUpgrade() {
 	suite.Equal(expected, upgrade)
 }
 
-func (suite *PlanTestSuite) TestDel() {
+func (suite *PlanTestSuite) TestUpgradeWithUpdateDependencies() {
+	cfg := Config{
+		UpdateDependencies: true,
+	}
+	steps := upgrade(cfg)
+	suite.Require().Equal(3, len(steps), "upgrade should have a third step when DepUpdate is true")
+	suite.IsType(&run.InitKube{}, steps[0])
+	suite.IsType(&run.DepUpdate{}, steps[1])
+}
+
+func (suite *PlanTestSuite) TestUninstall() {
 	cfg := Config{
 		KubeToken:      "b2YgbXkgYWZmZWN0aW9u",
 		SkipTLSVerify:  true,
@@ -205,6 +215,16 @@ func (suite *PlanTestSuite) TestDel() {
 	suite.Equal(expected, actual)
 }
 
+func (suite *PlanTestSuite) TestUninstallWithUpdateDependencies() {
+	cfg := Config{
+		UpdateDependencies: true,
+	}
+	steps := uninstall(cfg)
+	suite.Require().Equal(3, len(steps), "uninstall should have a third step when DepUpdate is true")
+	suite.IsType(&run.InitKube{}, steps[0])
+	suite.IsType(&run.DepUpdate{}, steps[1])
+}
+
 func (suite *PlanTestSuite) TestInitKube() {
 	cfg := Config{
 		KubeToken:      "cXVlZXIgY2hhcmFjdGVyCg==",
@@ -231,6 +251,23 @@ func (suite *PlanTestSuite) TestInitKube() {
 	suite.Equal(expected, init)
 }
 
+func (suite *PlanTestSuite) TestDepUpdate() {
+	cfg := Config{
+		UpdateDependencies: true,
+		Chart:              "scatterplot",
+	}
+
+	steps := depUpdate(cfg)
+	suite.Require().Equal(1, len(steps), "depUpdate should return one step")
+	suite.Require().IsType(&run.DepUpdate{}, steps[0])
+	update, _ := steps[0].(*run.DepUpdate)
+
+	expected := &run.DepUpdate{
+		Chart: "scatterplot",
+	}
+	suite.Equal(expected, update)
+}
+
 func (suite *PlanTestSuite) TestLint() {
 	cfg := Config{
 		Chart: "./flow",
@@ -243,6 +280,15 @@ func (suite *PlanTestSuite) TestLint() {
 		Chart: "./flow",
 	}
 	suite.Equal(want, steps[0])
+}
+
+func (suite *PlanTestSuite) TestLintWithUpdateDependencies() {
+	cfg := Config{
+		UpdateDependencies: true,
+	}
+	steps := lint(cfg)
+	suite.Require().Equal(2, len(steps), "lint should have a second step when DepUpdate is true")
+	suite.IsType(&run.DepUpdate{}, steps[0])
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanUpgradeCommand() {
