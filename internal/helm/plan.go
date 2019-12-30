@@ -74,7 +74,7 @@ func determineSteps(cfg Config) *func(Config) []Step {
 		case "delete":
 			return &uninstall
 		default:
-			panic("not implemented")
+			return &help
 		}
 	}
 }
@@ -139,7 +139,9 @@ var lint = func(cfg Config) []Step {
 }
 
 var help = func(cfg Config) []Step {
-	help := &run.Help{}
+	help := &run.Help{
+		HelmCommand: cfg.Command,
+	}
 	return []Step{help}
 }
 
