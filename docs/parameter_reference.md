@@ -7,7 +7,6 @@
 | update_dependencies | boolean         | Calls `helm dependency update` before running the main command.|
 | helm_repos          | list\<string\>  | Calls `helm repo add $repo` before running the main command. Each string should be formatted as `repo_name=https://repo.url/`. |
 | namespace           | string          | Kubernetes namespace to use for this operation. |
-| prefix              | string          | Expect environment variables to be prefixed with the given string. For more details, see "Using the prefix setting" below. |
 | debug               | boolean         | Generate debug output within drone-helm3 and pass `--debug` to all helm commands. Use with care, since the debug output may include secrets. |
 
 ## Linting
@@ -62,7 +61,7 @@ Uninstallations are triggered when the `helm_command` setting is "uninstall" or 
 
 ### Where to put settings
 
-Any setting (with the exception of `prefix`; [see below](#user-content-using-the-prefix-setting)), can go in either the `settings` or `environment` section.
+Any setting can go in either the `settings` or `environment` section.
 
 ### Formatting non-string values
 
@@ -86,46 +85,4 @@ Note that **list members must not contain commas**. Both of the following are eq
 ```yaml
 values_files: [ "./over_9,000.yml" ]
 values_files: [ "./over_9", "000.yml" ]
-```
-
-### Using the `prefix` setting
-
-Because the prefix setting is meta-configuration, it has some inherent edge-cases. Here is what it does in the cases we've thought of:
-
-Unlike the other settings, it must be declared in the `settings` block, not `environment`:
-
-```yaml
-settings:
-  prefix: helm # drone-helm3 will look for environment variables called HELM_VARNAME
-environment:
-  prefix: armet # no effect
-```
-
-It does not apply to configuration in the `settings` block, only in `environment`:
-
-```yaml
-settings:
-  prefix: helm
-  helm_timeout: 5m # no effect
-environment:
-  helm_timeout: 2m # timeout will be 2 minutes
-```
-
-If the environment contains a variable in non-prefixed form, it will still be applied:
-
-```yaml
-settings:
-  prefix: helm
-environment:
-  timeout: 2m # timeout will be 2 minutes
-```
-
-If the environment contains both the prefixed and non-prefixed forms, drone-helm3 will use the prefixed form:
-
-```yaml
-settings:
-  prefix: helm
-environment:
-  timeout: 5m # overridden
-  helm_timeout: 2m # timeout will be 2 minutes
 ```
