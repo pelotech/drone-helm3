@@ -19,7 +19,6 @@ func TestConfigTestSuite(t *testing.T) {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithPluginPrefix() {
-	suite.unsetenv("PLUGIN_PREFIX")
 	suite.unsetenv("HELM_COMMAND")
 	suite.unsetenv("UPDATE_DEPENDENCIES")
 	suite.unsetenv("DEBUG")
@@ -37,7 +36,6 @@ func (suite *ConfigTestSuite) TestNewConfigWithPluginPrefix() {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithNoPrefix() {
-	suite.unsetenv("PLUGIN_PREFIX")
 	suite.unsetenv("PLUGIN_HELM_COMMAND")
 	suite.unsetenv("PLUGIN_UPDATE_DEPENDENCIES")
 	suite.unsetenv("PLUGIN_DEBUG")
@@ -54,56 +52,14 @@ func (suite *ConfigTestSuite) TestNewConfigWithNoPrefix() {
 	suite.True(cfg.Debug)
 }
 
-func (suite *ConfigTestSuite) TestNewConfigWithConfigurablePrefix() {
-	suite.unsetenv("API_SERVER")
-	suite.unsetenv("PLUGIN_API_SERVER")
-
-	suite.setenv("PLUGIN_PREFIX", "prix_fixe")
-	suite.setenv("PRIX_FIXE_API_SERVER", "your waiter this evening")
-
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
-	suite.Require().NoError(err)
-
-	suite.Equal("prix_fixe", cfg.Prefix)
-	suite.Equal("your waiter this evening", cfg.APIServer)
-}
-
-func (suite *ConfigTestSuite) TestPrefixSettingDoesNotAffectPluginPrefix() {
-	suite.setenv("PLUGIN_PREFIX", "IXFREP")
-	suite.setenv("PLUGIN_HELM_COMMAND", "wake me up")
-	suite.setenv("IXFREP_PLUGIN_HELM_COMMAND", "send me to sleep inside")
-
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
-	suite.Require().NoError(err)
-
-	suite.Equal("wake me up", cfg.Command)
-}
-
-func (suite *ConfigTestSuite) TestPrefixSettingMustHavePluginPrefix() {
-	suite.unsetenv("PLUGIN_PREFIX")
-	suite.setenv("PREFIX", "refpix")
-	suite.setenv("HELM_COMMAND", "gimme more")
-	suite.setenv("REFPIX_HELM_COMMAND", "gimme less")
-
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
-	suite.Require().NoError(err)
-
-	suite.Equal("gimme more", cfg.Command)
-}
-
 func (suite *ConfigTestSuite) TestNewConfigWithConflictingVariables() {
 	suite.setenv("PLUGIN_HELM_COMMAND", "execute order 66")
 	suite.setenv("HELM_COMMAND", "defend the jedi") // values from the `environment` block override those from `settings`
-
-	suite.setenv("PLUGIN_PREFIX", "prod")
-	suite.setenv("TIMEOUT", "5m0s")
-	suite.setenv("PROD_TIMEOUT", "2m30s") // values from prefixed env vars override those from non-prefixed ones
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
 	suite.Equal("defend the jedi", cfg.Command)
-	suite.Equal("2m30s", cfg.Timeout)
 }
 
 func (suite *ConfigTestSuite) TestNewConfigInfersNumbersAreSeconds() {

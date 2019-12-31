@@ -63,8 +63,7 @@ steps:
 drone-helm3 is largely backwards-compatible with drone-helm. There are some known differences:
 
 * You'll need to migrate the deployments in the cluster [helm-v2-to-helm-v3](https://helm.sh/blog/migrate-from-helm-v2-to-helm-v3/).
-
-* `prefix` must be supplied via the `settings` block, not `environment`.
+* The `prefix` setting is no longer supported. If you were relying on the `prefix` setting with `secrets: [...]`, you'll need to switch to the `from_secret` syntax.
 * Several settings no longer have any effect:
     * `purge` -- this is the default behavior in Helm 3
     * `recreate_pods`
