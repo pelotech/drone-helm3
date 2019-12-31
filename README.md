@@ -70,7 +70,7 @@ drone-helm3 is largely backwards-compatible with drone-helm. There are some know
 
 Since helm 3 does not require Tiller, we also recommend switching to a service account with less-expansive permissions.
 
-### Contribution
+### [Contributing](docs/contributing.md)
 
 This repo is setup in a way that if you enable a personal drone server to build your fork it will
  build and publish your image (makes it easier to test PRs and use the image till the contributions get merged)
