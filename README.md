@@ -58,7 +58,7 @@ steps:
 
 drone-helm3 is largely backwards-compatible with drone-helm. There are some known differences:
 
-* `prefix` must be supplied via the `settings` block, not `environment`.
+* The `prefix` setting is no longer supported. If you were relying on the `prefix` setting with `secrets: [...]`, you'll need to switch to the `from_secret` syntax.
 * Several settings no longer have any effect:
     * `purge` -- this is the default behavior in Helm 3
     * `recreate_pods`
