@@ -69,3 +69,11 @@ drone-helm3 is largely backwards-compatible with drone-helm. There are some know
     * `stable_repo_url`
 
 Since helm 3 does not require Tiller, we also recommend switching to a service account with less-expansive permissions.
+
+### Contribution
+
+This repo is setup in a way that if you enable a personal drone server to build your fork it will
+ build and publish your image (makes it easier to test PRs and use the image till the contributions get merged)
+ 
+* Build local ```DRONE_REPO_OWNER=josmo DRONE_REPO_NAME=drone-ecs drone exec```
+* on your server (or cloud.drone.io) just make sure you have DOCKER_USERNAME, DOCKER_PASSWORD, and PLUGIN_REPO set as secrets
