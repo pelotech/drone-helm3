@@ -1,6 +1,7 @@
 package helm
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/suite"
 	"os"
 	"strings"
@@ -121,6 +122,24 @@ func (suite *ConfigTestSuite) TestNewConfigSetsWriters() {
 
 	suite.Equal(stdout, cfg.Stdout)
 	suite.Equal(stderr, cfg.Stderr)
+}
+
+func (suite *ConfigTestSuite) TestDeprecatedSettingWarnings() {
+	for _, varname := range deprecatedVars {
+		suite.setenv(varname, "deprecoat") // environment-block entries should cause warnings
+	}
+
+	suite.unsetenv("PURGE")
+	suite.setenv("PLUGIN_PURGE", "true") // settings-block entries should cause warnings
+	suite.setenv("UPGRADE", "")          // entries should cause warnings even when set to empty string
+
+	stderr := &strings.Builder{}
+	_, err := NewConfig(&strings.Builder{}, stderr)
+	suite.NoError(err)
+
+	for _, varname := range deprecatedVars {
+		suite.Contains(stderr.String(), fmt.Sprintf("Warning: ignoring deprecated '%s' setting\n", strings.ToLower(varname)))
+	}
 }
 
 func (suite *ConfigTestSuite) TestLogDebug() {

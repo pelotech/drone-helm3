@@ -59,7 +59,7 @@ steps:
 drone-helm3 is largely backwards-compatible with drone-helm. There are some known differences:
 
 * `prefix` must be supplied via the `settings` block, not `environment`.
-* Several settings no longer have any effect:
+* Several settings no longer have any effect. The plugin will produce warnings if any of these are present:
     * `purge` -- this is the default behavior in Helm 3
     * `recreate_pods`
     * `tiller_ns`
