@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	"io"
+	"os"
 	"regexp"
+	"strings"
 )
 
-var justNumbers = regexp.MustCompile(`^\d+$`)
+var (
+	justNumbers    = regexp.MustCompile(`^\d+$`)
+	deprecatedVars = []string{"PURGE", "RECREATE_PODS", "TILLER_NS", "UPGRADE", "CANARY_IMAGE", "CLIENT_ONLY", "STABLE_REPO_URL"}
+)
 
 // The Config struct captures the `settings` and `environment` blocks in the application's drone
 // config. Configuration in drone's `settings` block arrives as uppercase env vars matching the
@@ -64,6 +69,8 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		cfg.logDebug()
 	}
 
+	cfg.deprecationWarn()
+
 	return &cfg, nil
 }
 
@@ -72,4 +79,14 @@ func (cfg Config) logDebug() {
 		cfg.KubeToken = "(redacted)"
 	}
 	fmt.Fprintf(cfg.Stderr, "Generated config: %+v\n", cfg)
+}
+
+func (cfg *Config) deprecationWarn() {
+	for _, varname := range deprecatedVars {
+		_, barePresent := os.LookupEnv(varname)
+		_, prefixedPresent := os.LookupEnv("PLUGIN_" + varname)
+		if barePresent || prefixedPresent {
+			fmt.Fprintf(cfg.Stderr, "Warning: ignoring deprecated '%s' setting\n", strings.ToLower(varname))
+		}
+	}
 }
