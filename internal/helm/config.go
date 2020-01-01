@@ -4,22 +4,26 @@ import (
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	"io"
+	"os"
 	"regexp"
+	"strings"
 )
 
-var justNumbers = regexp.MustCompile(`^\d+$`)
+var (
+	justNumbers    = regexp.MustCompile(`^\d+$`)
+	deprecatedVars = []string{"PURGE", "RECREATE_PODS", "TILLER_NS", "UPGRADE", "CANARY_IMAGE", "CLIENT_ONLY", "STABLE_REPO_URL"}
+)
 
 // The Config struct captures the `settings` and `environment` blocks in the application's drone
 // config. Configuration in drone's `settings` block arrives as uppercase env vars matching the
 // config key, prefixed with `PLUGIN_`. Config from the `environment` block is uppercased, but does
-// not have the `PLUGIN_` prefix. It may, however, be prefixed with the value in `$PLUGIN_PREFIX`.
+// not have the `PLUGIN_` prefix.
 type Config struct {
 	// Configuration for drone-helm itself
 	Command            string   `envconfig:"HELM_COMMAND"`           // Helm command to run
 	DroneEvent         string   `envconfig:"DRONE_BUILD_EVENT"`      // Drone event that invoked this plugin.
 	UpdateDependencies bool     `split_words:"true"`                 // Call `helm dependency update` before the main command
 	AddRepos           []string `envconfig:"HELM_REPOS"`             // Call `helm repo add` before the main command
-	Prefix             string   ``                                   // Prefix to use when looking up secret env vars
 	Debug              bool     ``                                   // Generate debug output and pass --debug to all helm commands
 	Values             string   ``                                   // Argument to pass to --set in applicable helm commands
 	StringValues       string   `split_words:"true"`                 // Argument to pass to --set-string in applicable helm commands
@@ -53,16 +57,8 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		return nil, err
 	}
 
-	prefix := cfg.Prefix
-
 	if err := envconfig.Process("", &cfg); err != nil {
 		return nil, err
-	}
-
-	if prefix != "" {
-		if err := envconfig.Process(cfg.Prefix, &cfg); err != nil {
-			return nil, err
-		}
 	}
 
 	if justNumbers.MatchString(cfg.Timeout) {
@@ -73,6 +69,8 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		cfg.logDebug()
 	}
 
+	cfg.deprecationWarn()
+
 	return &cfg, nil
 }
 
@@ -81,4 +79,14 @@ func (cfg Config) logDebug() {
 		cfg.KubeToken = "(redacted)"
 	}
 	fmt.Fprintf(cfg.Stderr, "Generated config: %+v\n", cfg)
+}
+
+func (cfg *Config) deprecationWarn() {
+	for _, varname := range deprecatedVars {
+		_, barePresent := os.LookupEnv(varname)
+		_, prefixedPresent := os.LookupEnv("PLUGIN_" + varname)
+		if barePresent || prefixedPresent {
+			fmt.Fprintf(cfg.Stderr, "Warning: ignoring deprecated '%s' setting\n", strings.ToLower(varname))
+		}
+	}
 }
