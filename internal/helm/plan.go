@@ -120,8 +120,9 @@ var uninstall = func(cfg Config) []Step {
 		steps = append(steps, depUpdate(cfg)...)
 	}
 	steps = append(steps, &run.Uninstall{
-		Release: cfg.Release,
-		DryRun:  cfg.DryRun,
+		Release:     cfg.Release,
+		DryRun:      cfg.DryRun,
+		KeepHistory: cfg.KeepHistory,
 	})
 
 	return steps

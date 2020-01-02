@@ -81,6 +81,21 @@ func (suite *UninstallTestSuite) TestPrepareDryRunFlag() {
 	suite.Equal(expected, suite.actualArgs)
 }
 
+func (suite *UninstallTestSuite) TestPrepareKeepHistoryFlag() {
+	u := Uninstall{
+		Release:     "perturbator_sentient",
+		KeepHistory: true,
+	}
+	cfg := Config{}
+
+	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
+
+	suite.NoError(u.Prepare(cfg))
+	expected := []string{"uninstall", "--keep-history", "perturbator_sentient"}
+	suite.Equal(expected, suite.actualArgs)
+}
+
 func (suite *UninstallTestSuite) TestPrepareNamespaceFlag() {
 	u := Uninstall{
 		Release: "carly_simon_run_away_with_me",
