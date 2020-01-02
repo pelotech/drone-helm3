@@ -134,7 +134,8 @@ var lint = func(cfg Config) []Step {
 		steps = append(steps, depUpdate(cfg)...)
 	}
 	steps = append(steps, &run.Lint{
-		Chart: cfg.Chart,
+		Chart:  cfg.Chart,
+		Strict: cfg.LintStrictly,
 	})
 
 	return steps

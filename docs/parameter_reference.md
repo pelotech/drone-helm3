@@ -19,6 +19,7 @@ Linting is only triggered when the `helm_command` setting is "lint".
 | values        | list\<string\> |          | Chart values to use as the `--set` argument to `helm lint`. |
 | string_values | list\<string\> |          | Chart values to use as the `--set-string` argument to `helm lint`. |
 | values_files  | list\<string\> |          | Values to use as `--values` arguments to `helm lint`. |
+| lint_strictly | boolean        |          | Pass `--strict` to `helm lint`, to turn warnings into errors. |
 
 ## Installation
 
@@ -62,7 +63,9 @@ Uninstallations are triggered when the `helm_command` setting is "uninstall" or 
 
 ### Where to put settings
 
-Any setting can go in either the `settings` or `environment` section.
+Any setting can go in either the `settings` or `environment` section. If a setting exists in _both_ sections, the version in `environment` will override the version in `settings`.
+
+We recommend putting all drone-helm3 configuration in the `settings` block and limiting the `environment` block to variables that are used when building your charts.
 
 ### Formatting non-string values
 
