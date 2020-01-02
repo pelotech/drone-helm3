@@ -55,6 +55,7 @@ Uninstallations are triggered when the `helm_command` setting is "uninstall" or 
 | kubernetes_token       | string   | yes      | Token for authenticating to Kubernetes. |
 | service_account        | string   |          | Service account for authenticating to Kubernetes. Default is `helm`. |
 | kubernetes_certificate | string   |          | Base64 encoded TLS certificate used by the Kubernetes cluster's certificate authority. |
+| keep_history           | boolean  |          | Pass `--keep-history` to `helm uninstall`, to retain the release history. |
 | dry_run                | boolean  |          | Pass `--dry-run` to `helm uninstall`. |
 | timeout                | duration |          | Timeout for any *individual* Kubernetes operation. The uninstallation's full runtime may exceed this duration. |
 | skip_tls_verify        | boolean  |          | Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. |

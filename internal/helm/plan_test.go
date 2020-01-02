@@ -198,6 +198,7 @@ func (suite *PlanTestSuite) TestUninstall() {
 		DryRun:         true,
 		Timeout:        "think about what you did",
 		Release:        "jetta_id_love_to_change_the_world",
+		KeepHistory:    true,
 	}
 
 	steps := uninstall(cfg)
@@ -220,8 +221,9 @@ func (suite *PlanTestSuite) TestUninstall() {
 	suite.Require().IsType(&run.Uninstall{}, steps[1])
 	actual, _ := steps[1].(*run.Uninstall)
 	expected = &run.Uninstall{
-		Release: "jetta_id_love_to_change_the_world",
-		DryRun:  true,
+		Release:     "jetta_id_love_to_change_the_world",
+		DryRun:      true,
+		KeepHistory: true,
 	}
 	suite.Equal(expected, actual)
 }

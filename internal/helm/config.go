@@ -38,6 +38,7 @@ type Config struct {
 	DryRun             bool     `split_words:"true"`                 // Pass --dry-run to applicable helm commands
 	Wait               bool     ``                                   // Pass --wait to applicable helm commands
 	ReuseValues        bool     `split_words:"true"`                 // Pass --reuse-values to `helm upgrade`
+	KeepHistory        bool     `split_words:"true"`                 // Pass --keep-history to `helm uninstall`
 	Timeout            string   ``                                   // Argument to pass to --timeout in applicable helm commands
 	Chart              string   ``                                   // Chart argument to use in applicable helm commands
 	Release            string   ``                                   // Release argument to use in applicable helm commands
