@@ -42,6 +42,7 @@ type Config struct {
 	Chart              string   ``                                   // Chart argument to use in applicable helm commands
 	Release            string   ``                                   // Release argument to use in applicable helm commands
 	Force              bool     ``                                   // Pass --force to applicable helm commands
+	LintStrictly       bool     `split_words:"true"`                 // Pass --strict to `helm lint`
 
 	Stdout io.Writer `ignored:"true"`
 	Stderr io.Writer `ignored:"true"`

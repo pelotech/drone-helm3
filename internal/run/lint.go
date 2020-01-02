@@ -6,8 +6,9 @@ import (
 
 // Lint is an execution step that calls `helm lint` when executed.
 type Lint struct {
-	Chart string
-	cmd   cmd
+	Chart  string
+	Strict bool
+	cmd    cmd
 }
 
 // Execute executes the `helm lint` command.
@@ -40,6 +41,9 @@ func (l *Lint) Prepare(cfg Config) error {
 	}
 	for _, vFile := range cfg.ValuesFiles {
 		args = append(args, "--values", vFile)
+	}
+	if l.Strict {
+		args = append(args, "--strict")
 	}
 
 	args = append(args, l.Chart)
