@@ -87,6 +87,7 @@ func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 		Values:       "width=5",
 		StringValues: "version=2.0",
 		ValuesFiles:  []string{"/usr/local/underrides", "/usr/local/overrides"},
+		Strict:       true,
 	}
 
 	command = func(path string, args ...string) cmd {
@@ -96,6 +97,7 @@ func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 			"--set-string", "version=2.0",
 			"--values", "/usr/local/underrides",
 			"--values", "/usr/local/overrides",
+			"--strict",
 			"./uk/top_40"}, args)
 
 		return suite.mockCmd

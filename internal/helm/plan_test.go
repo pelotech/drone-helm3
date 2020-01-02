@@ -303,6 +303,7 @@ func (suite *PlanTestSuite) TestLint() {
 		Values:       "steadfastness,forthrightness",
 		StringValues: "tensile_strength,flexibility",
 		ValuesFiles:  []string{"/root/price_inventory.yml"},
+		LintStrictly: true,
 	}
 
 	steps := lint(cfg)
@@ -313,6 +314,7 @@ func (suite *PlanTestSuite) TestLint() {
 		Values:       "steadfastness,forthrightness",
 		StringValues: "tensile_strength,flexibility",
 		ValuesFiles:  []string{"/root/price_inventory.yml"},
+		Strict:       true,
 	}
 	suite.Equal(want, steps[0])
 }

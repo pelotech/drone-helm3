@@ -137,6 +137,7 @@ var lint = func(cfg Config) []Step {
 		Values:       cfg.Values,
 		StringValues: cfg.StringValues,
 		ValuesFiles:  cfg.ValuesFiles,
+		Strict:       cfg.LintStrictly,
 	})
 
 	return steps

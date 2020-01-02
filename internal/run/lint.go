@@ -10,6 +10,7 @@ type Lint struct {
 	Values       string
 	StringValues string
 	ValuesFiles  []string
+	Strict       bool
 	cmd          cmd
 }
 
@@ -43,6 +44,9 @@ func (l *Lint) Prepare(cfg Config) error {
 	}
 	for _, vFile := range l.ValuesFiles {
 		args = append(args, "--values", vFile)
+	}
+	if l.Strict {
+		args = append(args, "--strict")
 	}
 
 	args = append(args, l.Chart)
