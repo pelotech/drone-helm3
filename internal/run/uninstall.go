@@ -6,9 +6,10 @@ import (
 
 // Uninstall is an execution step that calls `helm uninstall` when executed.
 type Uninstall struct {
-	Release string
-	DryRun  bool
-	cmd     cmd
+	Release     string
+	DryRun      bool
+	KeepHistory bool
+	cmd         cmd
 }
 
 // Execute executes the `helm uninstall` command.
@@ -35,6 +36,9 @@ func (u *Uninstall) Prepare(cfg Config) error {
 
 	if u.DryRun {
 		args = append(args, "--dry-run")
+	}
+	if u.KeepHistory {
+		args = append(args, "--keep-history")
 	}
 
 	args = append(args, u.Release)
