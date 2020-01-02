@@ -33,24 +33,18 @@ func (suite *PlanTestSuite) TestNewPlan() {
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
 	cfg := Config{
-		Command:      "help",
-		Debug:        false,
-		Values:       "steadfastness,forthrightness",
-		StringValues: "tensile_strength,flexibility",
-		ValuesFiles:  []string{"/root/price_inventory.yml"},
-		Namespace:    "outer",
-		Stdout:       &stdout,
-		Stderr:       &stderr,
+		Command:   "help",
+		Debug:     false,
+		Namespace: "outer",
+		Stdout:    &stdout,
+		Stderr:    &stderr,
 	}
 
 	runCfg := run.Config{
-		Debug:        false,
-		Values:       "steadfastness,forthrightness",
-		StringValues: "tensile_strength,flexibility",
-		ValuesFiles:  []string{"/root/price_inventory.yml"},
-		Namespace:    "outer",
-		Stdout:       &stdout,
-		Stderr:       &stderr,
+		Debug:     false,
+		Namespace: "outer",
+		Stdout:    &stdout,
+		Stderr:    &stderr,
 	}
 
 	stepOne.EXPECT().
@@ -139,6 +133,9 @@ func (suite *PlanTestSuite) TestUpgrade() {
 		ChartVersion: "seventeen",
 		DryRun:       true,
 		Wait:         true,
+		Values:       "steadfastness,forthrightness",
+		StringValues: "tensile_strength,flexibility",
+		ValuesFiles:  []string{"/root/price_inventory.yml"},
 		ReuseValues:  true,
 		Timeout:      "go sit in the corner",
 		Chart:        "billboard_top_100",
@@ -159,6 +156,9 @@ func (suite *PlanTestSuite) TestUpgrade() {
 		ChartVersion: cfg.ChartVersion,
 		DryRun:       true,
 		Wait:         cfg.Wait,
+		Values:       "steadfastness,forthrightness",
+		StringValues: "tensile_strength,flexibility",
+		ValuesFiles:  []string{"/root/price_inventory.yml"},
 		ReuseValues:  cfg.ReuseValues,
 		Timeout:      cfg.Timeout,
 		Force:        cfg.Force,
@@ -299,14 +299,20 @@ func (suite *PlanTestSuite) TestAddRepos() {
 
 func (suite *PlanTestSuite) TestLint() {
 	cfg := Config{
-		Chart: "./flow",
+		Chart:        "./flow",
+		Values:       "steadfastness,forthrightness",
+		StringValues: "tensile_strength,flexibility",
+		ValuesFiles:  []string{"/root/price_inventory.yml"},
 	}
 
 	steps := lint(cfg)
 	suite.Equal(1, len(steps))
 
 	want := &run.Lint{
-		Chart: "./flow",
+		Chart:        "./flow",
+		Values:       "steadfastness,forthrightness",
+		StringValues: "tensile_strength,flexibility",
+		ValuesFiles:  []string{"/root/price_inventory.yml"},
 	}
 	suite.Equal(want, steps[0])
 }

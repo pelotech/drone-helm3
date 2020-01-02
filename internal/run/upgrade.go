@@ -12,6 +12,9 @@ type Upgrade struct {
 	ChartVersion string
 	DryRun       bool
 	Wait         bool
+	Values       string
+	StringValues string
+	ValuesFiles  []string
 	ReuseValues  bool
 	Timeout      string
 	Force        bool
@@ -62,13 +65,13 @@ func (u *Upgrade) Prepare(cfg Config) error {
 	if u.Force {
 		args = append(args, "--force")
 	}
-	if cfg.Values != "" {
-		args = append(args, "--set", cfg.Values)
+	if u.Values != "" {
+		args = append(args, "--set", u.Values)
 	}
-	if cfg.StringValues != "" {
-		args = append(args, "--set-string", cfg.StringValues)
+	if u.StringValues != "" {
+		args = append(args, "--set-string", u.StringValues)
 	}
-	for _, vFile := range cfg.ValuesFiles {
+	for _, vFile := range u.ValuesFiles {
 		args = append(args, "--values", vFile)
 	}
 

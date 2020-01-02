@@ -91,19 +91,18 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 	u := Upgrade{
 		Chart:        "hot_ac",
 		Release:      "maroon_5_memories",
-		ChartVersion: "radio_edit",        //-version
-		DryRun:       true,                //-run
-		Wait:         true,                //-wait
-		ReuseValues:  true,                //-values
-		Timeout:      "sit_in_the_corner", //-timeout
-		Force:        true,                //-force
-	}
-
-	cfg := Config{
+		ChartVersion: "radio_edit",
+		DryRun:       true,
+		Wait:         true,
 		Values:       "age=35",
 		StringValues: "height=5ft10in",
 		ValuesFiles:  []string{"/usr/local/stats", "/usr/local/grades"},
+		ReuseValues:  true,
+		Timeout:      "sit_in_the_corner",
+		Force:        true,
 	}
+
+	cfg := Config{}
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)

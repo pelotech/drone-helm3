@@ -80,14 +80,13 @@ func (suite *LintTestSuite) TestPrepareRequiresChart() {
 func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 	defer suite.ctrl.Finish()
 
-	cfg := Config{
+	cfg := Config{}
+
+	l := Lint{
+		Chart:        "./uk/top_40",
 		Values:       "width=5",
 		StringValues: "version=2.0",
 		ValuesFiles:  []string{"/usr/local/underrides", "/usr/local/overrides"},
-	}
-
-	l := Lint{
-		Chart: "./uk/top_40",
 	}
 
 	command = func(path string, args ...string) cmd {

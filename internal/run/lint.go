@@ -6,8 +6,11 @@ import (
 
 // Lint is an execution step that calls `helm lint` when executed.
 type Lint struct {
-	Chart string
-	cmd   cmd
+	Chart        string
+	Values       string
+	StringValues string
+	ValuesFiles  []string
+	cmd          cmd
 }
 
 // Execute executes the `helm lint` command.
@@ -32,13 +35,13 @@ func (l *Lint) Prepare(cfg Config) error {
 
 	args = append(args, "lint")
 
-	if cfg.Values != "" {
-		args = append(args, "--set", cfg.Values)
+	if l.Values != "" {
+		args = append(args, "--set", l.Values)
 	}
-	if cfg.StringValues != "" {
-		args = append(args, "--set-string", cfg.StringValues)
+	if l.StringValues != "" {
+		args = append(args, "--set-string", l.StringValues)
 	}
-	for _, vFile := range cfg.ValuesFiles {
+	for _, vFile := range l.ValuesFiles {
 		args = append(args, "--values", vFile)
 	}
 
