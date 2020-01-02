@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/pelotech/drone-helm3/internal/helm"
 )
 
