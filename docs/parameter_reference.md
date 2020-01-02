@@ -19,6 +19,7 @@ Linting is only triggered when the `helm_command` setting is "lint".
 | values        | list\<string\> |          | Chart values to use as the `--set` argument to `helm lint`. |
 | string_values | list\<string\> |          | Chart values to use as the `--set-string` argument to `helm lint`. |
 | values_files  | list\<string\> |          | Values to use as `--values` arguments to `helm lint`. |
+| lint_strictly | boolean        |          | Pass `--strict` to `helm lint`, to turn warnings into errors. |
 
 ## Installation
 

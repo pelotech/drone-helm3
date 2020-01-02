@@ -87,7 +87,8 @@ func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 	}
 
 	l := Lint{
-		Chart: "./uk/top_40",
+		Chart:  "./uk/top_40",
+		Strict: true,
 	}
 
 	command = func(path string, args ...string) cmd {
@@ -97,6 +98,7 @@ func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 			"--set-string", "version=2.0",
 			"--values", "/usr/local/underrides",
 			"--values", "/usr/local/overrides",
+			"--strict",
 			"./uk/top_40"}, args)
 
 		return suite.mockCmd

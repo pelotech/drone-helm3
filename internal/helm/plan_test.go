@@ -299,14 +299,16 @@ func (suite *PlanTestSuite) TestAddRepos() {
 
 func (suite *PlanTestSuite) TestLint() {
 	cfg := Config{
-		Chart: "./flow",
+		Chart:        "./flow",
+		LintStrictly: true,
 	}
 
 	steps := lint(cfg)
 	suite.Equal(1, len(steps))
 
 	want := &run.Lint{
-		Chart: "./flow",
+		Chart:  "./flow",
+		Strict: true,
 	}
 	suite.Equal(want, steps[0])
 }
