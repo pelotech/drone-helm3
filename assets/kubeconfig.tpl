@@ -24,16 +24,4 @@ users:
   user:
 {{- if .Token }}
     token: {{ .Token }}
-{{- else if .EKSCluster }}
-    exec:
-      apiVersion: client.authentication.k8s.io/v1alpha1
-      command: aws-iam-authenticator
-      args:
-        - "token"
-        - "-i"
-        - "{{ .EKSCluster }}"
-    {{- if .EKSRoleARN }}
-        - "-r"
-        - "{{ .EKSRoleARN }}"
-    {{- end }}
 {{- end }}
