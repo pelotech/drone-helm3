@@ -29,13 +29,10 @@ func NewPlan(cfg Config) (*Plan, error) {
 	p := Plan{
 		cfg: cfg,
 		runCfg: run.Config{
-			Debug:        cfg.Debug,
-			Values:       cfg.Values,
-			StringValues: cfg.StringValues,
-			ValuesFiles:  cfg.ValuesFiles,
-			Namespace:    cfg.Namespace,
-			Stdout:       cfg.Stdout,
-			Stderr:       cfg.Stderr,
+			Debug:     cfg.Debug,
+			Namespace: cfg.Namespace,
+			Stdout:    cfg.Stdout,
+			Stderr:    cfg.Stderr,
 		},
 	}
 
@@ -106,6 +103,9 @@ var upgrade = func(cfg Config) []Step {
 		ChartVersion: cfg.ChartVersion,
 		DryRun:       cfg.DryRun,
 		Wait:         cfg.Wait,
+		Values:       cfg.Values,
+		StringValues: cfg.StringValues,
+		ValuesFiles:  cfg.ValuesFiles,
 		ReuseValues:  cfg.ReuseValues,
 		Timeout:      cfg.Timeout,
 		Force:        cfg.Force,
@@ -134,8 +134,11 @@ var lint = func(cfg Config) []Step {
 		steps = append(steps, depUpdate(cfg)...)
 	}
 	steps = append(steps, &run.Lint{
-		Chart:  cfg.Chart,
-		Strict: cfg.LintStrictly,
+		Chart:        cfg.Chart,
+		Values:       cfg.Values,
+		StringValues: cfg.StringValues,
+		ValuesFiles:  cfg.ValuesFiles,
+		Strict:       cfg.LintStrictly,
 	})
 
 	return steps
