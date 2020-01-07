@@ -87,6 +87,12 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 	if aliases.Force != nil {
 		cfg.Force = *aliases.Force
 	}
+	if aliases.KubeToken != nil {
+		cfg.KubeToken = *aliases.KubeToken
+	}
+	if aliases.Certificate != nil {
+		cfg.Certificate = *aliases.Certificate
+	}
 
 	if justNumbers.MatchString(cfg.Timeout) {
 		cfg.Timeout = fmt.Sprintf("%ss", cfg.Timeout)
@@ -121,8 +127,10 @@ func (cfg *Config) deprecationWarn() {
 type settingAliases struct {
 	Command        *string   `envconfig:"mode"`
 	AddRepos       *[]string `envconfig:"add_repos"`
-	APIServer      *string   `envconfig:"kubernetes_api_server"`
-	ServiceAccount *string   `envconfig:"kubernetes_service_account"`
+	APIServer      *string   `envconfig:"kube_api_server"`
+	ServiceAccount *string   `envconfig:"kube_service_account"`
 	Wait           *bool     `envconfig:"wait_for_upgrade"`
 	Force          *bool     `envconfig:"force_upgrade"`
+	KubeToken      *string   `envconfig:"kube_token"`
+	Certificate    *string   `envconfig:"kube_certificate"`
 }

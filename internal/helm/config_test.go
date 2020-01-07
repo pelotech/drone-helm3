@@ -78,16 +78,20 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
 		"SERVICE_ACCOUNT",
 		"WAIT",
 		"FORCE",
+		"KUBERNETES_TOKEN",
+		"KUBERNETES_CERTIFICATE",
 	} {
 		suite.unsetenv(varname)
 		suite.unsetenv("PLUGIN_" + varname)
 	}
 	suite.setenv("PLUGIN_MODE", "iambic")
 	suite.setenv("PLUGIN_ADD_REPOS", "chortle=http://calloo.callay/frabjous/day")
-	suite.setenv("PLUGIN_KUBERNETES_API_SERVER", "http://tumtum.tree")
-	suite.setenv("PLUGIN_KUBERNETES_SERVICE_ACCOUNT", "tulgey")
+	suite.setenv("PLUGIN_KUBE_API_SERVER", "http://tumtum.tree")
+	suite.setenv("PLUGIN_KUBE_SERVICE_ACCOUNT", "tulgey")
 	suite.setenv("PLUGIN_WAIT_FOR_UPGRADE", "true")
 	suite.setenv("PLUGIN_FORCE_UPGRADE", "true")
+	suite.setenv("PLUGIN_KUBE_TOKEN", "Y29tZSB0byBteSBhcm1z")
+	suite.setenv("PLUGIN_KUBE_CERTIFICATE", "d2l0aCBpdHMgaGVhZA==")
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
@@ -97,6 +101,8 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
 	suite.Equal("tulgey", cfg.ServiceAccount)
 	suite.True(cfg.Wait, "Wait should be aliased")
 	suite.True(cfg.Force, "Force should be aliased")
+	suite.Equal("Y29tZSB0byBteSBhcm1z", cfg.KubeToken, "KubeToken should be aliased")
+	suite.Equal("d2l0aCBpdHMgaGVhZA==", cfg.Certificate, "Certificate should be aliased")
 }
 
 func (suite *ConfigTestSuite) TestNewConfigSetsWriters() {
