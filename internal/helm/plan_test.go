@@ -130,17 +130,18 @@ func (suite *PlanTestSuite) TestExecuteAbortsOnError() {
 
 func (suite *PlanTestSuite) TestUpgrade() {
 	cfg := Config{
-		ChartVersion: "seventeen",
-		DryRun:       true,
-		Wait:         true,
-		Values:       "steadfastness,forthrightness",
-		StringValues: "tensile_strength,flexibility",
-		ValuesFiles:  []string{"/root/price_inventory.yml"},
-		ReuseValues:  true,
-		Timeout:      "go sit in the corner",
-		Chart:        "billboard_top_100",
-		Release:      "post_malone_circles",
-		Force:        true,
+		ChartVersion:  "seventeen",
+		DryRun:        true,
+		Wait:          true,
+		Values:        "steadfastness,forthrightness",
+		StringValues:  "tensile_strength,flexibility",
+		ValuesFiles:   []string{"/root/price_inventory.yml"},
+		ReuseValues:   true,
+		Timeout:       "go sit in the corner",
+		Chart:         "billboard_top_100",
+		Release:       "post_malone_circles",
+		Force:         true,
+		AtomicUpgrade: true,
 	}
 
 	steps := upgrade(cfg)
@@ -162,6 +163,7 @@ func (suite *PlanTestSuite) TestUpgrade() {
 		ReuseValues:  cfg.ReuseValues,
 		Timeout:      cfg.Timeout,
 		Force:        cfg.Force,
+		Atomic:       true,
 	}
 
 	suite.Equal(expected, upgrade)

@@ -109,6 +109,7 @@ var upgrade = func(cfg Config) []Step {
 		ReuseValues:  cfg.ReuseValues,
 		Timeout:      cfg.Timeout,
 		Force:        cfg.Force,
+		Atomic:       cfg.AtomicUpgrade,
 	})
 
 	return steps

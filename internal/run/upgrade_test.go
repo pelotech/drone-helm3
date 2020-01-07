@@ -100,6 +100,7 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 		ReuseValues:  true,
 		Timeout:      "sit_in_the_corner",
 		Force:        true,
+		Atomic:       true,
 	}
 
 	cfg := Config{}
@@ -113,6 +114,7 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 			"--reuse-values",
 			"--timeout", "sit_in_the_corner",
 			"--force",
+			"--atomic",
 			"--set", "age=35",
 			"--set-string", "height=5ft10in",
 			"--values", "/usr/local/stats",
