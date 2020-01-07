@@ -142,6 +142,7 @@ func (suite *PlanTestSuite) TestUpgrade() {
 		Release:       "post_malone_circles",
 		Force:         true,
 		AtomicUpgrade: true,
+		CleanupOnFail: true,
 	}
 
 	steps := upgrade(cfg)
@@ -152,18 +153,19 @@ func (suite *PlanTestSuite) TestUpgrade() {
 	upgrade, _ := steps[1].(*run.Upgrade)
 
 	expected := &run.Upgrade{
-		Chart:        cfg.Chart,
-		Release:      cfg.Release,
-		ChartVersion: cfg.ChartVersion,
-		DryRun:       true,
-		Wait:         cfg.Wait,
-		Values:       "steadfastness,forthrightness",
-		StringValues: "tensile_strength,flexibility",
-		ValuesFiles:  []string{"/root/price_inventory.yml"},
-		ReuseValues:  cfg.ReuseValues,
-		Timeout:      cfg.Timeout,
-		Force:        cfg.Force,
-		Atomic:       true,
+		Chart:         cfg.Chart,
+		Release:       cfg.Release,
+		ChartVersion:  cfg.ChartVersion,
+		DryRun:        true,
+		Wait:          cfg.Wait,
+		Values:        "steadfastness,forthrightness",
+		StringValues:  "tensile_strength,flexibility",
+		ValuesFiles:   []string{"/root/price_inventory.yml"},
+		ReuseValues:   cfg.ReuseValues,
+		Timeout:       cfg.Timeout,
+		Force:         cfg.Force,
+		Atomic:        true,
+		CleanupOnFail: true,
 	}
 
 	suite.Equal(expected, upgrade)
