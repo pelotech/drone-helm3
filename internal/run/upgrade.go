@@ -9,16 +9,17 @@ type Upgrade struct {
 	Chart   string
 	Release string
 
-	ChartVersion string
-	DryRun       bool
-	Wait         bool
-	Values       string
-	StringValues string
-	ValuesFiles  []string
-	ReuseValues  bool
-	Timeout      string
-	Force        bool
-	Atomic       bool
+	ChartVersion  string
+	DryRun        bool
+	Wait          bool
+	Values        string
+	StringValues  string
+	ValuesFiles   []string
+	ReuseValues   bool
+	Timeout       string
+	Force         bool
+	Atomic        bool
+	CleanupOnFail bool
 
 	cmd cmd
 }
@@ -68,6 +69,9 @@ func (u *Upgrade) Prepare(cfg Config) error {
 	}
 	if u.Atomic {
 		args = append(args, "--atomic")
+	}
+	if u.CleanupOnFail {
+		args = append(args, "--cleanup-on-fail")
 	}
 	if u.Values != "" {
 		args = append(args, "--set", u.Values)
