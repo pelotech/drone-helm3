@@ -18,6 +18,7 @@ type Upgrade struct {
 	ReuseValues  bool
 	Timeout      string
 	Force        bool
+	Atomic       bool
 
 	cmd cmd
 }
@@ -64,6 +65,9 @@ func (u *Upgrade) Prepare(cfg Config) error {
 	}
 	if u.Force {
 		args = append(args, "--force")
+	}
+	if u.Atomic {
+		args = append(args, "--atomic")
 	}
 	if u.Values != "" {
 		args = append(args, "--set", u.Values)
