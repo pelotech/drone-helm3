@@ -70,6 +70,35 @@ func (suite *ConfigTestSuite) TestNewConfigInfersNumbersAreSeconds() {
 	suite.Equal("42s", cfg.Timeout)
 }
 
+func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
+	for _, varname := range []string{
+		"HELM_COMMAND",
+		"HELM_REPOS",
+		"API_SERVER",
+		"SERVICE_ACCOUNT",
+		"WAIT",
+		"FORCE",
+	} {
+		suite.unsetenv(varname)
+		suite.unsetenv("PLUGIN_" + varname)
+	}
+	suite.setenv("PLUGIN_MODE", "iambic")
+	suite.setenv("PLUGIN_ADD_REPOS", "chortle=http://calloo.callay/frabjous/day")
+	suite.setenv("PLUGIN_KUBERNETES_API_SERVER", "http://tumtum.tree")
+	suite.setenv("PLUGIN_KUBERNETES_SERVICE_ACCOUNT", "tulgey")
+	suite.setenv("PLUGIN_WAIT_FOR_UPGRADE", "true")
+	suite.setenv("PLUGIN_FORCE_UPGRADE", "true")
+
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	suite.Require().NoError(err)
+	suite.Equal("iambic", cfg.Command)
+	suite.Equal([]string{"chortle=http://calloo.callay/frabjous/day"}, cfg.AddRepos)
+	suite.Equal("http://tumtum.tree", cfg.APIServer)
+	suite.Equal("tulgey", cfg.ServiceAccount)
+	suite.True(cfg.Wait, "Wait should be aliased")
+	suite.True(cfg.Force, "Force should be aliased")
+}
+
 func (suite *ConfigTestSuite) TestNewConfigSetsWriters() {
 	stdout := &strings.Builder{}
 	stderr := &strings.Builder{}

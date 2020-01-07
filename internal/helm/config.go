@@ -65,6 +65,29 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		return nil, err
 	}
 
+	var aliases settingAliases
+	if err := envconfig.Process("plugin", &aliases); err != nil {
+		return nil, err
+	}
+	if aliases.Command != nil {
+		cfg.Command = *aliases.Command
+	}
+	if aliases.AddRepos != nil {
+		cfg.AddRepos = *aliases.AddRepos
+	}
+	if aliases.APIServer != nil {
+		cfg.APIServer = *aliases.APIServer
+	}
+	if aliases.ServiceAccount != nil {
+		cfg.ServiceAccount = *aliases.ServiceAccount
+	}
+	if aliases.Wait != nil {
+		cfg.Wait = *aliases.Wait
+	}
+	if aliases.Force != nil {
+		cfg.Force = *aliases.Force
+	}
+
 	if justNumbers.MatchString(cfg.Timeout) {
 		cfg.Timeout = fmt.Sprintf("%ss", cfg.Timeout)
 	}
@@ -93,4 +116,13 @@ func (cfg *Config) deprecationWarn() {
 			fmt.Fprintf(cfg.Stderr, "Warning: ignoring deprecated '%s' setting\n", strings.ToLower(varname))
 		}
 	}
+}
+
+type settingAliases struct {
+	Command        *string   `envconfig:"mode"`
+	AddRepos       *[]string `envconfig:"add_repos"`
+	APIServer      *string   `envconfig:"kubernetes_api_server"`
+	ServiceAccount *string   `envconfig:"kubernetes_service_account"`
+	Wait           *bool     `envconfig:"wait_for_upgrade"`
+	Force          *bool     `envconfig:"force_upgrade"`
 }
