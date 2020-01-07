@@ -38,6 +38,7 @@ Installations are triggered when the `helm_command` setting is "upgrade." They c
 | wait                   | boolean        |          | Wait until kubernetes resources are in a ready state before marking the installation successful. |
 | timeout                | duration       |          | Timeout for any *individual* Kubernetes operation. The installation's full runtime may exceed this duration. |
 | force                  | boolean        |          | Pass `--force` to `helm upgrade`. |
+| atomic_upgrade         | boolean        |          | Pass `--atomic` to `helm upgrade`. |
 | values                 | list\<string\> |          | Chart values to use as the `--set` argument to `helm upgrade`. |
 | string_values          | list\<string\> |          | Chart values to use as the `--set-string` argument to `helm upgrade`. |
 | values_files           | list\<string\> |          | Values to use as `--values` arguments to `helm upgrade`. |
