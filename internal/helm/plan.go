@@ -98,18 +98,19 @@ var upgrade = func(cfg Config) []Step {
 		steps = append(steps, depUpdate(cfg)...)
 	}
 	steps = append(steps, &run.Upgrade{
-		Chart:        cfg.Chart,
-		Release:      cfg.Release,
-		ChartVersion: cfg.ChartVersion,
-		DryRun:       cfg.DryRun,
-		Wait:         cfg.Wait,
-		Values:       cfg.Values,
-		StringValues: cfg.StringValues,
-		ValuesFiles:  cfg.ValuesFiles,
-		ReuseValues:  cfg.ReuseValues,
-		Timeout:      cfg.Timeout,
-		Force:        cfg.Force,
-		Atomic:       cfg.AtomicUpgrade,
+		Chart:         cfg.Chart,
+		Release:       cfg.Release,
+		ChartVersion:  cfg.ChartVersion,
+		DryRun:        cfg.DryRun,
+		Wait:          cfg.Wait,
+		Values:        cfg.Values,
+		StringValues:  cfg.StringValues,
+		ValuesFiles:   cfg.ValuesFiles,
+		ReuseValues:   cfg.ReuseValues,
+		Timeout:       cfg.Timeout,
+		Force:         cfg.Force,
+		Atomic:        cfg.AtomicUpgrade,
+		CleanupOnFail: cfg.CleanupOnFail,
 	})
 
 	return steps

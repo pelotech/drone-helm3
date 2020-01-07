@@ -44,6 +44,7 @@ type Config struct {
 	Release            string   ``                                   // Release argument to use in applicable helm commands
 	Force              bool     ``                                   // Pass --force to applicable helm commands
 	AtomicUpgrade      bool     `split_words:"true"`                 // Pass --atomic to `helm upgrade`
+	CleanupOnFail      bool     `envconfig:"CLEANUP_FAILED_UPGRADE"` // Pass --cleanup-on-fail to `helm upgrade`
 	LintStrictly       bool     `split_words:"true"`                 // Pass --strict to `helm lint`
 
 	Stdout io.Writer `ignored:"true"`

@@ -89,18 +89,19 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 	defer suite.ctrl.Finish()
 
 	u := Upgrade{
-		Chart:        "hot_ac",
-		Release:      "maroon_5_memories",
-		ChartVersion: "radio_edit",
-		DryRun:       true,
-		Wait:         true,
-		Values:       "age=35",
-		StringValues: "height=5ft10in",
-		ValuesFiles:  []string{"/usr/local/stats", "/usr/local/grades"},
-		ReuseValues:  true,
-		Timeout:      "sit_in_the_corner",
-		Force:        true,
-		Atomic:       true,
+		Chart:         "hot_ac",
+		Release:       "maroon_5_memories",
+		ChartVersion:  "radio_edit",
+		DryRun:        true,
+		Wait:          true,
+		Values:        "age=35",
+		StringValues:  "height=5ft10in",
+		ValuesFiles:   []string{"/usr/local/stats", "/usr/local/grades"},
+		ReuseValues:   true,
+		Timeout:       "sit_in_the_corner",
+		Force:         true,
+		Atomic:        true,
+		CleanupOnFail: true,
 	}
 
 	cfg := Config{}
@@ -115,6 +116,7 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 			"--timeout", "sit_in_the_corner",
 			"--force",
 			"--atomic",
+			"--cleanup-on-fail",
 			"--set", "age=35",
 			"--set-string", "height=5ft10in",
 			"--values", "/usr/local/stats",
