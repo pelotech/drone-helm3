@@ -20,37 +20,229 @@ func TestConfigTestSuite(t *testing.T) {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithPluginPrefix() {
-	suite.unsetenv("MODE")
-	suite.unsetenv("UPDATE_DEPENDENCIES")
-	suite.unsetenv("DEBUG")
+	stdout := strings.Builder{}
+	stderr := strings.Builder{}
+	for _, varname := range []string{
+		"MODE",
+		"DRONE_BUILD_EVENT",
+		"HELM_COMMAND",
+		"PLUGIN_HELM_COMMAND",
+		"UPDATE_DEPENDENCIES",
+		"ADD_REPOS",
+		"HELM_REPOS",
+		"PLUGIN_HELM_REPOS",
+		"DEBUG",
+		"VALUES",
+		"STRING_VALUES",
+		"VALUES_FILES",
+		"NAMESPACE",
+		"KUBE_TOKEN",
+		"KUBERNETES_TOKEN",
+		"PLUGIN_KUBERNETES_TOKEN",
+		"SKIP_TLS_VERIFY",
+		"KUBE_CERTIFICATE",
+		"KUBERNETES_CERTIFICATE",
+		"PLUGIN_KUBERNETES_CERTIFICATE",
+		"KUBE_API_SERVER",
+		"API_SERVER",
+		"PLUGIN_API_SERVER",
+		"KUBE_SERVICE_ACCOUNT",
+		"SERVICE_ACCOUNT",
+		"PLUGIN_SERVICE_ACCOUNT",
+		"CHART_VERSION",
+		"DRY_RUN",
+		"WAIT_FOR_UPGRADE",
+		"WAIT",
+		"PLUGIN_WAIT",
+		"REUSE_VALUES",
+		"KEEP_HISTORY",
+		"TIMEOUT",
+		"CHART",
+		"RELEASE",
+		"FORCE",
+		"FORCE_UPGRADE",
+		"PLUGIN_FORCE_UPGRADE",
+		"ATOMIC_UPGRADE",
+		"CLEANUP_FAILED_UPGRADE",
+		"LINT_STRICTLY",
+	} {
+		suite.unsetenv(varname)
+	}
 
-	suite.setenv("PLUGIN_MODE", "iambic")
+	suite.setenv("PLUGIN_MODE", "upgrade")
 	suite.setenv("PLUGIN_UPDATE_DEPENDENCIES", "true")
+	suite.setenv("PLUGIN_ADD_REPOS", "foo=http://bar,goo=http://baz")
 	suite.setenv("PLUGIN_DEBUG", "true")
+	suite.setenv("PLUGIN_VALUES", "dog=husky")
+	suite.setenv("PLUGIN_STRING_VALUES", "version=1.0")
+	suite.setenv("PLUGIN_VALUES_FILES", "underrides.yml,overrides.yml")
+	suite.setenv("PLUGIN_NAMESPACE", "myapp")
+	suite.setenv("PLUGIN_KUBE_TOKEN", "cGxlYXNlIHNpciwgbGV0IG1lIGlu")
+	suite.setenv("PLUGIN_SKIP_TLS_VERIFY", "true")
+	suite.setenv("PLUGIN_KUBE_CERTIFICATE", "SSBhbSB0b3RhbGx5IHRoZSBzZXJ2ZXIgeW91IHdhbnQ=")
+	suite.setenv("PLUGIN_KUBE_API_SERVER", "http://my.kube/cluster")
+	suite.setenv("PLUGIN_KUBE_SERVICE_ACCOUNT", "deploybot")
+	suite.setenv("PLUGIN_CHART_VERSION", "six")
+	suite.setenv("PLUGIN_DRY_RUN", "true")
+	suite.setenv("PLUGIN_WAIT_FOR_UPGRADE", "true")
+	suite.setenv("PLUGIN_REUSE_VALUES", "true")
+	suite.setenv("PLUGIN_KEEP_HISTORY", "true")
+	suite.setenv("PLUGIN_TIMEOUT", "5m20s")
+	suite.setenv("PLUGIN_CHART", "./helm/myapp/")
+	suite.setenv("PLUGIN_RELEASE", "my_app")
+	suite.setenv("PLUGIN_FORCE_UPGRADE", "true")
+	suite.setenv("PLUGIN_ATOMIC_UPGRADE", "true")
+	suite.setenv("PLUGIN_CLEANUP_FAILED_UPGRADE", "true")
+	suite.setenv("PLUGIN_LINT_STRICTLY", "true")
 
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	cfg, err := NewConfig(&stdout, &stderr)
 	suite.Require().NoError(err)
 
-	suite.Equal("iambic", cfg.Command)
-	suite.True(cfg.UpdateDependencies)
-	suite.True(cfg.Debug)
+	want := Config{
+		Command:            "upgrade",
+		DroneEvent:         "",
+		UpdateDependencies: true,
+		AddRepos:           []string{"foo=http://bar", "goo=http://baz"},
+		Debug:              true,
+		Values:             "dog=husky",
+		StringValues:       "version=1.0",
+		ValuesFiles:        []string{"underrides.yml", "overrides.yml"},
+		Namespace:          "myapp",
+		KubeToken:          "cGxlYXNlIHNpciwgbGV0IG1lIGlu",
+		SkipTLSVerify:      true,
+		Certificate:        "SSBhbSB0b3RhbGx5IHRoZSBzZXJ2ZXIgeW91IHdhbnQ=",
+		APIServer:          "http://my.kube/cluster",
+		ServiceAccount:     "deploybot",
+		ChartVersion:       "six",
+		DryRun:             true,
+		Wait:               true,
+		ReuseValues:        true,
+		KeepHistory:        true,
+		Timeout:            "5m20s",
+		Chart:              "./helm/myapp/",
+		Release:            "my_app",
+		Force:              true,
+		AtomicUpgrade:      true,
+		CleanupOnFail:      true,
+		LintStrictly:       true,
+		Stdout:             &stdout,
+		Stderr:             &stderr,
+	}
+
+	suite.Equal(&want, cfg)
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithNoPrefix() {
-	suite.unsetenv("PLUGIN_MODE")
-	suite.unsetenv("PLUGIN_UPDATE_DEPENDENCIES")
-	suite.unsetenv("PLUGIN_DEBUG")
+	stdout := strings.Builder{}
+	stderr := strings.Builder{}
+	for _, varname := range []string{
+		"PLUGIN_MODE",
+		"PLUGIN_HELM_COMMAND",
+		"HELM_COMMAND",
+		"PLUGIN_UPDATE_DEPENDENCIES",
+		"PLUGIN_ADD_REPOS",
+		"PLUGIN_HELM_REPOS",
+		"HELM_REPOS",
+		"PLUGIN_DEBUG",
+		"PLUGIN_VALUES",
+		"PLUGIN_STRING_VALUES",
+		"PLUGIN_VALUES_FILES",
+		"PLUGIN_NAMESPACE",
+		"PLUGIN_KUBE_TOKEN",
+		"PLUGIN_KUBERNETES_TOKEN",
+		"KUBERNETES_TOKEN",
+		"PLUGIN_SKIP_TLS_VERIFY",
+		"PLUGIN_KUBE_CERTIFICATE",
+		"PLUGIN_KUBERNETES_CERTIFICATE",
+		"KUBERNETES_CERTIFICATE",
+		"PLUGIN_KUBE_API_SERVER",
+		"PLUGIN_API_SERVER",
+		"API_SERVER",
+		"PLUGIN_KUBE_SERVICE_ACCOUNT",
+		"PLUGIN_SERVICE_ACCOUNT",
+		"SERVICE_ACCOUNT",
+		"PLUGIN_CHART_VERSION",
+		"PLUGIN_DRY_RUN",
+		"PLUGIN_WAIT_FOR_UPGRADE",
+		"PLUGIN_WAIT",
+		"WAIT",
+		"PLUGIN_REUSE_VALUES",
+		"PLUGIN_KEEP_HISTORY",
+		"PLUGIN_TIMEOUT",
+		"PLUGIN_CHART",
+		"PLUGIN_RELEASE",
+		"PLUGIN_FORCE",
+		"PLUGIN_FORCE_UPGRADE",
+		"FORCE_UPGRADE",
+		"PLUGIN_ATOMIC_UPGRADE",
+		"PLUGIN_CLEANUP_FAILED_UPGRADE",
+		"PLUGIN_LINT_STRICTLY",
+	} {
+		suite.unsetenv(varname)
+	}
 
-	suite.setenv("MODE", "iambic")
+	suite.setenv("MODE", "upgrade")
+	suite.setenv("DRONE_BUILD_EVENT", "tag")
 	suite.setenv("UPDATE_DEPENDENCIES", "true")
+	suite.setenv("ADD_REPOS", "foo=http://bar,goo=http://baz")
 	suite.setenv("DEBUG", "true")
+	suite.setenv("VALUES", "dog=husky")
+	suite.setenv("STRING_VALUES", "version=1.0")
+	suite.setenv("VALUES_FILES", "underrides.yml,overrides.yml")
+	suite.setenv("NAMESPACE", "myapp")
+	suite.setenv("KUBE_TOKEN", "cGxlYXNlIHNpciwgbGV0IG1lIGlu")
+	suite.setenv("SKIP_TLS_VERIFY", "true")
+	suite.setenv("KUBE_CERTIFICATE", "SSBhbSB0b3RhbGx5IHRoZSBzZXJ2ZXIgeW91IHdhbnQ=")
+	suite.setenv("KUBE_API_SERVER", "http://my.kube/cluster")
+	suite.setenv("KUBE_SERVICE_ACCOUNT", "deploybot")
+	suite.setenv("CHART_VERSION", "six")
+	suite.setenv("DRY_RUN", "true")
+	suite.setenv("WAIT_FOR_UPGRADE", "true")
+	suite.setenv("REUSE_VALUES", "true")
+	suite.setenv("KEEP_HISTORY", "true")
+	suite.setenv("TIMEOUT", "5m20s")
+	suite.setenv("CHART", "./helm/myapp/")
+	suite.setenv("RELEASE", "my_app")
+	suite.setenv("FORCE_UPGRADE", "true")
+	suite.setenv("ATOMIC_UPGRADE", "true")
+	suite.setenv("CLEANUP_FAILED_UPGRADE", "true")
+	suite.setenv("LINT_STRICTLY", "true")
 
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	cfg, err := NewConfig(&stdout, &stderr)
 	suite.Require().NoError(err)
 
-	suite.Equal("iambic", cfg.Command)
-	suite.True(cfg.UpdateDependencies)
-	suite.True(cfg.Debug)
+	want := Config{
+		Command:            "upgrade",
+		DroneEvent:         "tag",
+		UpdateDependencies: true,
+		AddRepos:           []string{"foo=http://bar", "goo=http://baz"},
+		Debug:              true,
+		Values:             "dog=husky",
+		StringValues:       "version=1.0",
+		ValuesFiles:        []string{"underrides.yml", "overrides.yml"},
+		Namespace:          "myapp",
+		KubeToken:          "cGxlYXNlIHNpciwgbGV0IG1lIGlu",
+		SkipTLSVerify:      true,
+		Certificate:        "SSBhbSB0b3RhbGx5IHRoZSBzZXJ2ZXIgeW91IHdhbnQ=",
+		APIServer:          "http://my.kube/cluster",
+		ServiceAccount:     "deploybot",
+		ChartVersion:       "six",
+		DryRun:             true,
+		Wait:               true,
+		ReuseValues:        true,
+		KeepHistory:        true,
+		Timeout:            "5m20s",
+		Chart:              "./helm/myapp/",
+		Release:            "my_app",
+		Force:              true,
+		AtomicUpgrade:      true,
+		CleanupOnFail:      true,
+		LintStrictly:       true,
+		Stdout:             &stdout,
+		Stderr:             &stderr,
+	}
+
+	suite.Equal(&want, cfg)
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithConflictingVariables() {
