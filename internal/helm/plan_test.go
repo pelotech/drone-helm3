@@ -370,7 +370,7 @@ func (suite *PlanTestSuite) TestDeterminePlanUninstallCommand() {
 	suite.Same(&uninstall, stepsMaker)
 }
 
-// helm_command = delete is provided as an alias for backwards-compatibility with drone-helm
+// helm_command = delete is provided as an alias for backward-compatibility with drone-helm
 func (suite *PlanTestSuite) TestDeterminePlanDeleteCommand() {
 	cfg := Config{
 		Command: "delete",

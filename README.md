@@ -10,7 +10,7 @@ This plugin provides an interface between [Drone](https://drone.io/) and [Helm 3
 * Deploy your service
 * Delete your service
 
-The plugin is inpsired by [drone-helm](https://github.com/ipedrazas/drone-helm), which fills the same role for Helm 2. It provides a comparable feature-set and the configuration settings are backwards-compatible.
+The plugin is inpsired by [drone-helm](https://github.com/ipedrazas/drone-helm), which fills the same role for Helm 2. It provides a comparable feature-set and the configuration settings are backward-compatible.
 
 ## Example configuration
 
@@ -60,7 +60,7 @@ steps:
 
 ## Upgrading from drone-helm
 
-drone-helm3 is largely backwards-compatible with drone-helm. There are some known differences:
+drone-helm3 is largely backward-compatible with drone-helm. There are some known differences:
 
 * You'll need to migrate the deployments in the cluster [helm-v2-to-helm-v3](https://helm.sh/blog/migrate-from-helm-v2-to-helm-v3/).
 * EKS is not supported. See [#5](https://github.com/pelotech/drone-helm3/issues/5) for more information.
