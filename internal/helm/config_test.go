@@ -105,6 +105,17 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
 	suite.Equal("d2l0aCBpdHMgaGVhZA==", cfg.Certificate, "Certificate should be aliased")
 }
 
+func (suite *ConfigTestSuite) TestAliasedSettingWithoutPluginPrefix() {
+	suite.unsetenv("FORCE_UPGRADE")
+	suite.unsetenv("PLUGIN_FORCE_UPGRADE")
+	suite.unsetenv("PLUGIN_FORCE")
+	suite.setenv("FORCE", "true")
+
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	suite.Require().NoError(err)
+	suite.True(cfg.Force)
+}
+
 func (suite *ConfigTestSuite) TestNewConfigWithAliasConflicts() {
 	suite.unsetenv("FORCE_UPGRADE")
 	suite.setenv("PLUGIN_FORCE", "true")
