@@ -20,47 +20,47 @@ func TestConfigTestSuite(t *testing.T) {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithPluginPrefix() {
-	suite.unsetenv("HELM_COMMAND")
+	suite.unsetenv("MODE")
 	suite.unsetenv("UPDATE_DEPENDENCIES")
 	suite.unsetenv("DEBUG")
 
-	suite.setenv("PLUGIN_HELM_COMMAND", "execute order 66")
+	suite.setenv("PLUGIN_MODE", "iambic")
 	suite.setenv("PLUGIN_UPDATE_DEPENDENCIES", "true")
 	suite.setenv("PLUGIN_DEBUG", "true")
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
-	suite.Equal("execute order 66", cfg.Command)
+	suite.Equal("iambic", cfg.Command)
 	suite.True(cfg.UpdateDependencies)
 	suite.True(cfg.Debug)
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithNoPrefix() {
-	suite.unsetenv("PLUGIN_HELM_COMMAND")
+	suite.unsetenv("PLUGIN_MODE")
 	suite.unsetenv("PLUGIN_UPDATE_DEPENDENCIES")
 	suite.unsetenv("PLUGIN_DEBUG")
 
-	suite.setenv("HELM_COMMAND", "execute order 66")
+	suite.setenv("MODE", "iambic")
 	suite.setenv("UPDATE_DEPENDENCIES", "true")
 	suite.setenv("DEBUG", "true")
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
-	suite.Equal("execute order 66", cfg.Command)
+	suite.Equal("iambic", cfg.Command)
 	suite.True(cfg.UpdateDependencies)
 	suite.True(cfg.Debug)
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithConflictingVariables() {
-	suite.setenv("PLUGIN_HELM_COMMAND", "execute order 66")
-	suite.setenv("HELM_COMMAND", "defend the jedi") // values from the `environment` block override those from `settings`
+	suite.setenv("PLUGIN_MODE", "iambic")
+	suite.setenv("MODE", "haiku") // values from the `environment` block override those from `settings`
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
-	suite.Equal("defend the jedi", cfg.Command)
+	suite.Equal("haiku", cfg.Command)
 }
 
 func (suite *ConfigTestSuite) TestNewConfigInfersNumbersAreSeconds() {
@@ -72,30 +72,30 @@ func (suite *ConfigTestSuite) TestNewConfigInfersNumbersAreSeconds() {
 
 func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
 	for _, varname := range []string{
-		"HELM_COMMAND",
-		"HELM_REPOS",
-		"API_SERVER",
-		"SERVICE_ACCOUNT",
-		"WAIT",
-		"FORCE",
-		"KUBERNETES_TOKEN",
-		"KUBERNETES_CERTIFICATE",
+		"MODE",
+		"ADD_REPOS",
+		"KUBE_API_SERVER",
+		"KUBE_SERVICE_ACCOUNT",
+		"WAIT_FOR_UPGRADE",
+		"FORCE_UPGRADE",
+		"KUBE_TOKEN",
+		"KUBE_CERTIFICATE",
 	} {
 		suite.unsetenv(varname)
 		suite.unsetenv("PLUGIN_" + varname)
 	}
-	suite.setenv("PLUGIN_MODE", "iambic")
-	suite.setenv("PLUGIN_ADD_REPOS", "chortle=http://calloo.callay/frabjous/day")
-	suite.setenv("PLUGIN_KUBE_API_SERVER", "http://tumtum.tree")
-	suite.setenv("PLUGIN_KUBE_SERVICE_ACCOUNT", "tulgey")
-	suite.setenv("PLUGIN_WAIT_FOR_UPGRADE", "true")
-	suite.setenv("PLUGIN_FORCE_UPGRADE", "true")
-	suite.setenv("PLUGIN_KUBE_TOKEN", "Y29tZSB0byBteSBhcm1z")
-	suite.setenv("PLUGIN_KUBE_CERTIFICATE", "d2l0aCBpdHMgaGVhZA==")
+	suite.setenv("PLUGIN_HELM_COMMAND", "beware the jabberwock")
+	suite.setenv("PLUGIN_HELM_REPOS", "chortle=http://calloo.callay/frabjous/day")
+	suite.setenv("PLUGIN_API_SERVER", "http://tumtum.tree")
+	suite.setenv("PLUGIN_SERVICE_ACCOUNT", "tulgey")
+	suite.setenv("PLUGIN_WAIT", "true")
+	suite.setenv("PLUGIN_FORCE", "true")
+	suite.setenv("PLUGIN_KUBERNETES_TOKEN", "Y29tZSB0byBteSBhcm1z")
+	suite.setenv("PLUGIN_KUBERNETES_CERTIFICATE", "d2l0aCBpdHMgaGVhZA==")
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
-	suite.Equal("iambic", cfg.Command)
+	suite.Equal("beware the jabberwock", cfg.Command)
 	suite.Equal([]string{"chortle=http://calloo.callay/frabjous/day"}, cfg.AddRepos)
 	suite.Equal("http://tumtum.tree", cfg.APIServer)
 	suite.Equal("tulgey", cfg.ServiceAccount)
@@ -106,9 +106,9 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithAliasConflicts() {
-	suite.unsetenv("FORCE")
-	suite.setenv("PLUGIN_FORCE_UPGRADE", "true")
-	suite.setenv("PLUGIN_FORCE", "false") // should override even when set to the zero value
+	suite.unsetenv("FORCE_UPGRADE")
+	suite.setenv("PLUGIN_FORCE", "true")
+	suite.setenv("PLUGIN_FORCE_UPGRADE", "false") // should override even when set to the zero value
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.NoError(err)
@@ -145,7 +145,7 @@ func (suite *ConfigTestSuite) TestDeprecatedSettingWarnings() {
 
 func (suite *ConfigTestSuite) TestLogDebug() {
 	suite.setenv("DEBUG", "true")
-	suite.setenv("HELM_COMMAND", "upgrade")
+	suite.setenv("MODE", "upgrade")
 
 	stderr := strings.Builder{}
 	stdout := strings.Builder{}
