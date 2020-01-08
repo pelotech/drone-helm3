@@ -105,6 +105,16 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
 	suite.Equal("d2l0aCBpdHMgaGVhZA==", cfg.Certificate, "Certificate should be aliased")
 }
 
+func (suite *ConfigTestSuite) TestNewConfigWithAliasConflicts() {
+	suite.unsetenv("FORCE")
+	suite.setenv("PLUGIN_FORCE_UPGRADE", "true")
+	suite.setenv("PLUGIN_FORCE", "false") // should override even when set to the zero value
+
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	suite.NoError(err)
+	suite.False(cfg.Force, "official names should override alias names")
+}
+
 func (suite *ConfigTestSuite) TestNewConfigSetsWriters() {
 	stdout := &strings.Builder{}
 	stderr := &strings.Builder{}

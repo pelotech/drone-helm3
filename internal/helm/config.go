@@ -53,7 +53,25 @@ type Config struct {
 
 // NewConfig creates a Config and reads environment variables into it, accounting for several possible formats.
 func NewConfig(stdout, stderr io.Writer) (*Config, error) {
+	var aliases settingAliases
+	if err := envconfig.Process("plugin", &aliases); err != nil {
+		return nil, err
+	}
+
+	if err := envconfig.Process("", &aliases); err != nil {
+		return nil, err
+	}
+
 	cfg := Config{
+		Command:        aliases.Command,
+		AddRepos:       aliases.AddRepos,
+		APIServer:      aliases.APIServer,
+		ServiceAccount: aliases.ServiceAccount,
+		Wait:           aliases.Wait,
+		Force:          aliases.Force,
+		KubeToken:      aliases.KubeToken,
+		Certificate:    aliases.Certificate,
+
 		Stdout: stdout,
 		Stderr: stderr,
 	}
@@ -63,35 +81,6 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 
 	if err := envconfig.Process("", &cfg); err != nil {
 		return nil, err
-	}
-
-	var aliases settingAliases
-	if err := envconfig.Process("plugin", &aliases); err != nil {
-		return nil, err
-	}
-	if aliases.Command != nil {
-		cfg.Command = *aliases.Command
-	}
-	if aliases.AddRepos != nil {
-		cfg.AddRepos = *aliases.AddRepos
-	}
-	if aliases.APIServer != nil {
-		cfg.APIServer = *aliases.APIServer
-	}
-	if aliases.ServiceAccount != nil {
-		cfg.ServiceAccount = *aliases.ServiceAccount
-	}
-	if aliases.Wait != nil {
-		cfg.Wait = *aliases.Wait
-	}
-	if aliases.Force != nil {
-		cfg.Force = *aliases.Force
-	}
-	if aliases.KubeToken != nil {
-		cfg.KubeToken = *aliases.KubeToken
-	}
-	if aliases.Certificate != nil {
-		cfg.Certificate = *aliases.Certificate
 	}
 
 	if justNumbers.MatchString(cfg.Timeout) {
@@ -125,12 +114,12 @@ func (cfg *Config) deprecationWarn() {
 }
 
 type settingAliases struct {
-	Command        *string   `envconfig:"mode"`
-	AddRepos       *[]string `envconfig:"add_repos"`
-	APIServer      *string   `envconfig:"kube_api_server"`
-	ServiceAccount *string   `envconfig:"kube_service_account"`
-	Wait           *bool     `envconfig:"wait_for_upgrade"`
-	Force          *bool     `envconfig:"force_upgrade"`
-	KubeToken      *string   `envconfig:"kube_token"`
-	Certificate    *string   `envconfig:"kube_certificate"`
+	Command        string   `envconfig:"mode"`
+	AddRepos       []string `envconfig:"add_repos"`
+	APIServer      string   `envconfig:"kube_api_server"`
+	ServiceAccount string   `envconfig:"kube_service_account"`
+	Wait           bool     `envconfig:"wait_for_upgrade"`
+	Force          bool     `envconfig:"force_upgrade"`
+	KubeToken      string   `envconfig:"kube_token"`
+	Certificate    string   `envconfig:"kube_certificate"`
 }
