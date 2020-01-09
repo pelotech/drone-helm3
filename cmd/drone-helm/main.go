@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	cfg, err := helm.NewConfig(os.Stdout, os.Stderr)
+	cfg, err := helm.NewConfig(os.Stdout, os.Stderr, os.Args...)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())

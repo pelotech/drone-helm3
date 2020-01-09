@@ -2,7 +2,7 @@ package helm
 
 import (
 	"fmt"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/urfave/cli/v2"
 	"io"
 	"os"
 	"regexp"
@@ -20,67 +20,190 @@ var (
 // not have the `PLUGIN_` prefix.
 type Config struct {
 	// Configuration for drone-helm itself
-	Command            string   `envconfig:"mode"`                   // Helm command to run
-	DroneEvent         string   `envconfig:"DRONE_BUILD_EVENT"`      // Drone event that invoked this plugin.
-	UpdateDependencies bool     `split_words:"true"`                 // Call `helm dependency update` before the main command
-	AddRepos           []string `split_words:"true"`                 // Call `helm repo add` before the main command
-	Debug              bool     ``                                   // Generate debug output and pass --debug to all helm commands
-	Values             string   ``                                   // Argument to pass to --set in applicable helm commands
-	StringValues       string   `split_words:"true"`                 // Argument to pass to --set-string in applicable helm commands
-	ValuesFiles        []string `split_words:"true"`                 // Arguments to pass to --values in applicable helm commands
-	Namespace          string   ``                                   // Kubernetes namespace for all helm commands
-	KubeToken          string   `split_words:"true"`                 // Kubernetes authentication token to put in .kube/config
-	SkipTLSVerify      bool     `envconfig:"SKIP_TLS_VERIFY"`        // Put insecure-skip-tls-verify in .kube/config
-	Certificate        string   `envconfig:"kube_certificate"`       // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
-	APIServer          string   `envconfig:"kube_api_server"`        // The Kubernetes cluster's API endpoint
-	ServiceAccount     string   `envconfig:"kube_service_account"`   // Account to use for connecting to the Kubernetes cluster
-	ChartVersion       string   `split_words:"true"`                 // Specific chart version to use in `helm upgrade`
-	DryRun             bool     `split_words:"true"`                 // Pass --dry-run to applicable helm commands
-	Wait               bool     `envconfig:"wait_for_upgrade"`       // Pass --wait to applicable helm commands
-	ReuseValues        bool     `split_words:"true"`                 // Pass --reuse-values to `helm upgrade`
-	KeepHistory        bool     `split_words:"true"`                 // Pass --keep-history to `helm uninstall`
-	Timeout            string   ``                                   // Argument to pass to --timeout in applicable helm commands
-	Chart              string   ``                                   // Chart argument to use in applicable helm commands
-	Release            string   ``                                   // Release argument to use in applicable helm commands
-	Force              bool     `envconfig:"force_upgrade"`          // Pass --force to applicable helm commands
-	AtomicUpgrade      bool     `split_words:"true"`                 // Pass --atomic to `helm upgrade`
-	CleanupOnFail      bool     `envconfig:"CLEANUP_FAILED_UPGRADE"` // Pass --cleanup-on-fail to `helm upgrade`
-	LintStrictly       bool     `split_words:"true"`                 // Pass --strict to `helm lint`
+	Command            string   // Helm command to run
+	DroneEvent         string   // Drone event that invoked this plugin.
+	UpdateDependencies bool     // Call `helm dependency update` before the main command
+	AddRepos           []string // Call `helm repo add` before the main command
+	Debug              bool     // Generate debug output and pass --debug to all helm commands
+	Values             string   // Argument to pass to --set in applicable helm commands
+	StringValues       string   // Argument to pass to --set-string in applicable helm commands
+	ValuesFiles        []string // Arguments to pass to --values in applicable helm commands
+	Namespace          string   // Kubernetes namespace for all helm commands
+	KubeToken          string   // Kubernetes authentication token to put in .kube/config
+	SkipTLSVerify      bool     // Put insecure-skip-tls-verify in .kube/config
+	Certificate        string   // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
+	APIServer          string   // The Kubernetes cluster's API endpoint
+	ServiceAccount     string   // Account to use for connecting to the Kubernetes cluster
+	ChartVersion       string   // Specific chart version to use in `helm upgrade`
+	DryRun             bool     // Pass --dry-run to applicable helm commands
+	Wait               bool     // Pass --wait to applicable helm commands
+	ReuseValues        bool     // Pass --reuse-values to `helm upgrade`
+	KeepHistory        bool     // Pass --keep-history to `helm uninstall`
+	Timeout            string   // Argument to pass to --timeout in applicable helm commands
+	Chart              string   // Chart argument to use in applicable helm commands
+	Release            string   // Release argument to use in applicable helm commands
+	Force              bool     // Pass --force to applicable helm commands
+	AtomicUpgrade      bool     // Pass --atomic to `helm upgrade`
+	CleanupOnFail      bool     // Pass --cleanup-on-fail to `helm upgrade`
+	LintStrictly       bool     // Pass --strict to `helm lint`
 
-	Stdout io.Writer `ignored:"true"`
-	Stderr io.Writer `ignored:"true"`
+	Stdout io.Writer
+	Stderr io.Writer
 }
 
 // NewConfig creates a Config and reads environment variables into it, accounting for several possible formats.
-func NewConfig(stdout, stderr io.Writer) (*Config, error) {
-	var aliases settingAliases
-	if err := envconfig.Process("plugin", &aliases); err != nil {
-		return nil, err
-	}
-
-	if err := envconfig.Process("", &aliases); err != nil {
-		return nil, err
-	}
-
+func NewConfig(stdout, stderr io.Writer, argv ...string) (*Config, error) {
 	cfg := Config{
-		Command:        aliases.Command,
-		AddRepos:       aliases.AddRepos,
-		APIServer:      aliases.APIServer,
-		ServiceAccount: aliases.ServiceAccount,
-		Wait:           aliases.Wait,
-		Force:          aliases.Force,
-		KubeToken:      aliases.KubeToken,
-		Certificate:    aliases.Certificate,
-
 		Stdout: stdout,
 		Stderr: stderr,
 	}
-	if err := envconfig.Process("plugin", &cfg); err != nil {
+	// cli doesn't support Destination for string slices, so we'll use bare
+	// strings as an intermediate value and split them on commas ourselves.
+	var addRepos, valuesFiles string
+	app := &cli.App{
+		Name:   "drone-helm3",
+		Action: func(*cli.Context) error { return nil },
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "mode",
+				Destination: &cfg.Command,
+				EnvVars:     []string{"MODE", "PLUGIN_MODE", "HELM_COMMAND", "PLUGIN_HELM_COMMAND"},
+			},
+			&cli.StringFlag{
+				Name:        "drone-event",
+				Destination: &cfg.DroneEvent,
+				EnvVars:     []string{"DRONE_BUILD_EVENT"},
+			},
+			&cli.BoolFlag{
+				Name:        "update-dependencies",
+				Destination: &cfg.UpdateDependencies,
+				EnvVars:     []string{"UPDATE_DEPENDENCIES", "PLUGIN_UPDATE_DEPENDENCIES"},
+			},
+			&cli.StringFlag{
+				Name:        "add-repos",
+				Destination: &addRepos,
+				EnvVars:     []string{"ADD_REPOS", "PLUGIN_ADD_REPOS", "HELM_REPOS", "PLUGIN_HELM_REPOS"},
+			},
+			&cli.BoolFlag{
+				Name:        "debug",
+				Destination: &cfg.Debug,
+				EnvVars:     []string{"DEBUG", "PLUGIN_DEBUG"},
+			},
+			&cli.StringFlag{
+				Name:        "values",
+				Destination: &cfg.Values,
+				EnvVars:     []string{"VALUES", "PLUGIN_VALUES"},
+			},
+			&cli.StringFlag{
+				Name:        "string-values",
+				Destination: &cfg.StringValues,
+				EnvVars:     []string{"STRING_VALUES", "PLUGIN_STRING_VALUES"},
+			},
+			&cli.StringFlag{
+				Name:        "values-files",
+				Destination: &valuesFiles,
+				EnvVars:     []string{"VALUES_FILES", "PLUGIN_VALUES_FILES"},
+			},
+			&cli.StringFlag{
+				Name:        "namespace",
+				Destination: &cfg.Namespace,
+				EnvVars:     []string{"NAMESPACE", "PLUGIN_NAMESPACE"},
+			},
+			&cli.StringFlag{
+				Name:        "kube-token",
+				Destination: &cfg.KubeToken,
+				EnvVars:     []string{"KUBE_TOKEN", "PLUGIN_KUBE_TOKEN", "KUBERNETES_TOKEN", "PLUGIN_KUBERNETES_TOKEN"},
+			},
+			&cli.BoolFlag{
+				Name:        "skip-tls-verify",
+				Destination: &cfg.SkipTLSVerify,
+				EnvVars:     []string{"SKIP_TLS_VERIFY", "PLUGIN_SKIP_TLS_VERIFY"},
+			},
+			&cli.StringFlag{
+				Name:        "kube-certificate",
+				Destination: &cfg.Certificate,
+				EnvVars:     []string{"KUBE_CERTIFICATE", "PLUGIN_KUBE_CERTIFICATE", "KUBERNETES_CERTIFICATE", "PLUGIN_KUBERNETES_CERTIFICATE"},
+			},
+			&cli.StringFlag{
+				Name:        "kube-api-server",
+				Destination: &cfg.APIServer,
+				EnvVars:     []string{"KUBE_API_SERVER", "PLUGIN_KUBE_API_SERVER", "API_SERVER", "PLUGIN_API_SERVER"},
+			},
+			&cli.StringFlag{
+				Name:        "service-account",
+				Destination: &cfg.ServiceAccount,
+				EnvVars:     []string{"KUBE_SERVICE_ACCOUNT", "PLUGIN_KUBE_SERVICE_ACCOUNT", "SERVICE_ACCOUNT", "PLUGIN_SERVICE_ACCOUNT"},
+			},
+			&cli.StringFlag{
+				Name:        "chart-version",
+				Destination: &cfg.ChartVersion,
+				EnvVars:     []string{"CHART_VERSION", "PLUGIN_CHART_VERSION"},
+			},
+			&cli.BoolFlag{
+				Name:        "dry-run",
+				Destination: &cfg.DryRun,
+				EnvVars:     []string{"DRY_RUN", "PLUGIN_DRY_RUN"},
+			},
+			&cli.BoolFlag{
+				Name:        "wait-for-upgrade",
+				Destination: &cfg.Wait,
+				EnvVars:     []string{"WAIT_FOR_UPGRADE", "PLUGIN_WAIT_FOR_UPGRADE", "WAIT", "PLUGIN_WAIT"},
+			},
+			&cli.BoolFlag{
+				Name:        "reuse-values",
+				Destination: &cfg.ReuseValues,
+				EnvVars:     []string{"REUSE_VALUES", "PLUGIN_REUSE_VALUES"},
+			},
+			&cli.BoolFlag{
+				Name:        "keep-history",
+				Destination: &cfg.KeepHistory,
+				EnvVars:     []string{"KEEP_HISTORY", "PLUGIN_KEEP_HISTORY"},
+			},
+			&cli.StringFlag{
+				Name:        "timeout",
+				Destination: &cfg.Timeout,
+				EnvVars:     []string{"TIMEOUT", "PLUGIN_TIMEOUT"},
+			},
+			&cli.StringFlag{
+				Name:        "chart",
+				Destination: &cfg.Chart,
+				EnvVars:     []string{"CHART", "PLUGIN_CHART"},
+			},
+			&cli.StringFlag{
+				Name:        "release",
+				Destination: &cfg.Release,
+				EnvVars:     []string{"RELEASE", "PLUGIN_RELEASE"},
+			},
+			&cli.BoolFlag{
+				Name:        "force-upgrade",
+				Destination: &cfg.Force,
+				EnvVars:     []string{"FORCE_UPGRADE", "PLUGIN_FORCE_UPGRADE", "FORCE", "PLUGIN_FORCE"},
+			},
+			&cli.BoolFlag{
+				Name:        "atomic-upgrade",
+				Destination: &cfg.AtomicUpgrade,
+				EnvVars:     []string{"ATOMIC_UPGRADE", "PLUGIN_ATOMIC_UPGRADE"},
+			},
+			&cli.BoolFlag{
+				Name:        "cleanup-failed-upgrade",
+				Destination: &cfg.CleanupOnFail,
+				EnvVars:     []string{"CLEANUP_FAILED_UPGRADE", "PLUGIN_CLEANUP_FAILED_UPGRADE"},
+			},
+			&cli.BoolFlag{
+				Name:        "lint-strictly",
+				Destination: &cfg.LintStrictly,
+				EnvVars:     []string{"LINT_STRICTLY", "PLUGIN_LINT_STRICTLY"},
+			},
+		},
+	}
+	if err := app.Run(argv); err != nil {
 		return nil, err
 	}
-
-	if err := envconfig.Process("", &cfg); err != nil {
-		return nil, err
+	if addRepos != "" {
+		cfg.AddRepos = strings.Split(addRepos, ",")
+	}
+	if valuesFiles != "" {
+		cfg.ValuesFiles = strings.Split(valuesFiles, ",")
 	}
 
 	if justNumbers.MatchString(cfg.Timeout) {
@@ -111,15 +234,4 @@ func (cfg *Config) deprecationWarn() {
 			fmt.Fprintf(cfg.Stderr, "Warning: ignoring deprecated '%s' setting\n", strings.ToLower(varname))
 		}
 	}
-}
-
-type settingAliases struct {
-	Command        string   `envconfig:"helm_command"`
-	AddRepos       []string `envconfig:"helm_repos"`
-	APIServer      string   `envconfig:"api_server"`
-	ServiceAccount string   `split_words:"true"`
-	Wait           bool     ``
-	Force          bool     ``
-	KubeToken      string   `envconfig:"kubernetes_token"`
-	Certificate    string   `envconfig:"kubernetes_certificate"`
 }

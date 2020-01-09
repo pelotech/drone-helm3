@@ -95,7 +95,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithPluginPrefix() {
 	suite.setenv("PLUGIN_CLEANUP_FAILED_UPGRADE", "true")
 	suite.setenv("PLUGIN_LINT_STRICTLY", "true")
 
-	cfg, err := NewConfig(&stdout, &stderr)
+	cfg, err := NewConfig(&stdout, &stderr, "test")
 	suite.Require().NoError(err)
 
 	want := Config{
@@ -208,7 +208,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithNoPrefix() {
 	suite.setenv("CLEANUP_FAILED_UPGRADE", "true")
 	suite.setenv("LINT_STRICTLY", "true")
 
-	cfg, err := NewConfig(&stdout, &stderr)
+	cfg, err := NewConfig(&stdout, &stderr, "test")
 	suite.Require().NoError(err)
 
 	want := Config{
@@ -249,7 +249,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithConflictingVariables() {
 	suite.setenv("PLUGIN_MODE", "iambic")
 	suite.setenv("MODE", "haiku") // values from the `environment` block override those from `settings`
 
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{}, "test")
 	suite.Require().NoError(err)
 
 	suite.Equal("haiku", cfg.Command)
@@ -257,7 +257,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithConflictingVariables() {
 
 func (suite *ConfigTestSuite) TestNewConfigInfersNumbersAreSeconds() {
 	suite.setenv("PLUGIN_TIMEOUT", "42")
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{}, "test")
 	suite.Require().NoError(err)
 	suite.Equal("42s", cfg.Timeout)
 }
@@ -285,7 +285,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
 	suite.setenv("PLUGIN_KUBERNETES_TOKEN", "Y29tZSB0byBteSBhcm1z")
 	suite.setenv("PLUGIN_KUBERNETES_CERTIFICATE", "d2l0aCBpdHMgaGVhZA==")
 
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{}, "test")
 	suite.Require().NoError(err)
 	suite.Equal("beware the jabberwock", cfg.Command)
 	suite.Equal([]string{"chortle=http://calloo.callay/frabjous/day"}, cfg.AddRepos)
@@ -303,7 +303,7 @@ func (suite *ConfigTestSuite) TestAliasedSettingWithoutPluginPrefix() {
 	suite.unsetenv("PLUGIN_FORCE")
 	suite.setenv("FORCE", "true")
 
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{}, "test")
 	suite.Require().NoError(err)
 	suite.True(cfg.Force)
 }
@@ -313,7 +313,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliasConflicts() {
 	suite.setenv("PLUGIN_FORCE", "true")
 	suite.setenv("PLUGIN_FORCE_UPGRADE", "false") // should override even when set to the zero value
 
-	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{}, "test")
 	suite.NoError(err)
 	suite.False(cfg.Force, "official names should override alias names")
 }
@@ -321,7 +321,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliasConflicts() {
 func (suite *ConfigTestSuite) TestNewConfigSetsWriters() {
 	stdout := &strings.Builder{}
 	stderr := &strings.Builder{}
-	cfg, err := NewConfig(stdout, stderr)
+	cfg, err := NewConfig(stdout, stderr, "test")
 	suite.Require().NoError(err)
 
 	suite.Equal(stdout, cfg.Stdout)
@@ -338,7 +338,7 @@ func (suite *ConfigTestSuite) TestDeprecatedSettingWarnings() {
 	suite.setenv("UPGRADE", "")          // entries should cause warnings even when set to empty string
 
 	stderr := &strings.Builder{}
-	_, err := NewConfig(&strings.Builder{}, stderr)
+	_, err := NewConfig(&strings.Builder{}, stderr, "test")
 	suite.NoError(err)
 
 	for _, varname := range deprecatedVars {
@@ -352,7 +352,7 @@ func (suite *ConfigTestSuite) TestLogDebug() {
 
 	stderr := strings.Builder{}
 	stdout := strings.Builder{}
-	_, err := NewConfig(&stdout, &stderr)
+	_, err := NewConfig(&stdout, &stderr, "test")
 	suite.Require().NoError(err)
 
 	suite.Equal("", stdout.String())
