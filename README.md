@@ -10,7 +10,7 @@ This plugin provides an interface between [Drone](https://drone.io/) and [Helm 3
 * Deploy your service
 * Delete your service
 
-The plugin is inpsired by [drone-helm](https://github.com/ipedrazas/drone-helm), which fills the same role for Helm 2. It provides a comparable feature-set and the configuration settings are backwards-compatible.
+The plugin is inpsired by [drone-helm](https://github.com/ipedrazas/drone-helm), which fills the same role for Helm 2. It provides a comparable feature-set and the configuration settings are backward-compatible.
 
 ## Example configuration
 
@@ -23,7 +23,7 @@ steps:
   - name: lint
     image: pelotech/drone-helm3
     settings:
-      helm_command: lint
+      mode: lint
       chart: ./
 ```
 
@@ -34,12 +34,12 @@ steps:
   - name: deploy
     image: pelotech/drone-helm3
     settings:
-      helm_command: upgrade
+      mode: upgrade
       chart: ./
       release: my-project
     environment:
-      API_SERVER: https://my.kubernetes.installation/clusters/a-1234
-      KUBERNETES_TOKEN:
+      KUBE_API_SERVER: https://my.kubernetes.installation/clusters/a-1234
+      KUBE_TOKEN:
         from_secret: kubernetes_token
 ```
 
@@ -50,17 +50,17 @@ steps:
   - name: uninstall
     image: pelotech/drone-helm3
     settings:
-      helm_command: uninstall
+      mode: uninstall
       release: my-project
     environment:
-      API_SERVER: https://my.kubernetes.installation/clusters/a-1234
-      KUBERNETES_TOKEN:
+      KUBE_API_SERVER: https://my.kubernetes.installation/clusters/a-1234
+      KUBE_TOKEN:
         from_secret: kubernetes_token
 ```
 
 ## Upgrading from drone-helm
 
-drone-helm3 is largely backwards-compatible with drone-helm. There are some known differences:
+drone-helm3 is largely backward-compatible with drone-helm. There are some known differences:
 
 * You'll need to migrate the deployments in the cluster [helm-v2-to-helm-v3](https://helm.sh/blog/migrate-from-helm-v2-to-helm-v3/).
 * EKS is not supported. See [#5](https://github.com/pelotech/drone-helm3/issues/5) for more information.
@@ -74,6 +74,15 @@ drone-helm3 is largely backwards-compatible with drone-helm. There are some know
     * `canary_image`
     * `client_only`
     * `stable_repo_url`
+* Several settings have been renamed, to clarify their purpose and provide a more consistent naming scheme. For backward-compatibility, the old names are still available as aliases. If the old and new names are both present, the updated form takes priority. Conflicting settings will make your `.drone.yml` harder to understand, so we recommend updating to the new names:
+    * `helm_command` is now `mode`
+    ° `helm_repos` is now `add_repos`
+    * `api_server` is now `kube_api_server`
+    * `service_account` is now `kube_service_account`
+    * `kubernetes_token` is now `kube_token`
+    * `kubernetes_certificate` is now `kube_certificate`
+    * `wait` is now `wait_for_upgrade`
+    * `force` is now `force_upgrade`
 
 Since helm 3 does not require Tiller, we also recommend switching to a service account with less-expansive permissions.
 
