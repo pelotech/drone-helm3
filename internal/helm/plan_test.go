@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/pelotech/drone-helm3/internal/run"
 )
 
@@ -25,14 +26,14 @@ func (suite *PlanTestSuite) TestNewPlan() {
 	stepTwo := NewMockStep(ctrl)
 
 	origHelp := help
-	help = func(cfg Config) []Step {
+	help = func(cfg env.Config) []Step {
 		return []Step{stepOne, stepTwo}
 	}
 	defer func() { help = origHelp }()
 
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
-	cfg := Config{
+	cfg := env.Config{
 		Command:   "help",
 		Debug:     false,
 		Namespace: "outer",
@@ -65,12 +66,12 @@ func (suite *PlanTestSuite) TestNewPlanAbortsOnError() {
 	stepTwo := NewMockStep(ctrl)
 
 	origHelp := help
-	help = func(cfg Config) []Step {
+	help = func(cfg env.Config) []Step {
 		return []Step{stepOne, stepTwo}
 	}
 	defer func() { help = origHelp }()
 
-	cfg := Config{
+	cfg := env.Config{
 		Command: "help",
 	}
 
@@ -129,7 +130,7 @@ func (suite *PlanTestSuite) TestExecuteAbortsOnError() {
 }
 
 func (suite *PlanTestSuite) TestUpgrade() {
-	cfg := Config{
+	cfg := env.Config{
 		ChartVersion:  "seventeen",
 		DryRun:        true,
 		Wait:          true,
@@ -172,7 +173,7 @@ func (suite *PlanTestSuite) TestUpgrade() {
 }
 
 func (suite *PlanTestSuite) TestUpgradeWithUpdateDependencies() {
-	cfg := Config{
+	cfg := env.Config{
 		UpdateDependencies: true,
 	}
 	steps := upgrade(cfg)
@@ -182,7 +183,7 @@ func (suite *PlanTestSuite) TestUpgradeWithUpdateDependencies() {
 }
 
 func (suite *PlanTestSuite) TestUpgradeWithAddRepos() {
-	cfg := Config{
+	cfg := env.Config{
 		AddRepos: []string{
 			"machine=https://github.com/harold_finch/themachine",
 		},
@@ -193,7 +194,7 @@ func (suite *PlanTestSuite) TestUpgradeWithAddRepos() {
 }
 
 func (suite *PlanTestSuite) TestUninstall() {
-	cfg := Config{
+	cfg := env.Config{
 		KubeToken:      "b2YgbXkgYWZmZWN0aW9u",
 		SkipTLSVerify:  true,
 		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
@@ -233,7 +234,7 @@ func (suite *PlanTestSuite) TestUninstall() {
 }
 
 func (suite *PlanTestSuite) TestUninstallWithUpdateDependencies() {
-	cfg := Config{
+	cfg := env.Config{
 		UpdateDependencies: true,
 	}
 	steps := uninstall(cfg)
@@ -243,7 +244,7 @@ func (suite *PlanTestSuite) TestUninstallWithUpdateDependencies() {
 }
 
 func (suite *PlanTestSuite) TestInitKube() {
-	cfg := Config{
+	cfg := env.Config{
 		KubeToken:      "cXVlZXIgY2hhcmFjdGVyCg==",
 		SkipTLSVerify:  true,
 		Certificate:    "b2Ygd29rZW5lc3MK",
@@ -269,7 +270,7 @@ func (suite *PlanTestSuite) TestInitKube() {
 }
 
 func (suite *PlanTestSuite) TestDepUpdate() {
-	cfg := Config{
+	cfg := env.Config{
 		UpdateDependencies: true,
 		Chart:              "scatterplot",
 	}
@@ -286,7 +287,7 @@ func (suite *PlanTestSuite) TestDepUpdate() {
 }
 
 func (suite *PlanTestSuite) TestAddRepos() {
-	cfg := Config{
+	cfg := env.Config{
 		AddRepos: []string{
 			"first=https://add.repos/one",
 			"second=https://add.repos/two",
@@ -304,7 +305,7 @@ func (suite *PlanTestSuite) TestAddRepos() {
 }
 
 func (suite *PlanTestSuite) TestLint() {
-	cfg := Config{
+	cfg := env.Config{
 		Chart:        "./flow",
 		Values:       "steadfastness,forthrightness",
 		StringValues: "tensile_strength,flexibility",
@@ -326,7 +327,7 @@ func (suite *PlanTestSuite) TestLint() {
 }
 
 func (suite *PlanTestSuite) TestLintWithUpdateDependencies() {
-	cfg := Config{
+	cfg := env.Config{
 		UpdateDependencies: true,
 	}
 	steps := lint(cfg)
@@ -335,7 +336,7 @@ func (suite *PlanTestSuite) TestLintWithUpdateDependencies() {
 }
 
 func (suite *PlanTestSuite) TestLintWithAddRepos() {
-	cfg := Config{
+	cfg := env.Config{
 		AddRepos: []string{"friendczar=https://github.com/logan_pierce/friendczar"},
 	}
 	steps := lint(cfg)
@@ -344,7 +345,7 @@ func (suite *PlanTestSuite) TestLintWithAddRepos() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanUpgradeCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "upgrade",
 	}
 	stepsMaker := determineSteps(cfg)
@@ -352,7 +353,7 @@ func (suite *PlanTestSuite) TestDeterminePlanUpgradeCommand() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanUpgradeFromDroneEvent() {
-	cfg := Config{}
+	cfg := env.Config{}
 
 	upgradeEvents := []string{"push", "tag", "deployment", "pull_request", "promote", "rollback"}
 	for _, event := range upgradeEvents {
@@ -363,7 +364,7 @@ func (suite *PlanTestSuite) TestDeterminePlanUpgradeFromDroneEvent() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanUninstallCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "uninstall",
 	}
 	stepsMaker := determineSteps(cfg)
@@ -372,7 +373,7 @@ func (suite *PlanTestSuite) TestDeterminePlanUninstallCommand() {
 
 // helm_command = delete is provided as an alias for backward-compatibility with drone-helm
 func (suite *PlanTestSuite) TestDeterminePlanDeleteCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "delete",
 	}
 	stepsMaker := determineSteps(cfg)
@@ -380,7 +381,7 @@ func (suite *PlanTestSuite) TestDeterminePlanDeleteCommand() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanDeleteFromDroneEvent() {
-	cfg := Config{
+	cfg := env.Config{
 		DroneEvent: "delete",
 	}
 	stepsMaker := determineSteps(cfg)
@@ -388,7 +389,7 @@ func (suite *PlanTestSuite) TestDeterminePlanDeleteFromDroneEvent() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanLintCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "lint",
 	}
 
@@ -397,7 +398,7 @@ func (suite *PlanTestSuite) TestDeterminePlanLintCommand() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanHelpCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "help",
 	}
 

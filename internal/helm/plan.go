@@ -2,6 +2,7 @@ package helm
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/pelotech/drone-helm3/internal/run"
 	"os"
 )
@@ -20,12 +21,12 @@ type Step interface {
 // A Plan is a series of steps to perform.
 type Plan struct {
 	steps  []Step
-	cfg    Config
+	cfg    env.Config
 	runCfg run.Config
 }
 
 // NewPlan makes a plan for running a helm operation.
-func NewPlan(cfg Config) (*Plan, error) {
+func NewPlan(cfg env.Config) (*Plan, error) {
 	p := Plan{
 		cfg: cfg,
 		runCfg: run.Config{
@@ -54,7 +55,7 @@ func NewPlan(cfg Config) (*Plan, error) {
 
 // determineSteps is primarily for the tests' convenience: it allows testing the "which stuff should
 // we do" logic without building a config that meets all the steps' requirements.
-func determineSteps(cfg Config) *func(Config) []Step {
+func determineSteps(cfg env.Config) *func(env.Config) []Step {
 	switch cfg.Command {
 	case "upgrade":
 		return &upgrade
@@ -91,7 +92,7 @@ func (p *Plan) Execute() error {
 	return nil
 }
 
-var upgrade = func(cfg Config) []Step {
+var upgrade = func(cfg env.Config) []Step {
 	steps := initKube(cfg)
 	steps = append(steps, addRepos(cfg)...)
 	if cfg.UpdateDependencies {
@@ -116,7 +117,7 @@ var upgrade = func(cfg Config) []Step {
 	return steps
 }
 
-var uninstall = func(cfg Config) []Step {
+var uninstall = func(cfg env.Config) []Step {
 	steps := initKube(cfg)
 	if cfg.UpdateDependencies {
 		steps = append(steps, depUpdate(cfg)...)
@@ -130,7 +131,7 @@ var uninstall = func(cfg Config) []Step {
 	return steps
 }
 
-var lint = func(cfg Config) []Step {
+var lint = func(cfg env.Config) []Step {
 	steps := addRepos(cfg)
 	if cfg.UpdateDependencies {
 		steps = append(steps, depUpdate(cfg)...)
@@ -146,14 +147,14 @@ var lint = func(cfg Config) []Step {
 	return steps
 }
 
-var help = func(cfg Config) []Step {
+var help = func(cfg env.Config) []Step {
 	help := &run.Help{
 		HelmCommand: cfg.Command,
 	}
 	return []Step{help}
 }
 
-func initKube(cfg Config) []Step {
+func initKube(cfg env.Config) []Step {
 	return []Step{
 		&run.InitKube{
 			SkipTLSVerify:  cfg.SkipTLSVerify,
@@ -167,7 +168,7 @@ func initKube(cfg Config) []Step {
 	}
 }
 
-func addRepos(cfg Config) []Step {
+func addRepos(cfg env.Config) []Step {
 	steps := make([]Step, 0)
 	for _, repo := range cfg.AddRepos {
 		steps = append(steps, &run.AddRepo{
@@ -178,7 +179,7 @@ func addRepos(cfg Config) []Step {
 	return steps
 }
 
-func depUpdate(cfg Config) []Step {
+func depUpdate(cfg env.Config) []Step {
 	return []Step{
 		&run.DepUpdate{
 			Chart: cfg.Chart,
