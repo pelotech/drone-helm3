@@ -1,6 +1,7 @@
 package run
 
 import (
+	"fmt"
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	yaml "gopkg.in/yaml.v2"
@@ -249,6 +250,40 @@ func (suite *InitKubeTestSuite) TestPrepareDefaultsServiceAccount() {
 
 	init.Prepare(cfg)
 	suite.Equal("helm", init.values.ServiceAccount)
+}
+
+func (suite *InitKubeTestSuite) TestDebugOutput() {
+	templateFile, err := tempfile("kubeconfig********.yml.tpl", "hurgity burgity")
+	defer os.Remove(templateFile.Name())
+	suite.Require().Nil(err)
+
+	configFile, err := tempfile("kubeconfig********.yml", "")
+	defer os.Remove(configFile.Name())
+	suite.Require().Nil(err)
+
+	stdout := &strings.Builder{}
+	stderr := &strings.Builder{}
+	cfg := env.Config{
+		APIServer: "http://my.kube.server/",
+		KubeToken: "QSBzaW5nbGUgcm9zZQ==",
+		Debug:     true,
+		Stdout:    stdout,
+		Stderr:    stderr,
+	}
+	runCfg := Config{
+		Debug:  true,
+		Stdout: stdout,
+		Stderr: stderr,
+	}
+
+	init := NewInitKube(cfg, templateFile.Name(), configFile.Name())
+	suite.NoError(init.Prepare(runCfg))
+
+	suite.Contains(stderr.String(), fmt.Sprintf("loading kubeconfig template from %s\n", templateFile.Name()))
+	suite.Contains(stderr.String(), fmt.Sprintf("truncating kubeconfig file at %s\n", configFile.Name()))
+
+	suite.NoError(init.Execute())
+	suite.Contains(stderr.String(), fmt.Sprintf("writing kubeconfig file to %s\n", configFile.Name()))
 }
 
 func tempfile(name, contents string) (*os.File, error) {
