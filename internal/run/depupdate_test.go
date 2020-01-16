@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	"strings"
 	"testing"
@@ -29,6 +30,14 @@ func (suite *DepUpdateTestSuite) AfterTest(_, _ string) {
 
 func TestDepUpdateTestSuite(t *testing.T) {
 	suite.Run(t, new(DepUpdateTestSuite))
+}
+
+func (suite *DepUpdateTestSuite) TestNewDepUpdate() {
+	cfg := env.Config{
+		Chart: "scatterplot",
+	}
+	d := NewDepUpdate(cfg)
+	suite.Equal("scatterplot", d.Chart)
 }
 
 func (suite *DepUpdateTestSuite) TestPrepareAndExecute() {

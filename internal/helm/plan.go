@@ -98,21 +98,7 @@ var upgrade = func(cfg env.Config) []Step {
 	if cfg.UpdateDependencies {
 		steps = append(steps, depUpdate(cfg)...)
 	}
-	steps = append(steps, &run.Upgrade{
-		Chart:         cfg.Chart,
-		Release:       cfg.Release,
-		ChartVersion:  cfg.ChartVersion,
-		DryRun:        cfg.DryRun,
-		Wait:          cfg.Wait,
-		Values:        cfg.Values,
-		StringValues:  cfg.StringValues,
-		ValuesFiles:   cfg.ValuesFiles,
-		ReuseValues:   cfg.ReuseValues,
-		Timeout:       cfg.Timeout,
-		Force:         cfg.Force,
-		Atomic:        cfg.AtomicUpgrade,
-		CleanupOnFail: cfg.CleanupOnFail,
-	})
+	steps = append(steps, run.NewUpgrade(cfg))
 
 	return steps
 }
@@ -122,11 +108,7 @@ var uninstall = func(cfg env.Config) []Step {
 	if cfg.UpdateDependencies {
 		steps = append(steps, depUpdate(cfg)...)
 	}
-	steps = append(steps, &run.Uninstall{
-		Release:     cfg.Release,
-		DryRun:      cfg.DryRun,
-		KeepHistory: cfg.KeepHistory,
-	})
+	steps = append(steps, run.NewUninstall(cfg))
 
 	return steps
 }
@@ -136,53 +118,27 @@ var lint = func(cfg env.Config) []Step {
 	if cfg.UpdateDependencies {
 		steps = append(steps, depUpdate(cfg)...)
 	}
-	steps = append(steps, &run.Lint{
-		Chart:        cfg.Chart,
-		Values:       cfg.Values,
-		StringValues: cfg.StringValues,
-		ValuesFiles:  cfg.ValuesFiles,
-		Strict:       cfg.LintStrictly,
-	})
-
+	steps = append(steps, run.NewLint(cfg))
 	return steps
 }
 
 var help = func(cfg env.Config) []Step {
-	help := &run.Help{
-		HelmCommand: cfg.Command,
-	}
-	return []Step{help}
+	return []Step{run.NewHelp(cfg)}
 }
 
 func initKube(cfg env.Config) []Step {
-	return []Step{
-		&run.InitKube{
-			SkipTLSVerify:  cfg.SkipTLSVerify,
-			Certificate:    cfg.Certificate,
-			APIServer:      cfg.APIServer,
-			ServiceAccount: cfg.ServiceAccount,
-			Token:          cfg.KubeToken,
-			TemplateFile:   kubeConfigTemplate,
-			ConfigFile:     kubeConfigFile,
-		},
-	}
+	return []Step{run.NewInitKube(cfg, kubeConfigTemplate, kubeConfigFile)}
 }
 
 func addRepos(cfg env.Config) []Step {
 	steps := make([]Step, 0)
 	for _, repo := range cfg.AddRepos {
-		steps = append(steps, &run.AddRepo{
-			Repo: repo,
-		})
+		steps = append(steps, run.NewAddRepo(repo))
 	}
 
 	return steps
 }
 
 func depUpdate(cfg env.Config) []Step {
-	return []Step{
-		&run.DepUpdate{
-			Chart: cfg.Chart,
-		},
-	}
+	return []Step{run.NewDepUpdate(cfg)}
 }

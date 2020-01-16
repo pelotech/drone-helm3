@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"strings"
@@ -15,6 +16,15 @@ type HelpTestSuite struct {
 
 func TestHelpTestSuite(t *testing.T) {
 	suite.Run(t, new(HelpTestSuite))
+}
+
+func (suite *HelpTestSuite) TestNewHelp() {
+	cfg := env.Config{
+		Command: "everybody dance NOW!!",
+	}
+	help := NewHelp(cfg)
+	suite.Require().NotNil(help)
+	suite.Equal("everybody dance NOW!!", help.HelmCommand)
 }
 
 func (suite *HelpTestSuite) TestPrepare() {

@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 )
 
 // Uninstall is an execution step that calls `helm uninstall` when executed.
@@ -10,6 +11,15 @@ type Uninstall struct {
 	DryRun      bool
 	KeepHistory bool
 	cmd         cmd
+}
+
+// NewUninstall creates an Uninstall using fields from the given Config. No validation is performed at this time.
+func NewUninstall(cfg env.Config) *Uninstall {
+	return &Uninstall{
+		Release:     cfg.Release,
+		DryRun:      cfg.DryRun,
+		KeepHistory: cfg.KeepHistory,
+	}
 }
 
 // Execute executes the `helm uninstall` command.

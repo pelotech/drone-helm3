@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 )
 
 // Upgrade is an execution step that calls `helm upgrade` when executed.
@@ -22,6 +23,25 @@ type Upgrade struct {
 	CleanupOnFail bool
 
 	cmd cmd
+}
+
+// NewUpgrade creates an Upgrade using fields from the given Config. No validation is performed at this time.
+func NewUpgrade(cfg env.Config) *Upgrade {
+	return &Upgrade{
+		Chart:         cfg.Chart,
+		Release:       cfg.Release,
+		ChartVersion:  cfg.ChartVersion,
+		DryRun:        cfg.DryRun,
+		Wait:          cfg.Wait,
+		Values:        cfg.Values,
+		StringValues:  cfg.StringValues,
+		ValuesFiles:   cfg.ValuesFiles,
+		ReuseValues:   cfg.ReuseValues,
+		Timeout:       cfg.Timeout,
+		Force:         cfg.Force,
+		Atomic:        cfg.AtomicUpgrade,
+		CleanupOnFail: cfg.CleanupOnFail,
+	}
 }
 
 // Execute executes the `helm upgrade` command.

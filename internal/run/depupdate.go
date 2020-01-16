@@ -2,12 +2,20 @@ package run
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 )
 
 // DepUpdate is an execution step that calls `helm dependency update` when executed.
 type DepUpdate struct {
 	Chart string
 	cmd   cmd
+}
+
+// NewDepUpdate creates a DepUpdate using fields from the given Config. No validation is performed at this time.
+func NewDepUpdate(cfg env.Config) *DepUpdate {
+	return &DepUpdate{
+		Chart: cfg.Chart,
+	}
 }
 
 // Execute executes the `helm upgrade` command.

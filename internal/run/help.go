@@ -2,12 +2,20 @@ package run
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 )
 
 // Help is a step in a helm Plan that calls `helm help`.
 type Help struct {
 	HelmCommand string
 	cmd         cmd
+}
+
+// NewHelp creates a Help using fields from the given Config. No validation is performed at this time.
+func NewHelp(cfg env.Config) *Help {
+	return &Help{
+		HelmCommand: cfg.Command,
+	}
 }
 
 // Execute executes the `helm help` command.

@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	"strings"
 	"testing"
@@ -29,6 +30,41 @@ func (suite *UpgradeTestSuite) AfterTest(_, _ string) {
 
 func TestUpgradeTestSuite(t *testing.T) {
 	suite.Run(t, new(UpgradeTestSuite))
+}
+
+func (suite *UpgradeTestSuite) TestNewUpgrade() {
+	cfg := env.Config{
+		ChartVersion:  "seventeen",
+		DryRun:        true,
+		Wait:          true,
+		Values:        "steadfastness,forthrightness",
+		StringValues:  "tensile_strength,flexibility",
+		ValuesFiles:   []string{"/root/price_inventory.yml"},
+		ReuseValues:   true,
+		Timeout:       "go sit in the corner",
+		Chart:         "billboard_top_100",
+		Release:       "post_malone_circles",
+		Force:         true,
+		AtomicUpgrade: true,
+		CleanupOnFail: true,
+	}
+
+	up := NewUpgrade(cfg)
+	suite.Equal(&Upgrade{
+		Chart:         cfg.Chart,
+		Release:       cfg.Release,
+		ChartVersion:  cfg.ChartVersion,
+		DryRun:        true,
+		Wait:          cfg.Wait,
+		Values:        "steadfastness,forthrightness",
+		StringValues:  "tensile_strength,flexibility",
+		ValuesFiles:   []string{"/root/price_inventory.yml"},
+		ReuseValues:   cfg.ReuseValues,
+		Timeout:       cfg.Timeout,
+		Force:         cfg.Force,
+		Atomic:        true,
+		CleanupOnFail: true,
+	}, up)
 }
 
 func (suite *UpgradeTestSuite) TestPrepareAndExecute() {

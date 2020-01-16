@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	"strings"
 	"testing"
@@ -33,6 +34,20 @@ func (suite *UninstallTestSuite) AfterTest(_, _ string) {
 
 func TestUninstallTestSuite(t *testing.T) {
 	suite.Run(t, new(UninstallTestSuite))
+}
+
+func (suite *UninstallTestSuite) TestNewUninstall() {
+	cfg := env.Config{
+		DryRun:      true,
+		Release:     "jetta_id_love_to_change_the_world",
+		KeepHistory: true,
+	}
+	u := NewUninstall(cfg)
+	suite.Equal(&Uninstall{
+		Release:     "jetta_id_love_to_change_the_world",
+		DryRun:      true,
+		KeepHistory: true,
+	}, u)
 }
 
 func (suite *UninstallTestSuite) TestPrepareAndExecute() {

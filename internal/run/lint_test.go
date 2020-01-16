@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	"strings"
 	"testing"
@@ -29,6 +30,25 @@ func (suite *LintTestSuite) AfterTest(_, _ string) {
 
 func TestLintTestSuite(t *testing.T) {
 	suite.Run(t, new(LintTestSuite))
+}
+
+func (suite *LintTestSuite) TestNewLint() {
+	cfg := env.Config{
+		Chart:        "./flow",
+		Values:       "steadfastness,forthrightness",
+		StringValues: "tensile_strength,flexibility",
+		ValuesFiles:  []string{"/root/price_inventory.yml"},
+		LintStrictly: true,
+	}
+	lint := NewLint(cfg)
+	suite.Require().NotNil(lint)
+	suite.Equal(&Lint{
+		Chart:        "./flow",
+		Values:       "steadfastness,forthrightness",
+		StringValues: "tensile_strength,flexibility",
+		ValuesFiles:  []string{"/root/price_inventory.yml"},
+		Strict:       true,
+	}, lint)
 }
 
 func (suite *LintTestSuite) TestPrepareAndExecute() {

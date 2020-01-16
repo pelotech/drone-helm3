@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 )
 
 // Lint is an execution step that calls `helm lint` when executed.
@@ -12,6 +13,17 @@ type Lint struct {
 	ValuesFiles  []string
 	Strict       bool
 	cmd          cmd
+}
+
+// NewLint creates a Lint using fields from the given Config. No validation is performed at this time.
+func NewLint(cfg env.Config) *Lint {
+	return &Lint{
+		Chart:        cfg.Chart,
+		Values:       cfg.Values,
+		StringValues: cfg.StringValues,
+		ValuesFiles:  cfg.ValuesFiles,
+		Strict:       cfg.LintStrictly,
+	}
 }
 
 // Execute executes the `helm lint` command.

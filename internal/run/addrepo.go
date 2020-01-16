@@ -11,6 +11,13 @@ type AddRepo struct {
 	cmd  cmd
 }
 
+// NewAddRepo creates an AddRepo for the given repo-spec. No validation is performed at this time.
+func NewAddRepo(repo string) *AddRepo {
+	return &AddRepo{
+		Repo: repo,
+	}
+}
+
 // Execute executes the `helm repo add` command.
 func (a *AddRepo) Execute(_ Config) error {
 	return a.cmd.Run()

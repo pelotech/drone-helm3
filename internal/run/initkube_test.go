@@ -1,6 +1,7 @@
 package run
 
 import (
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -15,6 +16,27 @@ type InitKubeTestSuite struct {
 
 func TestInitKubeTestSuite(t *testing.T) {
 	suite.Run(t, new(InitKubeTestSuite))
+}
+
+func (suite *InitKubeTestSuite) TestNewInitKube() {
+	cfg := env.Config{
+		SkipTLSVerify:  true,
+		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
+		APIServer:      "98.765.43.21",
+		ServiceAccount: "greathelm",
+		KubeToken:      "b2YgbXkgYWZmZWN0aW9u",
+	}
+
+	init := NewInitKube(cfg, "conf.tpl", "conf.yml")
+	suite.Equal(&InitKube{
+		SkipTLSVerify:  true,
+		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
+		APIServer:      "98.765.43.21",
+		ServiceAccount: "greathelm",
+		Token:          "b2YgbXkgYWZmZWN0aW9u",
+		TemplateFile:   "conf.tpl",
+		ConfigFile:     "conf.yml",
+	}, init)
 }
 
 func (suite *InitKubeTestSuite) TestPrepareExecute() {

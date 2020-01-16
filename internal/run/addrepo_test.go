@@ -38,6 +38,12 @@ func TestAddRepoTestSuite(t *testing.T) {
 	suite.Run(t, new(AddRepoTestSuite))
 }
 
+func (suite *AddRepoTestSuite) TestNewAddRepo() {
+	repo := NewAddRepo("picompress=https://github.com/caleb_phipps/picompress")
+	suite.Require().NotNil(repo)
+	suite.Equal("picompress=https://github.com/caleb_phipps/picompress", repo.Repo)
+}
+
 func (suite *AddRepoTestSuite) TestPrepareAndExecute() {
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}

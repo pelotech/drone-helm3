@@ -3,6 +3,7 @@ package run
 import (
 	"errors"
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"io"
 	"os"
 	"text/template"
@@ -30,6 +31,19 @@ type kubeValues struct {
 	Namespace      string
 	ServiceAccount string
 	Token          string
+}
+
+// NewInitKube creates a InitKube using the given Config and filepaths. No validation is performed at this time.
+func NewInitKube(cfg env.Config, templateFile, configFile string) *InitKube {
+	return &InitKube{
+		SkipTLSVerify:  cfg.SkipTLSVerify,
+		Certificate:    cfg.Certificate,
+		APIServer:      cfg.APIServer,
+		ServiceAccount: cfg.ServiceAccount,
+		Token:          cfg.KubeToken,
+		TemplateFile:   templateFile,
+		ConfigFile:     configFile,
+	}
 }
 
 // Execute generates a kubernetes config file from drone-helm3's template.
