@@ -175,37 +175,6 @@ func (suite *PlanTestSuite) TestUninstallWithUpdateDependencies() {
 	suite.IsType(&run.DepUpdate{}, steps[1])
 }
 
-func (suite *PlanTestSuite) TestInitKube() {
-	cfg := env.Config{}
-
-	steps := initKube(cfg)
-	suite.Require().Equal(1, len(steps), "initKube should return one step")
-	suite.IsType(&run.InitKube{}, steps[0])
-}
-
-func (suite *PlanTestSuite) TestDepUpdate() {
-	cfg := env.Config{
-		UpdateDependencies: true,
-	}
-
-	steps := depUpdate(cfg)
-	suite.Require().Equal(1, len(steps), "depUpdate should return one step")
-	suite.IsType(&run.DepUpdate{}, steps[0])
-}
-
-func (suite *PlanTestSuite) TestAddRepos() {
-	cfg := env.Config{
-		AddRepos: []string{
-			"first=https://add.repos/one",
-			"second=https://add.repos/two",
-		},
-	}
-	steps := addRepos(cfg)
-	suite.Require().Equal(2, len(steps), "addRepos should add one step per repo")
-	suite.IsType(&run.AddRepo{}, steps[0])
-	suite.IsType(&run.AddRepo{}, steps[1])
-}
-
 func (suite *PlanTestSuite) TestLint() {
 	steps := lint(env.Config{})
 	suite.Require().Equal(1, len(steps))

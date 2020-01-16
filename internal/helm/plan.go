@@ -93,10 +93,13 @@ func (p *Plan) Execute() error {
 }
 
 var upgrade = func(cfg env.Config) []Step {
-	steps := initKube(cfg)
-	steps = append(steps, addRepos(cfg)...)
+	var steps []Step
+	steps = append(steps, run.NewInitKube(cfg, kubeConfigTemplate, kubeConfigFile))
+	for _, repo := range cfg.AddRepos {
+		steps = append(steps, run.NewAddRepo(repo))
+	}
 	if cfg.UpdateDependencies {
-		steps = append(steps, depUpdate(cfg)...)
+		steps = append(steps, run.NewDepUpdate(cfg))
 	}
 	steps = append(steps, run.NewUpgrade(cfg))
 
@@ -104,9 +107,10 @@ var upgrade = func(cfg env.Config) []Step {
 }
 
 var uninstall = func(cfg env.Config) []Step {
-	steps := initKube(cfg)
+	var steps []Step
+	steps = append(steps, run.NewInitKube(cfg, kubeConfigTemplate, kubeConfigFile))
 	if cfg.UpdateDependencies {
-		steps = append(steps, depUpdate(cfg)...)
+		steps = append(steps, run.NewDepUpdate(cfg))
 	}
 	steps = append(steps, run.NewUninstall(cfg))
 
@@ -114,9 +118,12 @@ var uninstall = func(cfg env.Config) []Step {
 }
 
 var lint = func(cfg env.Config) []Step {
-	steps := addRepos(cfg)
+	var steps []Step
+	for _, repo := range cfg.AddRepos {
+		steps = append(steps, run.NewAddRepo(repo))
+	}
 	if cfg.UpdateDependencies {
-		steps = append(steps, depUpdate(cfg)...)
+		steps = append(steps, run.NewDepUpdate(cfg))
 	}
 	steps = append(steps, run.NewLint(cfg))
 	return steps
@@ -124,21 +131,4 @@ var lint = func(cfg env.Config) []Step {
 
 var help = func(cfg env.Config) []Step {
 	return []Step{run.NewHelp(cfg)}
-}
-
-func initKube(cfg env.Config) []Step {
-	return []Step{run.NewInitKube(cfg, kubeConfigTemplate, kubeConfigFile)}
-}
-
-func addRepos(cfg env.Config) []Step {
-	steps := make([]Step, 0)
-	for _, repo := range cfg.AddRepos {
-		steps = append(steps, run.NewAddRepo(repo))
-	}
-
-	return steps
-}
-
-func depUpdate(cfg env.Config) []Step {
-	return []Step{run.NewDepUpdate(cfg)}
 }
