@@ -78,7 +78,7 @@ func (suite *UninstallTestSuite) TestPrepareAndExecute() {
 	expected := []string{"uninstall", "zayde_wølf_king"}
 	suite.Equal(expected, actual)
 
-	u.Execute(cfg)
+	u.Execute()
 }
 
 func (suite *UninstallTestSuite) TestPrepareDryRunFlag() {

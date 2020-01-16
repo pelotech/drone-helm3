@@ -23,7 +23,7 @@ func NewUninstall(cfg env.Config) *Uninstall {
 }
 
 // Execute executes the `helm uninstall` command.
-func (u *Uninstall) Execute(_ Config) error {
+func (u *Uninstall) Execute() error {
 	return u.cmd.Run()
 }
 

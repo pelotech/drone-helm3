@@ -82,7 +82,7 @@ func (suite *LintTestSuite) TestPrepareAndExecute() {
 
 	err := l.Prepare(cfg)
 	suite.Require().Nil(err)
-	l.Execute(cfg)
+	l.Execute()
 }
 
 func (suite *LintTestSuite) TestPrepareRequiresChart() {

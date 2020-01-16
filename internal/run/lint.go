@@ -27,7 +27,7 @@ func NewLint(cfg env.Config) *Lint {
 }
 
 // Execute executes the `helm lint` command.
-func (l *Lint) Execute(_ Config) error {
+func (l *Lint) Execute() error {
 	return l.cmd.Run()
 }
 

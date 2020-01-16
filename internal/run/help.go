@@ -19,7 +19,7 @@ func NewHelp(cfg env.Config) *Help {
 }
 
 // Execute executes the `helm help` command.
-func (h *Help) Execute(cfg Config) error {
+func (h *Help) Execute() error {
 	if err := h.cmd.Run(); err != nil {
 		return fmt.Errorf("while running '%s': %w", h.cmd.String(), err)
 	}

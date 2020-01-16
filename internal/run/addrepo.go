@@ -19,7 +19,7 @@ func NewAddRepo(repo string) *AddRepo {
 }
 
 // Execute executes the `helm repo add` command.
-func (a *AddRepo) Execute(_ Config) error {
+func (a *AddRepo) Execute() error {
 	return a.cmd.Run()
 }
 

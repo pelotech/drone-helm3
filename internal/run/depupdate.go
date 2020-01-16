@@ -19,7 +19,7 @@ func NewDepUpdate(cfg env.Config) *DepUpdate {
 }
 
 // Execute executes the `helm upgrade` command.
-func (d *DepUpdate) Execute(_ Config) error {
+func (d *DepUpdate) Execute() error {
 	return d.cmd.Run()
 }
 

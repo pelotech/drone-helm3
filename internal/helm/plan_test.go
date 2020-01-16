@@ -98,10 +98,10 @@ func (suite *PlanTestSuite) TestExecute() {
 	}
 
 	stepOne.EXPECT().
-		Execute(runCfg).
+		Execute().
 		Times(1)
 	stepTwo.EXPECT().
-		Execute(runCfg).
+		Execute().
 		Times(1)
 
 	suite.NoError(plan.Execute())
@@ -121,7 +121,7 @@ func (suite *PlanTestSuite) TestExecuteAbortsOnError() {
 	}
 
 	stepOne.EXPECT().
-		Execute(runCfg).
+		Execute().
 		Times(1).
 		Return(fmt.Errorf("oh, he'll gnaw"))
 

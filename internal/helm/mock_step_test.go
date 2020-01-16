@@ -48,15 +48,15 @@ func (mr *MockStepMockRecorder) Prepare(arg0 interface{}) *gomock.Call {
 }
 
 // Execute mocks base method
-func (m *MockStep) Execute(arg0 run.Config) error {
+func (m *MockStep) Execute() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", arg0)
+	ret := m.ctrl.Call(m, "Execute")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockStepMockRecorder) Execute(arg0 interface{}) *gomock.Call {
+func (mr *MockStepMockRecorder) Execute() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockStep)(nil).Execute), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockStep)(nil).Execute))
 }

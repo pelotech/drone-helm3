@@ -15,7 +15,7 @@ const (
 // A Step is one step in the plan.
 type Step interface {
 	Prepare(run.Config) error
-	Execute(run.Config) error
+	Execute() error
 }
 
 // A Plan is a series of steps to perform.
@@ -84,7 +84,7 @@ func (p *Plan) Execute() error {
 			fmt.Fprintf(p.cfg.Stderr, "calling %T.Execute (step %d)\n", step, i)
 		}
 
-		if err := step.Execute(p.runCfg); err != nil {
+		if err := step.Execute(); err != nil {
 			return fmt.Errorf("while executing %T step: %w", step, err)
 		}
 	}

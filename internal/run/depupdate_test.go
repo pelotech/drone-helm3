@@ -69,7 +69,7 @@ func (suite *DepUpdateTestSuite) TestPrepareAndExecute() {
 	}
 
 	suite.Require().NoError(d.Prepare(cfg))
-	suite.NoError(d.Execute(cfg))
+	suite.NoError(d.Execute())
 }
 
 func (suite *DepUpdateTestSuite) TestPrepareNamespaceFlag() {

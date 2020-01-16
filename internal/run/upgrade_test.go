@@ -93,7 +93,7 @@ func (suite *UpgradeTestSuite) TestPrepareAndExecute() {
 	cfg := Config{}
 	err := u.Prepare(cfg)
 	suite.Require().Nil(err)
-	u.Execute(cfg)
+	u.Execute()
 }
 
 func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {

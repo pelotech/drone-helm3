@@ -70,7 +70,7 @@ func (suite *AddRepoTestSuite) TestPrepareAndExecute() {
 		Run().
 		Times(1)
 
-	suite.Require().NoError(a.Execute(cfg))
+	suite.Require().NoError(a.Execute())
 
 }
 

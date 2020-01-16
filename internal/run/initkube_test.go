@@ -6,6 +6,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 	"text/template"
 )
@@ -25,6 +26,8 @@ func (suite *InitKubeTestSuite) TestNewInitKube() {
 		APIServer:      "98.765.43.21",
 		ServiceAccount: "greathelm",
 		KubeToken:      "b2YgbXkgYWZmZWN0aW9u",
+		Stderr:         &strings.Builder{},
+		Debug:          true,
 	}
 
 	init := NewInitKube(cfg, "conf.tpl", "conf.yml")
@@ -38,6 +41,8 @@ func (suite *InitKubeTestSuite) TestNewInitKube() {
 		},
 		templateFilename: "conf.tpl",
 		configFilename:   "conf.yml",
+		debug:            true,
+		stderr:           cfg.Stderr,
 	}, init)
 }
 
@@ -70,7 +75,7 @@ namespace: {{ .Namespace }}
 	suite.IsType(&template.Template{}, init.template)
 	suite.NotNil(init.configFile)
 
-	err = init.Execute(cfg)
+	err = init.Execute()
 	suite.Require().Nil(err)
 
 	conf, err := ioutil.ReadFile(configFile.Name())
@@ -101,7 +106,7 @@ func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
 		},
 	}
 	suite.Require().NoError(init.Prepare(cfg))
-	suite.Require().NoError(init.Execute(cfg))
+	suite.Require().NoError(init.Execute())
 
 	contents, err := ioutil.ReadFile(configFile.Name())
 	suite.Require().NoError(err)
@@ -128,7 +133,7 @@ func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
 	init.values.Certificate = ""
 
 	suite.Require().NoError(init.Prepare(cfg))
-	suite.Require().NoError(init.Execute(cfg))
+	suite.Require().NoError(init.Execute())
 	contents, err = ioutil.ReadFile(configFile.Name())
 	suite.Require().NoError(err)
 	suite.Contains(string(contents), "insecure-skip-tls-verify: true")

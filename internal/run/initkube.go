@@ -13,6 +13,8 @@ import (
 type InitKube struct {
 	templateFilename string
 	configFilename   string
+	debug            bool
+	stderr           io.Writer
 	template         *template.Template
 	configFile       io.WriteCloser
 	values           kubeValues
@@ -40,13 +42,15 @@ func NewInitKube(cfg env.Config, templateFile, configFile string) *InitKube {
 		},
 		templateFilename: templateFile,
 		configFilename:   configFile,
+		debug:            cfg.Debug,
+		stderr:           cfg.Stderr,
 	}
 }
 
 // Execute generates a kubernetes config file from drone-helm3's template.
-func (i *InitKube) Execute(cfg Config) error {
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "writing kubeconfig file to %s\n", i.configFilename)
+func (i *InitKube) Execute() error {
+	if i.debug {
+		fmt.Fprintf(i.stderr, "writing kubeconfig file to %s\n", i.configFilename)
 	}
 	defer i.configFile.Close()
 	return i.template.Execute(i.configFile, i.values)
@@ -67,22 +71,22 @@ func (i *InitKube) Prepare(cfg Config) error {
 		i.values.ServiceAccount = "helm"
 	}
 
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "loading kubeconfig template from %s\n", i.templateFilename)
+	if i.debug {
+		fmt.Fprintf(i.stderr, "loading kubeconfig template from %s\n", i.templateFilename)
 	}
 	i.template, err = template.ParseFiles(i.templateFilename)
 	if err != nil {
 		return fmt.Errorf("could not load kubeconfig template: %w", err)
 	}
 
-	if cfg.Debug {
+	if i.debug {
 		if _, err := os.Stat(i.configFilename); err != nil {
 			// non-nil err here isn't an actual error state; the kubeconfig just doesn't exist
-			fmt.Fprint(cfg.Stderr, "creating ")
+			fmt.Fprint(i.stderr, "creating ")
 		} else {
-			fmt.Fprint(cfg.Stderr, "truncating ")
+			fmt.Fprint(i.stderr, "truncating ")
 		}
-		fmt.Fprintf(cfg.Stderr, "kubeconfig file at %s\n", i.configFilename)
+		fmt.Fprintf(i.stderr, "kubeconfig file at %s\n", i.configFilename)
 	}
 
 	i.configFile, err = os.Create(i.configFilename)

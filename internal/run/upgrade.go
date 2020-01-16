@@ -45,7 +45,7 @@ func NewUpgrade(cfg env.Config) *Upgrade {
 }
 
 // Execute executes the `helm upgrade` command.
-func (u *Upgrade) Execute(_ Config) error {
+func (u *Upgrade) Execute() error {
 	return u.cmd.Run()
 }
 
