@@ -29,13 +29,15 @@ func (suite *InitKubeTestSuite) TestNewInitKube() {
 
 	init := NewInitKube(cfg, "conf.tpl", "conf.yml")
 	suite.Equal(&InitKube{
-		SkipTLSVerify:  true,
-		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
-		APIServer:      "98.765.43.21",
-		ServiceAccount: "greathelm",
-		Token:          "b2YgbXkgYWZmZWN0aW9u",
-		TemplateFile:   "conf.tpl",
-		ConfigFile:     "conf.yml",
+		values: kubeValues{
+			SkipTLSVerify:  true,
+			Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
+			APIServer:      "98.765.43.21",
+			ServiceAccount: "greathelm",
+			Token:          "b2YgbXkgYWZmZWN0aW9u",
+		},
+		templateFilename: "conf.tpl",
+		configFilename:   "conf.yml",
 	}, init)
 }
 
@@ -52,15 +54,16 @@ namespace: {{ .Namespace }}
 	suite.Require().Nil(err)
 
 	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
-		ConfigFile:   configFile.Name(),
+		values: kubeValues{
+			APIServer:   "Sysadmin",
+			Certificate: "CCNA",
+			Token:       "Aspire virtual currency",
+			Namespace:   "Cisco",
+		},
+		templateFilename: templateFile.Name(),
+		configFilename:   configFile.Name(),
 	}
-	cfg := Config{
-		Namespace: "Cisco",
-	}
+	cfg := Config{}
 	err = init.Prepare(cfg)
 	suite.Require().Nil(err)
 
@@ -85,16 +88,17 @@ func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
 	defer os.Remove(configFile.Name())
 	suite.Require().NoError(err)
 
-	cfg := Config{
-		Namespace: "marshmallow",
-	}
+	cfg := Config{}
 	init := InitKube{
-		ConfigFile:     configFile.Name(),
-		TemplateFile:   "../../assets/kubeconfig.tpl", // the actual kubeconfig template
-		APIServer:      "https://kube.cluster/peanut",
-		ServiceAccount: "chef",
-		Token:          "eWVhaCB3ZSB0b2tpbic=",
-		Certificate:    "d293LCB5b3UgYXJlIHNvIGNvb2wgZm9yIHNtb2tpbmcgd2VlZCDwn5mE",
+		configFilename:   configFile.Name(),
+		templateFilename: "../../assets/kubeconfig.tpl", // the actual kubeconfig template
+		values: kubeValues{
+			APIServer:      "https://kube.cluster/peanut",
+			ServiceAccount: "chef",
+			Token:          "eWVhaCB3ZSB0b2tpbic=",
+			Certificate:    "d293LCB5b3UgYXJlIHNvIGNvb2wgZm9yIHNtb2tpbmcgd2VlZCDwn5mE",
+			Namespace:      "marshmallow",
+		},
 	}
 	suite.Require().NoError(init.Prepare(cfg))
 	suite.Require().NoError(init.Execute(cfg))
@@ -120,8 +124,8 @@ func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
 	suite.NoError(yaml.UnmarshalStrict(contents, &conf))
 
 	// test the other branch of the certificate/SkipTLSVerify conditional
-	init.SkipTLSVerify = true
-	init.Certificate = ""
+	init.values.SkipTLSVerify = true
+	init.values.Certificate = ""
 
 	suite.Require().NoError(init.Prepare(cfg))
 	suite.Require().NoError(init.Execute(cfg))
@@ -139,10 +143,12 @@ func (suite *InitKubeTestSuite) TestPrepareParseError() {
 	suite.Require().Nil(err)
 
 	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
+		values: kubeValues{
+			APIServer:   "Sysadmin",
+			Certificate: "CCNA",
+			Token:       "Aspire virtual currency",
+		},
+		templateFilename: templateFile.Name(),
 	}
 	err = init.Prepare(Config{})
 	suite.Error(err)
@@ -151,10 +157,12 @@ func (suite *InitKubeTestSuite) TestPrepareParseError() {
 
 func (suite *InitKubeTestSuite) TestPrepareNonexistentTemplateFile() {
 	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: "/usr/foreign/exclude/kubeprofig.tpl",
+		values: kubeValues{
+			APIServer:   "Sysadmin",
+			Certificate: "CCNA",
+			Token:       "Aspire virtual currency",
+		},
+		templateFilename: "/usr/foreign/exclude/kubeprofig.tpl",
 	}
 	err := init.Prepare(Config{})
 	suite.Error(err)
@@ -166,11 +174,13 @@ func (suite *InitKubeTestSuite) TestPrepareCannotOpenDestinationFile() {
 	defer os.Remove(templateFile.Name())
 	suite.Require().Nil(err)
 	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
-		ConfigFile:   "/usr/foreign/exclude/kubeprofig",
+		values: kubeValues{
+			APIServer:   "Sysadmin",
+			Certificate: "CCNA",
+			Token:       "Aspire virtual currency",
+		},
+		templateFilename: templateFile.Name(),
+		configFilename:   "/usr/foreign/exclude/kubeprofig",
 	}
 
 	cfg := Config{}
@@ -190,22 +200,24 @@ func (suite *InitKubeTestSuite) TestPrepareRequiredConfig() {
 
 	// initial config with all required fields present
 	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
-		ConfigFile:   configFile.Name(),
+		values: kubeValues{
+			APIServer:   "Sysadmin",
+			Certificate: "CCNA",
+			Token:       "Aspire virtual currency",
+		},
+		templateFilename: templateFile.Name(),
+		configFilename:   configFile.Name(),
 	}
 
 	cfg := Config{}
 
 	suite.NoError(init.Prepare(cfg)) // consistency check; we should be starting in a happy state
 
-	init.APIServer = ""
+	init.values.APIServer = ""
 	suite.Error(init.Prepare(cfg), "APIServer should be required.")
 
-	init.APIServer = "Sysadmin"
-	init.Token = ""
+	init.values.APIServer = "Sysadmin"
+	init.values.Token = ""
 	suite.Error(init.Prepare(cfg), "Token should be required.")
 }
 
@@ -219,17 +231,19 @@ func (suite *InitKubeTestSuite) TestPrepareDefaultsServiceAccount() {
 	suite.Require().Nil(err)
 
 	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
-		ConfigFile:   configFile.Name(),
+		values: kubeValues{
+			APIServer:   "Sysadmin",
+			Certificate: "CCNA",
+			Token:       "Aspire virtual currency",
+		},
+		templateFilename: templateFile.Name(),
+		configFilename:   configFile.Name(),
 	}
 
 	cfg := Config{}
 
 	init.Prepare(cfg)
-	suite.Equal("helm", init.ServiceAccount)
+	suite.Equal("helm", init.values.ServiceAccount)
 }
 
 func tempfile(name, contents string) (*os.File, error) {
