@@ -1,11 +1,9 @@
 package run
 
 import (
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
-	"strings"
 	"testing"
 )
 
@@ -108,46 +106,6 @@ func (suite *UninstallTestSuite) TestPrepareKeepHistoryFlag() {
 	suite.NoError(u.Prepare())
 	expected := []string{"uninstall", "--keep-history", "perturbator_sentient"}
 	suite.Equal(expected, suite.actualArgs)
-}
-
-func (suite *UninstallTestSuite) TestPrepareNamespaceFlag() {
-	cfg := env.Config{
-		Release:   "carly_simon_run_away_with_me",
-		Namespace: "emotion",
-	}
-	u := NewUninstall(cfg)
-
-	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
-	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-
-	suite.NoError(u.Prepare())
-	expected := []string{"--namespace", "emotion", "uninstall", "carly_simon_run_away_with_me"}
-	suite.Equal(expected, suite.actualArgs)
-}
-
-func (suite *UninstallTestSuite) TestPrepareDebugFlag() {
-	stderr := strings.Builder{}
-	cfg := env.Config{
-		Release: "just_a_band_huff_and_puff",
-		Debug:   true,
-		Stderr:  &stderr,
-	}
-	u := NewUninstall(cfg)
-
-	command = func(path string, args ...string) cmd {
-		suite.mockCmd.EXPECT().
-			String().
-			Return(fmt.Sprintf("%s %s", path, strings.Join(args, " ")))
-
-		return suite.mockCmd
-	}
-
-	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
-	suite.mockCmd.EXPECT().Stderr(&stderr).AnyTimes()
-
-	suite.NoError(u.Prepare())
-	suite.Equal(fmt.Sprintf("Generated command: '%s --debug "+
-		"uninstall just_a_band_huff_and_puff'\n", helmBin), stderr.String())
 }
 
 func (suite *UninstallTestSuite) TestPrepareRequiresRelease() {

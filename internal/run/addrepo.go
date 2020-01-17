@@ -39,15 +39,7 @@ func (a *AddRepo) Prepare() error {
 	name := split[0]
 	url := split[1]
 
-	args := make([]string, 0)
-
-	if a.namespace != "" {
-		args = append(args, "--namespace", a.namespace)
-	}
-	if a.debug {
-		args = append(args, "--debug")
-	}
-
+	args := a.globalFlags()
 	args = append(args, "repo", "add", name, url)
 
 	a.cmd = command(helmBin, args...)

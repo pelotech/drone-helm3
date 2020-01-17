@@ -35,15 +35,7 @@ func (u *Uninstall) Prepare() error {
 		return fmt.Errorf("release is required")
 	}
 
-	args := make([]string, 0)
-
-	if u.namespace != "" {
-		args = append(args, "--namespace", u.namespace)
-	}
-	if u.debug {
-		args = append(args, "--debug")
-	}
-
+	args := u.globalFlags()
 	args = append(args, "uninstall")
 
 	if u.dryRun {

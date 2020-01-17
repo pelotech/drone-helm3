@@ -1,7 +1,6 @@
 package run
 
 import (
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
@@ -96,43 +95,4 @@ func (suite *AddRepoTestSuite) TestPrepareWithEqualSignInURL() {
 	a := NewAddRepo(env.Config{}, "samaritan=https://github.com/arthur_claypool/samaritan?version=2.1")
 	suite.NoError(a.Prepare())
 	suite.Contains(suite.commandArgs, "https://github.com/arthur_claypool/samaritan?version=2.1")
-}
-
-func (suite *AddRepoTestSuite) TestNamespaceFlag() {
-	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
-	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-	cfg := env.Config{
-		Namespace: "alliteration",
-	}
-	a := NewAddRepo(cfg, "edeath=https://github.com/theater_guy/e-death")
-
-	suite.NoError(a.Prepare())
-	suite.Equal(suite.commandPath, helmBin)
-	suite.Equal(suite.commandArgs, []string{"--namespace", "alliteration",
-		"repo", "add", "edeath", "https://github.com/theater_guy/e-death"})
-}
-
-func (suite *AddRepoTestSuite) TestDebugFlag() {
-	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
-	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-
-	stderr := strings.Builder{}
-
-	command = func(path string, args ...string) cmd {
-		suite.mockCmd.EXPECT().
-			String().
-			Return(fmt.Sprintf("%s %s", path, strings.Join(args, " ")))
-
-		return suite.mockCmd
-	}
-
-	cfg := env.Config{
-		Debug:  true,
-		Stderr: &stderr,
-	}
-	a := NewAddRepo(cfg, "edeath=https://github.com/the_bug/e-death")
-
-	suite.Require().NoError(a.Prepare())
-	suite.Equal(fmt.Sprintf("Generated command: '%s --debug "+
-		"repo add edeath https://github.com/the_bug/e-death'\n", helmBin), stderr.String())
 }

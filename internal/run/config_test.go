@@ -33,3 +33,16 @@ func (suite *ConfigTestSuite) TestNewConfig() {
 		stderr:    stderr,
 	}, cfg)
 }
+
+func (suite *ConfigTestSuite) TestGlobalFlags() {
+	cfg := config{
+		debug:     true,
+		namespace: "public",
+	}
+	flags := cfg.globalFlags()
+	suite.Equal([]string{"--debug", "--namespace", "public"}, flags)
+
+	cfg = config{}
+	flags = cfg.globalFlags()
+	suite.Equal([]string{}, flags)
+}

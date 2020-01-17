@@ -1,7 +1,6 @@
 package run
 
 import (
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
@@ -125,59 +124,4 @@ func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 
 	err := l.Prepare()
 	suite.Require().Nil(err)
-}
-
-func (suite *LintTestSuite) TestPrepareWithDebugFlag() {
-	defer suite.ctrl.Finish()
-
-	stderr := strings.Builder{}
-
-	cfg := env.Config{
-		Debug:  true,
-		Stderr: &stderr,
-		Chart:  "./scotland/top_40",
-	}
-	l := NewLint(cfg)
-
-	command = func(path string, args ...string) cmd {
-		suite.mockCmd.EXPECT().
-			String().
-			Return(fmt.Sprintf("%s %s", path, strings.Join(args, " ")))
-
-		return suite.mockCmd
-	}
-
-	suite.mockCmd.EXPECT().Stdout(gomock.Any())
-	suite.mockCmd.EXPECT().Stderr(&stderr)
-
-	err := l.Prepare()
-	suite.Require().Nil(err)
-
-	want := fmt.Sprintf("Generated command: '%s --debug lint ./scotland/top_40'\n", helmBin)
-	suite.Equal(want, stderr.String())
-}
-
-func (suite *LintTestSuite) TestPrepareWithNamespaceFlag() {
-	defer suite.ctrl.Finish()
-
-	cfg := env.Config{
-		Namespace: "table-service",
-		Chart:     "./wales/top_40",
-	}
-	l := NewLint(cfg)
-
-	actual := []string{}
-	command = func(path string, args ...string) cmd {
-		actual = args
-		return suite.mockCmd
-	}
-
-	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
-	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-
-	err := l.Prepare()
-	suite.Require().Nil(err)
-
-	expected := []string{"--namespace", "table-service", "lint", "./wales/top_40"}
-	suite.Equal(expected, actual)
 }

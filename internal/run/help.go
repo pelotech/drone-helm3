@@ -34,10 +34,8 @@ func (h *Help) Execute() error {
 
 // Prepare gets the Help ready to execute.
 func (h *Help) Prepare() error {
-	args := []string{"help"}
-	if h.debug {
-		args = append([]string{"--debug"}, args...)
-	}
+	args := h.globalFlags()
+	args = append(args, "help")
 
 	h.cmd = command(helmBin, args...)
 	h.cmd.Stdout(h.stdout)

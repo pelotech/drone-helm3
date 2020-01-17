@@ -20,3 +20,14 @@ func newConfig(cfg env.Config) *config {
 		stderr:    cfg.Stderr,
 	}
 }
+
+func (cfg *config) globalFlags() []string {
+	flags := []string{}
+	if cfg.debug {
+		flags = append(flags, "--debug")
+	}
+	if cfg.namespace != "" {
+		flags = append(flags, "--namespace", cfg.namespace)
+	}
+	return flags
+}

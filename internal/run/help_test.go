@@ -1,7 +1,6 @@
 package run
 
 import (
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/assert"
@@ -74,21 +73,4 @@ func (suite *HelpTestSuite) TestExecute() {
 
 	help.helmCommand = "get down on friday"
 	suite.EqualError(help.Execute(), "unknown command 'get down on friday'")
-}
-
-func (suite *HelpTestSuite) TestPrepareDebugFlag() {
-	stdout := strings.Builder{}
-	stderr := strings.Builder{}
-	cfg := env.Config{
-		Debug:  true,
-		Stdout: &stdout,
-		Stderr: &stderr,
-	}
-
-	help := NewHelp(cfg)
-	help.Prepare()
-
-	want := fmt.Sprintf("Generated command: '%s --debug help'\n", helmBin)
-	suite.Equal(want, stderr.String())
-	suite.Equal("", stdout.String())
 }

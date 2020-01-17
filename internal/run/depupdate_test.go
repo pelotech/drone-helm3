@@ -1,7 +1,6 @@
 package run
 
 import (
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
@@ -69,58 +68,6 @@ func (suite *DepUpdateTestSuite) TestPrepareAndExecute() {
 
 	suite.Require().NoError(d.Prepare())
 	suite.NoError(d.Execute())
-}
-
-func (suite *DepUpdateTestSuite) TestPrepareNamespaceFlag() {
-	defer suite.ctrl.Finish()
-
-	cfg := env.Config{
-		Namespace: "spotify",
-		Chart:     "your_top_songs_2019",
-	}
-
-	command = func(path string, args ...string) cmd {
-		suite.Equal([]string{"--namespace", "spotify", "dependency", "update", "your_top_songs_2019"}, args)
-
-		return suite.mockCmd
-	}
-	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
-	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-
-	d := NewDepUpdate(cfg)
-
-	suite.Require().NoError(d.Prepare())
-}
-
-func (suite *DepUpdateTestSuite) TestPrepareDebugFlag() {
-	defer suite.ctrl.Finish()
-
-	stdout := strings.Builder{}
-	stderr := strings.Builder{}
-	cfg := env.Config{
-		Chart:  "your_top_songs_2019",
-		Debug:  true,
-		Stdout: &stdout,
-		Stderr: &stderr,
-	}
-
-	command = func(path string, args ...string) cmd {
-		suite.mockCmd.EXPECT().
-			String().
-			Return(fmt.Sprintf("%s %s", path, strings.Join(args, " ")))
-
-		return suite.mockCmd
-	}
-	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
-	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-
-	d := NewDepUpdate(cfg)
-
-	suite.Require().NoError(d.Prepare())
-
-	want := fmt.Sprintf("Generated command: '%s --debug dependency update your_top_songs_2019'\n", helmBin)
-	suite.Equal(want, stderr.String())
-	suite.Equal("", stdout.String())
 }
 
 func (suite *DepUpdateTestSuite) TestPrepareChartRequired() {

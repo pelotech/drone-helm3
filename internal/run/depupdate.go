@@ -31,15 +31,7 @@ func (d *DepUpdate) Prepare() error {
 		return fmt.Errorf("chart is required")
 	}
 
-	args := make([]string, 0)
-
-	if d.namespace != "" {
-		args = append(args, "--namespace", d.namespace)
-	}
-	if d.debug {
-		args = append(args, "--debug")
-	}
-
+	args := d.globalFlags()
 	args = append(args, "dependency", "update", d.chart)
 
 	d.cmd = command(helmBin, args...)

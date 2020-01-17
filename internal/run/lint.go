@@ -39,15 +39,7 @@ func (l *Lint) Prepare() error {
 		return fmt.Errorf("chart is required")
 	}
 
-	args := make([]string, 0)
-
-	if l.namespace != "" {
-		args = append(args, "--namespace", l.namespace)
-	}
-	if l.debug {
-		args = append(args, "--debug")
-	}
-
+	args := l.globalFlags()
 	args = append(args, "lint")
 
 	if l.values != "" {
