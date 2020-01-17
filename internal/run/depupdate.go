@@ -7,14 +7,16 @@ import (
 
 // DepUpdate is an execution step that calls `helm dependency update` when executed.
 type DepUpdate struct {
-	Chart string
+	*config
+	chart string
 	cmd   cmd
 }
 
 // NewDepUpdate creates a DepUpdate using fields from the given Config. No validation is performed at this time.
 func NewDepUpdate(cfg env.Config) *DepUpdate {
 	return &DepUpdate{
-		Chart: cfg.Chart,
+		config: newConfig(cfg),
+		chart:  cfg.Chart,
 	}
 }
 
@@ -24,28 +26,28 @@ func (d *DepUpdate) Execute() error {
 }
 
 // Prepare gets the DepUpdate ready to execute.
-func (d *DepUpdate) Prepare(cfg Config) error {
-	if d.Chart == "" {
+func (d *DepUpdate) Prepare() error {
+	if d.chart == "" {
 		return fmt.Errorf("chart is required")
 	}
 
 	args := make([]string, 0)
 
-	if cfg.Namespace != "" {
-		args = append(args, "--namespace", cfg.Namespace)
+	if d.namespace != "" {
+		args = append(args, "--namespace", d.namespace)
 	}
-	if cfg.Debug {
+	if d.debug {
 		args = append(args, "--debug")
 	}
 
-	args = append(args, "dependency", "update", d.Chart)
+	args = append(args, "dependency", "update", d.chart)
 
 	d.cmd = command(helmBin, args...)
-	d.cmd.Stdout(cfg.Stdout)
-	d.cmd.Stderr(cfg.Stderr)
+	d.cmd.Stdout(d.stdout)
+	d.cmd.Stderr(d.stderr)
 
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "Generated command: '%s'\n", d.cmd.String())
+	if d.debug {
+		fmt.Fprintf(d.stderr, "Generated command: '%s'\n", d.cmd.String())
 	}
 
 	return nil

@@ -7,14 +7,16 @@ import (
 
 // Help is a step in a helm Plan that calls `helm help`.
 type Help struct {
-	HelmCommand string
+	*config
+	helmCommand string
 	cmd         cmd
 }
 
 // NewHelp creates a Help using fields from the given Config. No validation is performed at this time.
 func NewHelp(cfg env.Config) *Help {
 	return &Help{
-		HelmCommand: cfg.Command,
+		config:      newConfig(cfg),
+		helmCommand: cfg.Command,
 	}
 }
 
@@ -24,25 +26,25 @@ func (h *Help) Execute() error {
 		return fmt.Errorf("while running '%s': %w", h.cmd.String(), err)
 	}
 
-	if h.HelmCommand == "help" {
+	if h.helmCommand == "help" {
 		return nil
 	}
-	return fmt.Errorf("unknown command '%s'", h.HelmCommand)
+	return fmt.Errorf("unknown command '%s'", h.helmCommand)
 }
 
 // Prepare gets the Help ready to execute.
-func (h *Help) Prepare(cfg Config) error {
+func (h *Help) Prepare() error {
 	args := []string{"help"}
-	if cfg.Debug {
+	if h.debug {
 		args = append([]string{"--debug"}, args...)
 	}
 
 	h.cmd = command(helmBin, args...)
-	h.cmd.Stdout(cfg.Stdout)
-	h.cmd.Stderr(cfg.Stderr)
+	h.cmd.Stdout(h.stdout)
+	h.cmd.Stderr(h.stderr)
 
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "Generated command: '%s'\n", h.cmd.String())
+	if h.debug {
+		fmt.Fprintf(h.stderr, "Generated command: '%s'\n", h.cmd.String())
 	}
 
 	return nil

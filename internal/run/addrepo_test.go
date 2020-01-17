@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	"strings"
 	"testing"
@@ -39,21 +40,20 @@ func TestAddRepoTestSuite(t *testing.T) {
 }
 
 func (suite *AddRepoTestSuite) TestNewAddRepo() {
-	repo := NewAddRepo("picompress=https://github.com/caleb_phipps/picompress")
+	repo := NewAddRepo(env.Config{}, "picompress=https://github.com/caleb_phipps/picompress")
 	suite.Require().NotNil(repo)
-	suite.Equal("picompress=https://github.com/caleb_phipps/picompress", repo.Repo)
+	suite.Equal("picompress=https://github.com/caleb_phipps/picompress", repo.repo)
+	suite.NotNil(repo.config)
 }
 
 func (suite *AddRepoTestSuite) TestPrepareAndExecute() {
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
-	cfg := Config{
+	cfg := env.Config{
 		Stdout: &stdout,
 		Stderr: &stderr,
 	}
-	a := AddRepo{
-		Repo: "edeath=https://github.com/n_marks/e-death",
-	}
+	a := NewAddRepo(cfg, "edeath=https://github.com/n_marks/e-death")
 
 	suite.mockCmd.EXPECT().
 		Stdout(&stdout).
@@ -62,7 +62,7 @@ func (suite *AddRepoTestSuite) TestPrepareAndExecute() {
 		Stderr(&stderr).
 		Times(1)
 
-	suite.Require().NoError(a.Prepare(cfg))
+	suite.Require().NoError(a.Prepare())
 	suite.Equal(helmBin, suite.commandPath)
 	suite.Equal([]string{"repo", "add", "edeath", "https://github.com/n_marks/e-death"}, suite.commandArgs)
 
@@ -78,42 +78,35 @@ func (suite *AddRepoTestSuite) TestPrepareRepoIsRequired() {
 	// These aren't really expected, but allowing them gives clearer test-failure messages
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-	cfg := Config{}
-	a := AddRepo{}
+	a := NewAddRepo(env.Config{}, "")
 
-	err := a.Prepare(cfg)
+	err := a.Prepare()
 	suite.EqualError(err, "repo is required")
 }
 
 func (suite *AddRepoTestSuite) TestPrepareMalformedRepo() {
-	a := AddRepo{
-		Repo: "dwim",
-	}
-	err := a.Prepare(Config{})
+	a := NewAddRepo(env.Config{}, "dwim")
+	err := a.Prepare()
 	suite.EqualError(err, "bad repo spec 'dwim'")
 }
 
 func (suite *AddRepoTestSuite) TestPrepareWithEqualSignInURL() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-	a := AddRepo{
-		Repo: "samaritan=https://github.com/arthur_claypool/samaritan?version=2.1",
-	}
-	suite.NoError(a.Prepare(Config{}))
+	a := NewAddRepo(env.Config{}, "samaritan=https://github.com/arthur_claypool/samaritan?version=2.1")
+	suite.NoError(a.Prepare())
 	suite.Contains(suite.commandArgs, "https://github.com/arthur_claypool/samaritan?version=2.1")
 }
 
 func (suite *AddRepoTestSuite) TestNamespaceFlag() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-	cfg := Config{
+	cfg := env.Config{
 		Namespace: "alliteration",
 	}
-	a := AddRepo{
-		Repo: "edeath=https://github.com/theater_guy/e-death",
-	}
+	a := NewAddRepo(cfg, "edeath=https://github.com/theater_guy/e-death")
 
-	suite.NoError(a.Prepare(cfg))
+	suite.NoError(a.Prepare())
 	suite.Equal(suite.commandPath, helmBin)
 	suite.Equal(suite.commandArgs, []string{"--namespace", "alliteration",
 		"repo", "add", "edeath", "https://github.com/theater_guy/e-death"})
@@ -133,15 +126,13 @@ func (suite *AddRepoTestSuite) TestDebugFlag() {
 		return suite.mockCmd
 	}
 
-	cfg := Config{
+	cfg := env.Config{
 		Debug:  true,
 		Stderr: &stderr,
 	}
-	a := AddRepo{
-		Repo: "edeath=https://github.com/the_bug/e-death",
-	}
+	a := NewAddRepo(cfg, "edeath=https://github.com/the_bug/e-death")
 
-	suite.Require().NoError(a.Prepare(cfg))
+	suite.Require().NoError(a.Prepare())
 	suite.Equal(fmt.Sprintf("Generated command: '%s --debug "+
 		"repo add edeath https://github.com/the_bug/e-death'\n", helmBin), stderr.String())
 }

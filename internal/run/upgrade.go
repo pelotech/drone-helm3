@@ -7,20 +7,21 @@ import (
 
 // Upgrade is an execution step that calls `helm upgrade` when executed.
 type Upgrade struct {
-	Chart   string
-	Release string
+	*config
+	chart   string
+	release string
 
-	ChartVersion  string
-	DryRun        bool
-	Wait          bool
-	Values        string
-	StringValues  string
-	ValuesFiles   []string
-	ReuseValues   bool
-	Timeout       string
-	Force         bool
-	Atomic        bool
-	CleanupOnFail bool
+	chartVersion  string
+	dryRun        bool
+	wait          bool
+	values        string
+	stringValues  string
+	valuesFiles   []string
+	reuseValues   bool
+	timeout       string
+	force         bool
+	atomic        bool
+	cleanupOnFail bool
 
 	cmd cmd
 }
@@ -28,19 +29,20 @@ type Upgrade struct {
 // NewUpgrade creates an Upgrade using fields from the given Config. No validation is performed at this time.
 func NewUpgrade(cfg env.Config) *Upgrade {
 	return &Upgrade{
-		Chart:         cfg.Chart,
-		Release:       cfg.Release,
-		ChartVersion:  cfg.ChartVersion,
-		DryRun:        cfg.DryRun,
-		Wait:          cfg.Wait,
-		Values:        cfg.Values,
-		StringValues:  cfg.StringValues,
-		ValuesFiles:   cfg.ValuesFiles,
-		ReuseValues:   cfg.ReuseValues,
-		Timeout:       cfg.Timeout,
-		Force:         cfg.Force,
-		Atomic:        cfg.AtomicUpgrade,
-		CleanupOnFail: cfg.CleanupOnFail,
+		config:        newConfig(cfg),
+		chart:         cfg.Chart,
+		release:       cfg.Release,
+		chartVersion:  cfg.ChartVersion,
+		dryRun:        cfg.DryRun,
+		wait:          cfg.Wait,
+		values:        cfg.Values,
+		stringValues:  cfg.StringValues,
+		valuesFiles:   cfg.ValuesFiles,
+		reuseValues:   cfg.ReuseValues,
+		timeout:       cfg.Timeout,
+		force:         cfg.Force,
+		atomic:        cfg.AtomicUpgrade,
+		cleanupOnFail: cfg.CleanupOnFail,
 	}
 }
 
@@ -50,66 +52,66 @@ func (u *Upgrade) Execute() error {
 }
 
 // Prepare gets the Upgrade ready to execute.
-func (u *Upgrade) Prepare(cfg Config) error {
-	if u.Chart == "" {
+func (u *Upgrade) Prepare() error {
+	if u.chart == "" {
 		return fmt.Errorf("chart is required")
 	}
-	if u.Release == "" {
+	if u.release == "" {
 		return fmt.Errorf("release is required")
 	}
 
 	args := make([]string, 0)
 
-	if cfg.Namespace != "" {
-		args = append(args, "--namespace", cfg.Namespace)
+	if u.namespace != "" {
+		args = append(args, "--namespace", u.namespace)
 	}
-	if cfg.Debug {
+	if u.debug {
 		args = append(args, "--debug")
 	}
 
 	args = append(args, "upgrade", "--install")
 
-	if u.ChartVersion != "" {
-		args = append(args, "--version", u.ChartVersion)
+	if u.chartVersion != "" {
+		args = append(args, "--version", u.chartVersion)
 	}
-	if u.DryRun {
+	if u.dryRun {
 		args = append(args, "--dry-run")
 	}
-	if u.Wait {
+	if u.wait {
 		args = append(args, "--wait")
 	}
-	if u.ReuseValues {
+	if u.reuseValues {
 		args = append(args, "--reuse-values")
 	}
-	if u.Timeout != "" {
-		args = append(args, "--timeout", u.Timeout)
+	if u.timeout != "" {
+		args = append(args, "--timeout", u.timeout)
 	}
-	if u.Force {
+	if u.force {
 		args = append(args, "--force")
 	}
-	if u.Atomic {
+	if u.atomic {
 		args = append(args, "--atomic")
 	}
-	if u.CleanupOnFail {
+	if u.cleanupOnFail {
 		args = append(args, "--cleanup-on-fail")
 	}
-	if u.Values != "" {
-		args = append(args, "--set", u.Values)
+	if u.values != "" {
+		args = append(args, "--set", u.values)
 	}
-	if u.StringValues != "" {
-		args = append(args, "--set-string", u.StringValues)
+	if u.stringValues != "" {
+		args = append(args, "--set-string", u.stringValues)
 	}
-	for _, vFile := range u.ValuesFiles {
+	for _, vFile := range u.valuesFiles {
 		args = append(args, "--values", vFile)
 	}
 
-	args = append(args, u.Release, u.Chart)
+	args = append(args, u.release, u.chart)
 	u.cmd = command(helmBin, args...)
-	u.cmd.Stdout(cfg.Stdout)
-	u.cmd.Stderr(cfg.Stderr)
+	u.cmd.Stdout(u.stdout)
+	u.cmd.Stderr(u.stderr)
 
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "Generated command: '%s'\n", u.cmd.String())
+	if u.debug {
+		fmt.Fprintf(u.stderr, "Generated command: '%s'\n", u.cmd.String())
 	}
 
 	return nil

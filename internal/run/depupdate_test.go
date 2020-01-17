@@ -37,7 +37,7 @@ func (suite *DepUpdateTestSuite) TestNewDepUpdate() {
 		Chart: "scatterplot",
 	}
 	d := NewDepUpdate(cfg)
-	suite.Equal("scatterplot", d.Chart)
+	suite.Equal("scatterplot", d.chart)
 }
 
 func (suite *DepUpdateTestSuite) TestPrepareAndExecute() {
@@ -45,7 +45,8 @@ func (suite *DepUpdateTestSuite) TestPrepareAndExecute() {
 
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
-	cfg := Config{
+	cfg := env.Config{
+		Chart:  "your_top_songs_2019",
 		Stdout: &stdout,
 		Stderr: &stderr,
 	}
@@ -64,19 +65,18 @@ func (suite *DepUpdateTestSuite) TestPrepareAndExecute() {
 		Run().
 		Times(1)
 
-	d := DepUpdate{
-		Chart: "your_top_songs_2019",
-	}
+	d := NewDepUpdate(cfg)
 
-	suite.Require().NoError(d.Prepare(cfg))
+	suite.Require().NoError(d.Prepare())
 	suite.NoError(d.Execute())
 }
 
 func (suite *DepUpdateTestSuite) TestPrepareNamespaceFlag() {
 	defer suite.ctrl.Finish()
 
-	cfg := Config{
+	cfg := env.Config{
 		Namespace: "spotify",
+		Chart:     "your_top_songs_2019",
 	}
 
 	command = func(path string, args ...string) cmd {
@@ -87,11 +87,9 @@ func (suite *DepUpdateTestSuite) TestPrepareNamespaceFlag() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
-	d := DepUpdate{
-		Chart: "your_top_songs_2019",
-	}
+	d := NewDepUpdate(cfg)
 
-	suite.Require().NoError(d.Prepare(cfg))
+	suite.Require().NoError(d.Prepare())
 }
 
 func (suite *DepUpdateTestSuite) TestPrepareDebugFlag() {
@@ -99,7 +97,8 @@ func (suite *DepUpdateTestSuite) TestPrepareDebugFlag() {
 
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
-	cfg := Config{
+	cfg := env.Config{
+		Chart:  "your_top_songs_2019",
 		Debug:  true,
 		Stdout: &stdout,
 		Stderr: &stderr,
@@ -115,11 +114,9 @@ func (suite *DepUpdateTestSuite) TestPrepareDebugFlag() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
-	d := DepUpdate{
-		Chart: "your_top_songs_2019",
-	}
+	d := NewDepUpdate(cfg)
 
-	suite.Require().NoError(d.Prepare(cfg))
+	suite.Require().NoError(d.Prepare())
 
 	want := fmt.Sprintf("Generated command: '%s --debug dependency update your_top_songs_2019'\n", helmBin)
 	suite.Equal(want, stderr.String())
@@ -127,11 +124,11 @@ func (suite *DepUpdateTestSuite) TestPrepareDebugFlag() {
 }
 
 func (suite *DepUpdateTestSuite) TestPrepareChartRequired() {
-	d := DepUpdate{}
+	d := NewDepUpdate(env.Config{})
 
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
-	err := d.Prepare(Config{})
+	err := d.Prepare()
 	suite.EqualError(err, "chart is required")
 }

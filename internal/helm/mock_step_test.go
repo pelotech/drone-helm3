@@ -6,7 +6,6 @@ package helm
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	run "github.com/pelotech/drone-helm3/internal/run"
 	reflect "reflect"
 )
 
@@ -34,17 +33,17 @@ func (m *MockStep) EXPECT() *MockStepMockRecorder {
 }
 
 // Prepare mocks base method
-func (m *MockStep) Prepare(arg0 run.Config) error {
+func (m *MockStep) Prepare() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Prepare", arg0)
+	ret := m.ctrl.Call(m, "Prepare")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Prepare indicates an expected call of Prepare
-func (mr *MockStepMockRecorder) Prepare(arg0 interface{}) *gomock.Call {
+func (mr *MockStepMockRecorder) Prepare() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prepare", reflect.TypeOf((*MockStep)(nil).Prepare), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prepare", reflect.TypeOf((*MockStep)(nil).Prepare))
 }
 
 // Execute mocks base method

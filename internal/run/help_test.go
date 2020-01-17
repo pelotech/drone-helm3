@@ -24,7 +24,7 @@ func (suite *HelpTestSuite) TestNewHelp() {
 	}
 	help := NewHelp(cfg)
 	suite.Require().NotNil(help)
-	suite.Equal("everybody dance NOW!!", help.HelmCommand)
+	suite.Equal("everybody dance NOW!!", help.helmCommand)
 }
 
 func (suite *HelpTestSuite) TestPrepare() {
@@ -49,13 +49,13 @@ func (suite *HelpTestSuite) TestPrepare() {
 	mCmd.EXPECT().
 		Stderr(&stderr)
 
-	cfg := Config{
+	cfg := env.Config{
 		Stdout: &stdout,
 		Stderr: &stderr,
 	}
 
-	h := Help{}
-	err := h.Prepare(cfg)
+	h := NewHelp(cfg)
+	err := h.Prepare()
 	suite.NoError(err)
 }
 
@@ -63,38 +63,30 @@ func (suite *HelpTestSuite) TestExecute() {
 	ctrl := gomock.NewController(suite.T())
 	defer ctrl.Finish()
 	mCmd := NewMockcmd(ctrl)
-	originalCommand := command
-	command = func(_ string, _ ...string) cmd {
-		return mCmd
-	}
-	defer func() { command = originalCommand }()
 
 	mCmd.EXPECT().
 		Run().
 		Times(2)
 
-	help := Help{
-		HelmCommand: "help",
-		cmd:         mCmd,
-	}
+	help := NewHelp(env.Config{Command: "help"})
+	help.cmd = mCmd
 	suite.NoError(help.Execute())
 
-	help.HelmCommand = "get down on friday"
+	help.helmCommand = "get down on friday"
 	suite.EqualError(help.Execute(), "unknown command 'get down on friday'")
 }
 
 func (suite *HelpTestSuite) TestPrepareDebugFlag() {
-	help := Help{}
-
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
-	cfg := Config{
+	cfg := env.Config{
 		Debug:  true,
 		Stdout: &stdout,
 		Stderr: &stderr,
 	}
 
-	help.Prepare(cfg)
+	help := NewHelp(cfg)
+	help.Prepare()
 
 	want := fmt.Sprintf("Generated command: '%s --debug help'\n", helmBin)
 	suite.Equal(want, stderr.String())

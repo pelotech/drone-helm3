@@ -14,27 +14,20 @@ const (
 
 // A Step is one step in the plan.
 type Step interface {
-	Prepare(run.Config) error
+	Prepare() error
 	Execute() error
 }
 
 // A Plan is a series of steps to perform.
 type Plan struct {
-	steps  []Step
-	cfg    env.Config
-	runCfg run.Config
+	steps []Step
+	cfg   env.Config
 }
 
 // NewPlan makes a plan for running a helm operation.
 func NewPlan(cfg env.Config) (*Plan, error) {
 	p := Plan{
 		cfg: cfg,
-		runCfg: run.Config{
-			Debug:     cfg.Debug,
-			Namespace: cfg.Namespace,
-			Stdout:    cfg.Stdout,
-			Stderr:    cfg.Stderr,
-		},
 	}
 
 	p.steps = (*determineSteps(cfg))(cfg)
@@ -44,7 +37,7 @@ func NewPlan(cfg env.Config) (*Plan, error) {
 			fmt.Fprintf(os.Stderr, "calling %T.Prepare (step %d)\n", step, i)
 		}
 
-		if err := step.Prepare(p.runCfg); err != nil {
+		if err := step.Prepare(); err != nil {
 			err = fmt.Errorf("while preparing %T step: %w", step, err)
 			return nil, err
 		}
@@ -96,7 +89,7 @@ var upgrade = func(cfg env.Config) []Step {
 	var steps []Step
 	steps = append(steps, run.NewInitKube(cfg, kubeConfigTemplate, kubeConfigFile))
 	for _, repo := range cfg.AddRepos {
-		steps = append(steps, run.NewAddRepo(repo))
+		steps = append(steps, run.NewAddRepo(cfg, repo))
 	}
 	if cfg.UpdateDependencies {
 		steps = append(steps, run.NewDepUpdate(cfg))
@@ -120,7 +113,7 @@ var uninstall = func(cfg env.Config) []Step {
 var lint = func(cfg env.Config) []Step {
 	var steps []Step
 	for _, repo := range cfg.AddRepos {
-		steps = append(steps, run.NewAddRepo(repo))
+		steps = append(steps, run.NewAddRepo(cfg, repo))
 	}
 	if cfg.UpdateDependencies {
 		steps = append(steps, run.NewDepUpdate(cfg))

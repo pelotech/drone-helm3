@@ -11,10 +11,9 @@ import (
 
 // InitKube is a step in a helm Plan that initializes the kubernetes config file.
 type InitKube struct {
+	*config
 	templateFilename string
 	configFilename   string
-	debug            bool
-	stderr           io.Writer
 	template         *template.Template
 	configFile       io.WriteCloser
 	values           kubeValues
@@ -32,6 +31,7 @@ type kubeValues struct {
 // NewInitKube creates a InitKube using the given Config and filepaths. No validation is performed at this time.
 func NewInitKube(cfg env.Config, templateFile, configFile string) *InitKube {
 	return &InitKube{
+		config: newConfig(cfg),
 		values: kubeValues{
 			SkipTLSVerify:  cfg.SkipTLSVerify,
 			Certificate:    cfg.Certificate,
@@ -42,8 +42,6 @@ func NewInitKube(cfg env.Config, templateFile, configFile string) *InitKube {
 		},
 		templateFilename: templateFile,
 		configFilename:   configFile,
-		debug:            cfg.Debug,
-		stderr:           cfg.Stderr,
 	}
 }
 
@@ -57,7 +55,7 @@ func (i *InitKube) Execute() error {
 }
 
 // Prepare ensures all required configuration is present and that the config file is writable.
-func (i *InitKube) Prepare(cfg Config) error {
+func (i *InitKube) Prepare() error {
 	var err error
 
 	if i.values.APIServer == "" {

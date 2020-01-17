@@ -7,18 +7,20 @@ import (
 
 // Uninstall is an execution step that calls `helm uninstall` when executed.
 type Uninstall struct {
-	Release     string
-	DryRun      bool
-	KeepHistory bool
+	*config
+	release     string
+	dryRun      bool
+	keepHistory bool
 	cmd         cmd
 }
 
 // NewUninstall creates an Uninstall using fields from the given Config. No validation is performed at this time.
 func NewUninstall(cfg env.Config) *Uninstall {
 	return &Uninstall{
-		Release:     cfg.Release,
-		DryRun:      cfg.DryRun,
-		KeepHistory: cfg.KeepHistory,
+		config:      newConfig(cfg),
+		release:     cfg.Release,
+		dryRun:      cfg.DryRun,
+		keepHistory: cfg.KeepHistory,
 	}
 }
 
@@ -28,37 +30,37 @@ func (u *Uninstall) Execute() error {
 }
 
 // Prepare gets the Uninstall ready to execute.
-func (u *Uninstall) Prepare(cfg Config) error {
-	if u.Release == "" {
+func (u *Uninstall) Prepare() error {
+	if u.release == "" {
 		return fmt.Errorf("release is required")
 	}
 
 	args := make([]string, 0)
 
-	if cfg.Namespace != "" {
-		args = append(args, "--namespace", cfg.Namespace)
+	if u.namespace != "" {
+		args = append(args, "--namespace", u.namespace)
 	}
-	if cfg.Debug {
+	if u.debug {
 		args = append(args, "--debug")
 	}
 
 	args = append(args, "uninstall")
 
-	if u.DryRun {
+	if u.dryRun {
 		args = append(args, "--dry-run")
 	}
-	if u.KeepHistory {
+	if u.keepHistory {
 		args = append(args, "--keep-history")
 	}
 
-	args = append(args, u.Release)
+	args = append(args, u.release)
 
 	u.cmd = command(helmBin, args...)
-	u.cmd.Stdout(cfg.Stdout)
-	u.cmd.Stderr(cfg.Stderr)
+	u.cmd.Stdout(u.stdout)
+	u.cmd.Stderr(u.stderr)
 
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "Generated command: '%s'\n", u.cmd.String())
+	if u.debug {
+		fmt.Fprintf(u.stderr, "Generated command: '%s'\n", u.cmd.String())
 	}
 
 	return nil

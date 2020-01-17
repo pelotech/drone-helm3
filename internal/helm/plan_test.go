@@ -41,22 +41,14 @@ func (suite *PlanTestSuite) TestNewPlan() {
 		Stderr:    &stderr,
 	}
 
-	runCfg := run.Config{
-		Debug:     false,
-		Namespace: "outer",
-		Stdout:    &stdout,
-		Stderr:    &stderr,
-	}
-
 	stepOne.EXPECT().
-		Prepare(runCfg)
+		Prepare()
 	stepTwo.EXPECT().
-		Prepare(runCfg)
+		Prepare()
 
 	plan, err := NewPlan(cfg)
 	suite.Require().Nil(err)
 	suite.Equal(cfg, plan.cfg)
-	suite.Equal(runCfg, plan.runCfg)
 }
 
 func (suite *PlanTestSuite) TestNewPlanAbortsOnError() {
@@ -76,7 +68,7 @@ func (suite *PlanTestSuite) TestNewPlanAbortsOnError() {
 	}
 
 	stepOne.EXPECT().
-		Prepare(gomock.Any()).
+		Prepare().
 		Return(fmt.Errorf("I'm starry Dave, aye, cat blew that"))
 
 	_, err := NewPlan(cfg)
@@ -90,11 +82,8 @@ func (suite *PlanTestSuite) TestExecute() {
 	stepOne := NewMockStep(ctrl)
 	stepTwo := NewMockStep(ctrl)
 
-	runCfg := run.Config{}
-
 	plan := Plan{
-		steps:  []Step{stepOne, stepTwo},
-		runCfg: runCfg,
+		steps: []Step{stepOne, stepTwo},
 	}
 
 	stepOne.EXPECT().
@@ -113,11 +102,8 @@ func (suite *PlanTestSuite) TestExecuteAbortsOnError() {
 	stepOne := NewMockStep(ctrl)
 	stepTwo := NewMockStep(ctrl)
 
-	runCfg := run.Config{}
-
 	plan := Plan{
-		steps:  []Step{stepOne, stepTwo},
-		runCfg: runCfg,
+		steps: []Step{stepOne, stepTwo},
 	}
 
 	stepOne.EXPECT().
