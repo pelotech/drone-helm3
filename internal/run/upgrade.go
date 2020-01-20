@@ -22,6 +22,7 @@ type Upgrade struct {
 	force         bool
 	atomic        bool
 	cleanupOnFail bool
+	caFile        string
 
 	cmd cmd
 }
@@ -43,6 +44,7 @@ func NewUpgrade(cfg env.Config) *Upgrade {
 		force:         cfg.Force,
 		atomic:        cfg.AtomicUpgrade,
 		cleanupOnFail: cfg.CleanupOnFail,
+		caFile:        cfg.RepoCAFile,
 	}
 }
 
@@ -95,6 +97,9 @@ func (u *Upgrade) Prepare() error {
 	}
 	for _, vFile := range u.valuesFiles {
 		args = append(args, "--values", vFile)
+	}
+	if u.caFile != "" {
+		args = append(args, "--ca-file", u.caFile)
 	}
 
 	args = append(args, u.release, u.chart)

@@ -9,8 +9,9 @@ import (
 // AddRepo is an execution step that calls `helm repo add` when executed.
 type AddRepo struct {
 	*config
-	repo string
-	cmd  cmd
+	repo   string
+	caFile string
+	cmd    cmd
 }
 
 // NewAddRepo creates an AddRepo for the given repo-spec. No validation is performed at this time.
@@ -18,6 +19,7 @@ func NewAddRepo(cfg env.Config, repo string) *AddRepo {
 	return &AddRepo{
 		config: newConfig(cfg),
 		repo:   repo,
+		caFile: cfg.RepoCAFile,
 	}
 }
 
@@ -40,7 +42,11 @@ func (a *AddRepo) Prepare() error {
 	url := split[1]
 
 	args := a.globalFlags()
-	args = append(args, "repo", "add", name, url)
+	args = append(args, "repo", "add")
+	if a.caFile != "" {
+		args = append(args, "--ca-file", a.caFile)
+	}
+	args = append(args, name, url)
 
 	a.cmd = command(helmBin, args...)
 	a.cmd.Stdout(a.stdout)

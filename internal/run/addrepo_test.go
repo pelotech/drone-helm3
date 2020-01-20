@@ -96,3 +96,15 @@ func (suite *AddRepoTestSuite) TestPrepareWithEqualSignInURL() {
 	suite.NoError(a.Prepare())
 	suite.Contains(suite.commandArgs, "https://github.com/arthur_claypool/samaritan?version=2.1")
 }
+
+func (suite *AddRepoTestSuite) TestRepoAddFlags() {
+	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
+	cfg := env.Config{
+		RepoCAFile: "./helm/reporepo.cert",
+	}
+	a := NewAddRepo(cfg, "machine=https://github.com/harold_finch/themachine")
+	suite.NoError(a.Prepare())
+	suite.Equal([]string{"repo", "add", "--ca-file", "./helm/reporepo.cert",
+		"machine", "https://github.com/harold_finch/themachine"}, suite.commandArgs)
+}
