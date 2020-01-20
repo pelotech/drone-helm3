@@ -21,7 +21,7 @@ var (
 type Config struct {
 	// Configuration for drone-helm itself
 	Command            string   `envconfig:"mode"`                   // Helm command to run
-	DroneEvent         string   `envconfig:"DRONE_BUILD_EVENT"`      // Drone event that invoked this plugin.
+	DroneEvent         string   `envconfig:"drone_build_event"`      // Drone event that invoked this plugin.
 	UpdateDependencies bool     `split_words:"true"`                 // Call `helm dependency update` before the main command
 	AddRepos           []string `split_words:"true"`                 // Call `helm repo add` before the main command
 	RepoCAFile         string   `envconfig:"repo_ca_file"`           // CA certificate for `helm repo add`
@@ -31,7 +31,7 @@ type Config struct {
 	ValuesFiles        []string `split_words:"true"`                 // Arguments to pass to --values in applicable helm commands
 	Namespace          string   ``                                   // Kubernetes namespace for all helm commands
 	KubeToken          string   `split_words:"true"`                 // Kubernetes authentication token to put in .kube/config
-	SkipTLSVerify      bool     `envconfig:"SKIP_TLS_VERIFY"`        // Put insecure-skip-tls-verify in .kube/config
+	SkipTLSVerify      bool     `envconfig:"skip_tls_verify"`        // Put insecure-skip-tls-verify in .kube/config
 	Certificate        string   `envconfig:"kube_certificate"`       // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
 	APIServer          string   `envconfig:"kube_api_server"`        // The Kubernetes cluster's API endpoint
 	ServiceAccount     string   `envconfig:"kube_service_account"`   // Account to use for connecting to the Kubernetes cluster
@@ -45,7 +45,7 @@ type Config struct {
 	Release            string   ``                                   // Release argument to use in applicable helm commands
 	Force              bool     `envconfig:"force_upgrade"`          // Pass --force to applicable helm commands
 	AtomicUpgrade      bool     `split_words:"true"`                 // Pass --atomic to `helm upgrade`
-	CleanupOnFail      bool     `envconfig:"CLEANUP_FAILED_UPGRADE"` // Pass --cleanup-on-fail to `helm upgrade`
+	CleanupOnFail      bool     `envconfig:"cleanup_failed_upgrade"` // Pass --cleanup-on-fail to `helm upgrade`
 	LintStrictly       bool     `split_words:"true"`                 // Pass --strict to `helm lint`
 
 	Stdout io.Writer `ignored:"true"`
