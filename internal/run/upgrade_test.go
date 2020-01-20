@@ -102,6 +102,7 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 		Force:         true,
 		Atomic:        true,
 		CleanupOnFail: true,
+		CAFile:        "local_ca.cert",
 	}
 
 	cfg := Config{}
@@ -121,6 +122,7 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 			"--set-string", "height=5ft10in",
 			"--values", "/usr/local/stats",
 			"--values", "/usr/local/grades",
+			"--ca-file", "local_ca.cert",
 			"maroon_5_memories", "hot_ac"}, args)
 
 		return suite.mockCmd

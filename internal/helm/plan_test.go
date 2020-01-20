@@ -143,6 +143,7 @@ func (suite *PlanTestSuite) TestUpgrade() {
 		Force:         true,
 		AtomicUpgrade: true,
 		CleanupOnFail: true,
+		RepoCAFile:    "state_licensure.repo.cert",
 	}
 
 	steps := upgrade(cfg)
@@ -166,6 +167,7 @@ func (suite *PlanTestSuite) TestUpgrade() {
 		Force:         cfg.Force,
 		Atomic:        true,
 		CleanupOnFail: true,
+		CAFile:        "state_licensure.repo.cert",
 	}
 
 	suite.Equal(expected, upgrade)

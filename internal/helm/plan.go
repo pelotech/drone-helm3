@@ -111,6 +111,7 @@ var upgrade = func(cfg Config) []Step {
 		Force:         cfg.Force,
 		Atomic:        cfg.AtomicUpgrade,
 		CleanupOnFail: cfg.CleanupOnFail,
+		CAFile:        cfg.RepoCAFile,
 	})
 
 	return steps
