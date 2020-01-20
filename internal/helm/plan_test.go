@@ -291,6 +291,7 @@ func (suite *PlanTestSuite) TestAddRepos() {
 			"first=https://add.repos/one",
 			"second=https://add.repos/two",
 		},
+		RepoCAFile: "state_licensure.repo.cert",
 	}
 	steps := addRepos(cfg)
 	suite.Require().Equal(2, len(steps), "addRepos should add one step per repo")
@@ -301,6 +302,8 @@ func (suite *PlanTestSuite) TestAddRepos() {
 
 	suite.Equal(first.Repo, "first=https://add.repos/one")
 	suite.Equal(second.Repo, "second=https://add.repos/two")
+	suite.Equal(first.CAFile, "state_licensure.repo.cert")
+	suite.Equal(second.CAFile, "state_licensure.repo.cert")
 }
 
 func (suite *PlanTestSuite) TestLint() {

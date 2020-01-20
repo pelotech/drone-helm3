@@ -6,6 +6,7 @@
 | mode                | string          | helm_command | Indicates the operation to perform. Recommended, but not required. Valid options are `upgrade`, `uninstall`, `lint`, and `help`. |
 | update_dependencies | boolean         |              | Calls `helm dependency update` before running the main command.|
 | add_repos           | list\<string\>  | helm_repos   | Calls `helm repo add $repo` before running the main command. Each string should be formatted as `repo_name=https://repo.url/`. |
+| repo_ca_file        | string          |              | TLS certificate for a chart repository certificate authority. Only applicable when using `add_repos`. |
 | namespace           | string          |              | Kubernetes namespace to use for this operation. |
 | debug               | boolean         |              | Generate debug output within drone-helm3 and pass `--debug` to all helm commands. Use with care, since the debug output may include secrets. |
 

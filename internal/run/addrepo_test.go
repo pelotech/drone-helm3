@@ -97,6 +97,19 @@ func (suite *AddRepoTestSuite) TestPrepareWithEqualSignInURL() {
 	suite.Contains(suite.commandArgs, "https://github.com/arthur_claypool/samaritan?version=2.1")
 }
 
+func (suite *AddRepoTestSuite) TestRepoAddFlags() {
+	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
+	cfg := Config{}
+	a := AddRepo{
+		Repo:   "machine=https://github.com/harold_finch/themachine",
+		CAFile: "./helm/reporepo.cert",
+	}
+	suite.NoError(a.Prepare(cfg))
+	suite.Equal([]string{"repo", "add", "--ca-file", "./helm/reporepo.cert",
+		"machine", "https://github.com/harold_finch/themachine"}, suite.commandArgs)
+}
+
 func (suite *AddRepoTestSuite) TestNamespaceFlag() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()

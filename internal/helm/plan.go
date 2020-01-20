@@ -171,7 +171,8 @@ func addRepos(cfg Config) []Step {
 	steps := make([]Step, 0)
 	for _, repo := range cfg.AddRepos {
 		steps = append(steps, &run.AddRepo{
-			Repo: repo,
+			Repo:   repo,
+			CAFile: cfg.RepoCAFile,
 		})
 	}
 
