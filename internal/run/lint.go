@@ -2,61 +2,67 @@ package run
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 )
 
 // Lint is an execution step that calls `helm lint` when executed.
 type Lint struct {
-	Chart        string
-	Values       string
-	StringValues string
-	ValuesFiles  []string
-	Strict       bool
+	*config
+	chart        string
+	values       string
+	stringValues string
+	valuesFiles  []string
+	strict       bool
 	cmd          cmd
 }
 
+// NewLint creates a Lint using fields from the given Config. No validation is performed at this time.
+func NewLint(cfg env.Config) *Lint {
+	return &Lint{
+		config:       newConfig(cfg),
+		chart:        cfg.Chart,
+		values:       cfg.Values,
+		stringValues: cfg.StringValues,
+		valuesFiles:  cfg.ValuesFiles,
+		strict:       cfg.LintStrictly,
+	}
+}
+
 // Execute executes the `helm lint` command.
-func (l *Lint) Execute(_ Config) error {
+func (l *Lint) Execute() error {
 	return l.cmd.Run()
 }
 
 // Prepare gets the Lint ready to execute.
-func (l *Lint) Prepare(cfg Config) error {
-	if l.Chart == "" {
+func (l *Lint) Prepare() error {
+	if l.chart == "" {
 		return fmt.Errorf("chart is required")
 	}
 
-	args := make([]string, 0)
-
-	if cfg.Namespace != "" {
-		args = append(args, "--namespace", cfg.Namespace)
-	}
-	if cfg.Debug {
-		args = append(args, "--debug")
-	}
-
+	args := l.globalFlags()
 	args = append(args, "lint")
 
-	if l.Values != "" {
-		args = append(args, "--set", l.Values)
+	if l.values != "" {
+		args = append(args, "--set", l.values)
 	}
-	if l.StringValues != "" {
-		args = append(args, "--set-string", l.StringValues)
+	if l.stringValues != "" {
+		args = append(args, "--set-string", l.stringValues)
 	}
-	for _, vFile := range l.ValuesFiles {
+	for _, vFile := range l.valuesFiles {
 		args = append(args, "--values", vFile)
 	}
-	if l.Strict {
+	if l.strict {
 		args = append(args, "--strict")
 	}
 
-	args = append(args, l.Chart)
+	args = append(args, l.chart)
 
 	l.cmd = command(helmBin, args...)
-	l.cmd.Stdout(cfg.Stdout)
-	l.cmd.Stderr(cfg.Stderr)
+	l.cmd.Stdout(l.stdout)
+	l.cmd.Stderr(l.stderr)
 
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "Generated command: '%s'\n", l.cmd.String())
+	if l.debug {
+		fmt.Fprintf(l.stderr, "Generated command: '%s'\n", l.cmd.String())
 	}
 
 	return nil

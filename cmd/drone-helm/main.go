@@ -5,11 +5,12 @@ import (
 	"os"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/pelotech/drone-helm3/internal/helm"
 )
 
 func main() {
-	cfg, err := helm.NewConfig(os.Stdout, os.Stderr)
+	cfg, err := env.NewConfig(os.Stdout, os.Stderr)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())

@@ -2,98 +2,113 @@ package run
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 )
 
 // Upgrade is an execution step that calls `helm upgrade` when executed.
 type Upgrade struct {
-	Chart   string
-	Release string
+	*config
+	chart   string
+	release string
 
-	ChartVersion  string
-	DryRun        bool
-	Wait          bool
-	Values        string
-	StringValues  string
-	ValuesFiles   []string
-	ReuseValues   bool
-	Timeout       string
-	Force         bool
-	Atomic        bool
-	CleanupOnFail bool
-	CAFile        string
+	chartVersion  string
+	dryRun        bool
+	wait          bool
+	values        string
+	stringValues  string
+	valuesFiles   []string
+	reuseValues   bool
+	timeout       string
+	force         bool
+	atomic        bool
+	cleanupOnFail bool
+	caFile        string
 
 	cmd cmd
 }
 
+// NewUpgrade creates an Upgrade using fields from the given Config. No validation is performed at this time.
+func NewUpgrade(cfg env.Config) *Upgrade {
+	return &Upgrade{
+		config:        newConfig(cfg),
+		chart:         cfg.Chart,
+		release:       cfg.Release,
+		chartVersion:  cfg.ChartVersion,
+		dryRun:        cfg.DryRun,
+		wait:          cfg.Wait,
+		values:        cfg.Values,
+		stringValues:  cfg.StringValues,
+		valuesFiles:   cfg.ValuesFiles,
+		reuseValues:   cfg.ReuseValues,
+		timeout:       cfg.Timeout,
+		force:         cfg.Force,
+		atomic:        cfg.AtomicUpgrade,
+		cleanupOnFail: cfg.CleanupOnFail,
+		caFile:        cfg.RepoCAFile,
+	}
+}
+
 // Execute executes the `helm upgrade` command.
-func (u *Upgrade) Execute(_ Config) error {
+func (u *Upgrade) Execute() error {
 	return u.cmd.Run()
 }
 
 // Prepare gets the Upgrade ready to execute.
-func (u *Upgrade) Prepare(cfg Config) error {
-	if u.Chart == "" {
+func (u *Upgrade) Prepare() error {
+	if u.chart == "" {
 		return fmt.Errorf("chart is required")
 	}
-	if u.Release == "" {
+	if u.release == "" {
 		return fmt.Errorf("release is required")
 	}
 
-	args := make([]string, 0)
-
-	if cfg.Namespace != "" {
-		args = append(args, "--namespace", cfg.Namespace)
-	}
-	if cfg.Debug {
-		args = append(args, "--debug")
-	}
-
+	args := u.globalFlags()
 	args = append(args, "upgrade", "--install")
 
-	if u.ChartVersion != "" {
-		args = append(args, "--version", u.ChartVersion)
+	if u.chartVersion != "" {
+		args = append(args, "--version", u.chartVersion)
 	}
-	if u.DryRun {
+	if u.dryRun {
 		args = append(args, "--dry-run")
 	}
-	if u.Wait {
+	if u.wait {
 		args = append(args, "--wait")
 	}
-	if u.ReuseValues {
+	if u.reuseValues {
 		args = append(args, "--reuse-values")
 	}
-	if u.Timeout != "" {
-		args = append(args, "--timeout", u.Timeout)
+	if u.timeout != "" {
+		args = append(args, "--timeout", u.timeout)
 	}
-	if u.Force {
+	if u.force {
 		args = append(args, "--force")
 	}
-	if u.Atomic {
+	if u.atomic {
 		args = append(args, "--atomic")
 	}
-	if u.CleanupOnFail {
+	if u.cleanupOnFail {
 		args = append(args, "--cleanup-on-fail")
 	}
-	if u.Values != "" {
-		args = append(args, "--set", u.Values)
+	if u.values != "" {
+		args = append(args, "--set", u.values)
 	}
-	if u.StringValues != "" {
-		args = append(args, "--set-string", u.StringValues)
+	if u.stringValues != "" {
+		args = append(args, "--set-string", u.stringValues)
 	}
-	for _, vFile := range u.ValuesFiles {
+	for _, vFile := range u.valuesFiles {
 		args = append(args, "--values", vFile)
 	}
-	if u.CAFile != "" {
-		args = append(args, "--ca-file", u.CAFile)
+	if u.caFile != "" {
+		args = append(args, "--ca-file", u.caFile)
 	}
 
-	args = append(args, u.Release, u.Chart)
+	args = append(args, u.release, u.chart)
 	u.cmd = command(helmBin, args...)
-	u.cmd.Stdout(cfg.Stdout)
-	u.cmd.Stderr(cfg.Stderr)
+	u.cmd.Stdout(u.stdout)
+	u.cmd.Stderr(u.stderr)
 
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "Generated command: '%s'\n", u.cmd.String())
+	if u.debug {
+		fmt.Fprintf(u.stderr, "Generated command: '%s'\n", u.cmd.String())
 	}
 
 	return nil

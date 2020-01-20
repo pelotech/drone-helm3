@@ -1,10 +1,13 @@
 package run
 
 import (
+	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 	"text/template"
 )
@@ -15,6 +18,30 @@ type InitKubeTestSuite struct {
 
 func TestInitKubeTestSuite(t *testing.T) {
 	suite.Run(t, new(InitKubeTestSuite))
+}
+
+func (suite *InitKubeTestSuite) TestNewInitKube() {
+	cfg := env.Config{
+		SkipTLSVerify:  true,
+		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
+		APIServer:      "98.765.43.21",
+		ServiceAccount: "greathelm",
+		KubeToken:      "b2YgbXkgYWZmZWN0aW9u",
+		Stderr:         &strings.Builder{},
+		Debug:          true,
+	}
+
+	init := NewInitKube(cfg, "conf.tpl", "conf.yml")
+	suite.Equal(kubeValues{
+		SkipTLSVerify:  true,
+		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
+		APIServer:      "98.765.43.21",
+		ServiceAccount: "greathelm",
+		Token:          "b2YgbXkgYWZmZWN0aW9u",
+	}, init.values)
+	suite.Equal("conf.tpl", init.templateFilename)
+	suite.Equal("conf.yml", init.configFilename)
+	suite.NotNil(init.config)
 }
 
 func (suite *InitKubeTestSuite) TestPrepareExecute() {
@@ -29,23 +56,20 @@ namespace: {{ .Namespace }}
 	defer os.Remove(configFile.Name())
 	suite.Require().Nil(err)
 
-	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
-		ConfigFile:   configFile.Name(),
+	cfg := env.Config{
+		APIServer:   "Sysadmin",
+		Certificate: "CCNA",
+		KubeToken:   "Aspire virtual currency",
+		Namespace:   "Cisco",
 	}
-	cfg := Config{
-		Namespace: "Cisco",
-	}
-	err = init.Prepare(cfg)
+	init := NewInitKube(cfg, templateFile.Name(), configFile.Name())
+	err = init.Prepare()
 	suite.Require().Nil(err)
 
 	suite.IsType(&template.Template{}, init.template)
 	suite.NotNil(init.configFile)
 
-	err = init.Execute(cfg)
+	err = init.Execute()
 	suite.Require().Nil(err)
 
 	conf, err := ioutil.ReadFile(configFile.Name())
@@ -63,19 +87,16 @@ func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
 	defer os.Remove(configFile.Name())
 	suite.Require().NoError(err)
 
-	cfg := Config{
-		Namespace: "marshmallow",
-	}
-	init := InitKube{
-		ConfigFile:     configFile.Name(),
-		TemplateFile:   "../../assets/kubeconfig.tpl", // the actual kubeconfig template
+	cfg := env.Config{
 		APIServer:      "https://kube.cluster/peanut",
 		ServiceAccount: "chef",
-		Token:          "eWVhaCB3ZSB0b2tpbic=",
+		KubeToken:      "eWVhaCB3ZSB0b2tpbic=",
 		Certificate:    "d293LCB5b3UgYXJlIHNvIGNvb2wgZm9yIHNtb2tpbmcgd2VlZCDwn5mE",
+		Namespace:      "marshmallow",
 	}
-	suite.Require().NoError(init.Prepare(cfg))
-	suite.Require().NoError(init.Execute(cfg))
+	init := NewInitKube(cfg, "../../assets/kubeconfig.tpl", configFile.Name()) // the actual kubeconfig template
+	suite.Require().NoError(init.Prepare())
+	suite.Require().NoError(init.Execute())
 
 	contents, err := ioutil.ReadFile(configFile.Name())
 	suite.Require().NoError(err)
@@ -98,11 +119,11 @@ func (suite *InitKubeTestSuite) TestExecuteGeneratesConfig() {
 	suite.NoError(yaml.UnmarshalStrict(contents, &conf))
 
 	// test the other branch of the certificate/SkipTLSVerify conditional
-	init.SkipTLSVerify = true
-	init.Certificate = ""
+	init.values.SkipTLSVerify = true
+	init.values.Certificate = ""
 
-	suite.Require().NoError(init.Prepare(cfg))
-	suite.Require().NoError(init.Execute(cfg))
+	suite.Require().NoError(init.Prepare())
+	suite.Require().NoError(init.Execute())
 	contents, err = ioutil.ReadFile(configFile.Name())
 	suite.Require().NoError(err)
 	suite.Contains(string(contents), "insecure-skip-tls-verify: true")
@@ -116,25 +137,25 @@ func (suite *InitKubeTestSuite) TestPrepareParseError() {
 	defer os.Remove(templateFile.Name())
 	suite.Require().Nil(err)
 
-	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
+	cfg := env.Config{
+		APIServer:   "Sysadmin",
+		Certificate: "CCNA",
+		KubeToken:   "Aspire virtual currency",
 	}
-	err = init.Prepare(Config{})
+	init := NewInitKube(cfg, templateFile.Name(), "")
+	err = init.Prepare()
 	suite.Error(err)
 	suite.Regexp("could not load kubeconfig .* function .* not defined", err)
 }
 
 func (suite *InitKubeTestSuite) TestPrepareNonexistentTemplateFile() {
-	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: "/usr/foreign/exclude/kubeprofig.tpl",
+	cfg := env.Config{
+		APIServer:   "Sysadmin",
+		Certificate: "CCNA",
+		KubeToken:   "Aspire virtual currency",
 	}
-	err := init.Prepare(Config{})
+	init := NewInitKube(cfg, "/usr/foreign/exclude/kubeprofig.tpl", "")
+	err := init.Prepare()
 	suite.Error(err)
 	suite.Regexp("could not load kubeconfig .* no such file or directory", err)
 }
@@ -143,16 +164,14 @@ func (suite *InitKubeTestSuite) TestPrepareCannotOpenDestinationFile() {
 	templateFile, err := tempfile("kubeconfig********.yml.tpl", "hurgity burgity")
 	defer os.Remove(templateFile.Name())
 	suite.Require().Nil(err)
-	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
-		ConfigFile:   "/usr/foreign/exclude/kubeprofig",
+	cfg := env.Config{
+		APIServer:   "Sysadmin",
+		Certificate: "CCNA",
+		KubeToken:   "Aspire virtual currency",
 	}
+	init := NewInitKube(cfg, templateFile.Name(), "/usr/foreign/exclude/kubeprofig")
 
-	cfg := Config{}
-	err = init.Prepare(cfg)
+	err = init.Prepare()
 	suite.Error(err)
 	suite.Regexp("could not open .* for writing: .* no such file or directory", err)
 }
@@ -167,24 +186,21 @@ func (suite *InitKubeTestSuite) TestPrepareRequiredConfig() {
 	suite.Require().Nil(err)
 
 	// initial config with all required fields present
-	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
-		ConfigFile:   configFile.Name(),
+	cfg := env.Config{
+		APIServer:   "Sysadmin",
+		Certificate: "CCNA",
+		KubeToken:   "Aspire virtual currency",
 	}
 
-	cfg := Config{}
+	init := NewInitKube(cfg, templateFile.Name(), configFile.Name())
+	suite.NoError(init.Prepare()) // consistency check; we should be starting in a happy state
 
-	suite.NoError(init.Prepare(cfg)) // consistency check; we should be starting in a happy state
+	init.values.APIServer = ""
+	suite.Error(init.Prepare(), "APIServer should be required.")
 
-	init.APIServer = ""
-	suite.Error(init.Prepare(cfg), "APIServer should be required.")
-
-	init.APIServer = "Sysadmin"
-	init.Token = ""
-	suite.Error(init.Prepare(cfg), "Token should be required.")
+	init.values.APIServer = "Sysadmin"
+	init.values.Token = ""
+	suite.Error(init.Prepare(), "Token should be required.")
 }
 
 func (suite *InitKubeTestSuite) TestPrepareDefaultsServiceAccount() {
@@ -196,18 +212,43 @@ func (suite *InitKubeTestSuite) TestPrepareDefaultsServiceAccount() {
 	defer os.Remove(configFile.Name())
 	suite.Require().Nil(err)
 
-	init := InitKube{
-		APIServer:    "Sysadmin",
-		Certificate:  "CCNA",
-		Token:        "Aspire virtual currency",
-		TemplateFile: templateFile.Name(),
-		ConfigFile:   configFile.Name(),
+	cfg := env.Config{
+		APIServer:   "Sysadmin",
+		Certificate: "CCNA",
+		KubeToken:   "Aspire virtual currency",
 	}
+	init := NewInitKube(cfg, templateFile.Name(), configFile.Name())
 
-	cfg := Config{}
+	init.Prepare()
+	suite.Equal("helm", init.values.ServiceAccount)
+}
 
-	init.Prepare(cfg)
-	suite.Equal("helm", init.ServiceAccount)
+func (suite *InitKubeTestSuite) TestDebugOutput() {
+	templateFile, err := tempfile("kubeconfig********.yml.tpl", "hurgity burgity")
+	defer os.Remove(templateFile.Name())
+	suite.Require().Nil(err)
+
+	configFile, err := tempfile("kubeconfig********.yml", "")
+	defer os.Remove(configFile.Name())
+	suite.Require().Nil(err)
+
+	stdout := &strings.Builder{}
+	stderr := &strings.Builder{}
+	cfg := env.Config{
+		APIServer: "http://my.kube.server/",
+		KubeToken: "QSBzaW5nbGUgcm9zZQ==",
+		Debug:     true,
+		Stdout:    stdout,
+		Stderr:    stderr,
+	}
+	init := NewInitKube(cfg, templateFile.Name(), configFile.Name())
+	suite.NoError(init.Prepare())
+
+	suite.Contains(stderr.String(), fmt.Sprintf("loading kubeconfig template from %s\n", templateFile.Name()))
+	suite.Contains(stderr.String(), fmt.Sprintf("truncating kubeconfig file at %s\n", configFile.Name()))
+
+	suite.NoError(init.Execute())
+	suite.Contains(stderr.String(), fmt.Sprintf("writing kubeconfig file to %s\n", configFile.Name()))
 }
 
 func tempfile(name, contents string) (*os.File, error) {

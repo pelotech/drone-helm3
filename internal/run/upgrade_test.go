@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	"strings"
 	"testing"
@@ -31,13 +32,48 @@ func TestUpgradeTestSuite(t *testing.T) {
 	suite.Run(t, new(UpgradeTestSuite))
 }
 
+func (suite *UpgradeTestSuite) TestNewUpgrade() {
+	cfg := env.Config{
+		ChartVersion:  "seventeen",
+		DryRun:        true,
+		Wait:          true,
+		Values:        "steadfastness,forthrightness",
+		StringValues:  "tensile_strength,flexibility",
+		ValuesFiles:   []string{"/root/price_inventory.yml"},
+		ReuseValues:   true,
+		Timeout:       "go sit in the corner",
+		Chart:         "billboard_top_100",
+		Release:       "post_malone_circles",
+		Force:         true,
+		AtomicUpgrade: true,
+		CleanupOnFail: true,
+	}
+
+	up := NewUpgrade(cfg)
+	suite.Equal(cfg.Chart, up.chart)
+	suite.Equal(cfg.Release, up.release)
+	suite.Equal(cfg.ChartVersion, up.chartVersion)
+	suite.Equal(true, up.dryRun)
+	suite.Equal(cfg.Wait, up.wait)
+	suite.Equal("steadfastness,forthrightness", up.values)
+	suite.Equal("tensile_strength,flexibility", up.stringValues)
+	suite.Equal([]string{"/root/price_inventory.yml"}, up.valuesFiles)
+	suite.Equal(cfg.ReuseValues, up.reuseValues)
+	suite.Equal(cfg.Timeout, up.timeout)
+	suite.Equal(cfg.Force, up.force)
+	suite.Equal(true, up.atomic)
+	suite.Equal(true, up.cleanupOnFail)
+	suite.NotNil(up.config)
+}
+
 func (suite *UpgradeTestSuite) TestPrepareAndExecute() {
 	defer suite.ctrl.Finish()
 
-	u := Upgrade{
+	cfg := env.Config{
 		Chart:   "at40",
 		Release: "jonas_brothers_only_human",
 	}
+	u := NewUpgrade(cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
@@ -54,19 +90,20 @@ func (suite *UpgradeTestSuite) TestPrepareAndExecute() {
 		Run().
 		Times(1)
 
-	cfg := Config{}
-	err := u.Prepare(cfg)
+	err := u.Prepare()
 	suite.Require().Nil(err)
-	u.Execute(cfg)
+	u.Execute()
 }
 
 func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {
 	defer suite.ctrl.Finish()
 
-	u := Upgrade{
-		Chart:   "at40",
-		Release: "shaed_trampoline",
+	cfg := env.Config{
+		Namespace: "melt",
+		Chart:     "at40",
+		Release:   "shaed_trampoline",
 	}
+	u := NewUpgrade(cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
@@ -78,17 +115,14 @@ func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any())
 	suite.mockCmd.EXPECT().Stderr(gomock.Any())
 
-	cfg := Config{
-		Namespace: "melt",
-	}
-	err := u.Prepare(cfg)
+	err := u.Prepare()
 	suite.Require().Nil(err)
 }
 
 func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 	defer suite.ctrl.Finish()
 
-	u := Upgrade{
+	cfg := env.Config{
 		Chart:         "hot_ac",
 		Release:       "maroon_5_memories",
 		ChartVersion:  "radio_edit",
@@ -100,12 +134,11 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 		ReuseValues:   true,
 		Timeout:       "sit_in_the_corner",
 		Force:         true,
-		Atomic:        true,
+		AtomicUpgrade: true,
 		CleanupOnFail: true,
-		CAFile:        "local_ca.cert",
+		RepoCAFile:    "local_ca.cert",
 	}
-
-	cfg := Config{}
+	u := NewUpgrade(cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
@@ -131,7 +164,7 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any())
 	suite.mockCmd.EXPECT().Stderr(gomock.Any())
 
-	err := u.Prepare(cfg)
+	err := u.Prepare()
 	suite.Require().Nil(err)
 }
 
@@ -140,34 +173,30 @@ func (suite *UpgradeTestSuite) TestRequiresChartAndRelease() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
-	u := Upgrade{
-		Release: "seth_everman_unskippable_cutscene",
-	}
+	u := NewUpgrade(env.Config{})
+	u.release = "seth_everman_unskippable_cutscene"
 
-	err := u.Prepare(Config{})
+	err := u.Prepare()
 	suite.EqualError(err, "chart is required", "Chart should be mandatory")
 
-	u = Upgrade{
-		Chart: "billboard_top_zero",
-	}
+	u.release = ""
+	u.chart = "billboard_top_zero"
 
-	err = u.Prepare(Config{})
+	err = u.Prepare()
 	suite.EqualError(err, "release is required", "Release should be mandatory")
 }
 
 func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
-	u := Upgrade{
-		Chart:   "at40",
-		Release: "lewis_capaldi_someone_you_loved",
-	}
-
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
-	cfg := Config{
-		Debug:  true,
-		Stdout: &stdout,
-		Stderr: &stderr,
+	cfg := env.Config{
+		Chart:   "at40",
+		Release: "lewis_capaldi_someone_you_loved",
+		Debug:   true,
+		Stdout:  &stdout,
+		Stderr:  &stderr,
 	}
+	u := NewUpgrade(cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.mockCmd.EXPECT().
@@ -182,7 +211,7 @@ func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 	suite.mockCmd.EXPECT().
 		Stderr(&stderr)
 
-	u.Prepare(cfg)
+	u.Prepare()
 
 	want := fmt.Sprintf("Generated command: '%s --debug upgrade "+
 		"--install lewis_capaldi_someone_you_loved at40'\n", helmBin)

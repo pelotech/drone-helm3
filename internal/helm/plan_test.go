@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/pelotech/drone-helm3/internal/run"
 )
 
@@ -25,14 +26,14 @@ func (suite *PlanTestSuite) TestNewPlan() {
 	stepTwo := NewMockStep(ctrl)
 
 	origHelp := help
-	help = func(cfg Config) []Step {
+	help = func(cfg env.Config) []Step {
 		return []Step{stepOne, stepTwo}
 	}
 	defer func() { help = origHelp }()
 
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
-	cfg := Config{
+	cfg := env.Config{
 		Command:   "help",
 		Debug:     false,
 		Namespace: "outer",
@@ -40,22 +41,14 @@ func (suite *PlanTestSuite) TestNewPlan() {
 		Stderr:    &stderr,
 	}
 
-	runCfg := run.Config{
-		Debug:     false,
-		Namespace: "outer",
-		Stdout:    &stdout,
-		Stderr:    &stderr,
-	}
-
 	stepOne.EXPECT().
-		Prepare(runCfg)
+		Prepare()
 	stepTwo.EXPECT().
-		Prepare(runCfg)
+		Prepare()
 
 	plan, err := NewPlan(cfg)
 	suite.Require().Nil(err)
 	suite.Equal(cfg, plan.cfg)
-	suite.Equal(runCfg, plan.runCfg)
 }
 
 func (suite *PlanTestSuite) TestNewPlanAbortsOnError() {
@@ -65,17 +58,17 @@ func (suite *PlanTestSuite) TestNewPlanAbortsOnError() {
 	stepTwo := NewMockStep(ctrl)
 
 	origHelp := help
-	help = func(cfg Config) []Step {
+	help = func(cfg env.Config) []Step {
 		return []Step{stepOne, stepTwo}
 	}
 	defer func() { help = origHelp }()
 
-	cfg := Config{
+	cfg := env.Config{
 		Command: "help",
 	}
 
 	stepOne.EXPECT().
-		Prepare(gomock.Any()).
+		Prepare().
 		Return(fmt.Errorf("I'm starry Dave, aye, cat blew that"))
 
 	_, err := NewPlan(cfg)
@@ -89,18 +82,15 @@ func (suite *PlanTestSuite) TestExecute() {
 	stepOne := NewMockStep(ctrl)
 	stepTwo := NewMockStep(ctrl)
 
-	runCfg := run.Config{}
-
 	plan := Plan{
-		steps:  []Step{stepOne, stepTwo},
-		runCfg: runCfg,
+		steps: []Step{stepOne, stepTwo},
 	}
 
 	stepOne.EXPECT().
-		Execute(runCfg).
+		Execute().
 		Times(1)
 	stepTwo.EXPECT().
-		Execute(runCfg).
+		Execute().
 		Times(1)
 
 	suite.NoError(plan.Execute())
@@ -112,15 +102,12 @@ func (suite *PlanTestSuite) TestExecuteAbortsOnError() {
 	stepOne := NewMockStep(ctrl)
 	stepTwo := NewMockStep(ctrl)
 
-	runCfg := run.Config{}
-
 	plan := Plan{
-		steps:  []Step{stepOne, stepTwo},
-		runCfg: runCfg,
+		steps: []Step{stepOne, stepTwo},
 	}
 
 	stepOne.EXPECT().
-		Execute(runCfg).
+		Execute().
 		Times(1).
 		Return(fmt.Errorf("oh, he'll gnaw"))
 
@@ -129,52 +116,14 @@ func (suite *PlanTestSuite) TestExecuteAbortsOnError() {
 }
 
 func (suite *PlanTestSuite) TestUpgrade() {
-	cfg := Config{
-		ChartVersion:  "seventeen",
-		DryRun:        true,
-		Wait:          true,
-		Values:        "steadfastness,forthrightness",
-		StringValues:  "tensile_strength,flexibility",
-		ValuesFiles:   []string{"/root/price_inventory.yml"},
-		ReuseValues:   true,
-		Timeout:       "go sit in the corner",
-		Chart:         "billboard_top_100",
-		Release:       "post_malone_circles",
-		Force:         true,
-		AtomicUpgrade: true,
-		CleanupOnFail: true,
-		RepoCAFile:    "state_licensure.repo.cert",
-	}
-
-	steps := upgrade(cfg)
+	steps := upgrade(env.Config{})
 	suite.Require().Equal(2, len(steps), "upgrade should return 2 steps")
-	suite.Require().IsType(&run.InitKube{}, steps[0])
-
-	suite.Require().IsType(&run.Upgrade{}, steps[1])
-	upgrade, _ := steps[1].(*run.Upgrade)
-
-	expected := &run.Upgrade{
-		Chart:         cfg.Chart,
-		Release:       cfg.Release,
-		ChartVersion:  cfg.ChartVersion,
-		DryRun:        true,
-		Wait:          cfg.Wait,
-		Values:        "steadfastness,forthrightness",
-		StringValues:  "tensile_strength,flexibility",
-		ValuesFiles:   []string{"/root/price_inventory.yml"},
-		ReuseValues:   cfg.ReuseValues,
-		Timeout:       cfg.Timeout,
-		Force:         cfg.Force,
-		Atomic:        true,
-		CleanupOnFail: true,
-		CAFile:        "state_licensure.repo.cert",
-	}
-
-	suite.Equal(expected, upgrade)
+	suite.IsType(&run.InitKube{}, steps[0])
+	suite.IsType(&run.Upgrade{}, steps[1])
 }
 
 func (suite *PlanTestSuite) TestUpgradeWithUpdateDependencies() {
-	cfg := Config{
+	cfg := env.Config{
 		UpdateDependencies: true,
 	}
 	steps := upgrade(cfg)
@@ -184,7 +133,7 @@ func (suite *PlanTestSuite) TestUpgradeWithUpdateDependencies() {
 }
 
 func (suite *PlanTestSuite) TestUpgradeWithAddRepos() {
-	cfg := Config{
+	cfg := env.Config{
 		AddRepos: []string{
 			"machine=https://github.com/harold_finch/themachine",
 		},
@@ -195,47 +144,15 @@ func (suite *PlanTestSuite) TestUpgradeWithAddRepos() {
 }
 
 func (suite *PlanTestSuite) TestUninstall() {
-	cfg := Config{
-		KubeToken:      "b2YgbXkgYWZmZWN0aW9u",
-		SkipTLSVerify:  true,
-		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
-		APIServer:      "98.765.43.21",
-		ServiceAccount: "greathelm",
-		DryRun:         true,
-		Timeout:        "think about what you did",
-		Release:        "jetta_id_love_to_change_the_world",
-		KeepHistory:    true,
-	}
-
-	steps := uninstall(cfg)
+	steps := uninstall(env.Config{})
 	suite.Require().Equal(2, len(steps), "uninstall should return 2 steps")
 
-	suite.Require().IsType(&run.InitKube{}, steps[0])
-	init, _ := steps[0].(*run.InitKube)
-	var expected Step = &run.InitKube{
-		SkipTLSVerify:  true,
-		Certificate:    "cHJvY2xhaW1zIHdvbmRlcmZ1bCBmcmllbmRzaGlw",
-		APIServer:      "98.765.43.21",
-		ServiceAccount: "greathelm",
-		Token:          "b2YgbXkgYWZmZWN0aW9u",
-		TemplateFile:   kubeConfigTemplate,
-		ConfigFile:     kubeConfigFile,
-	}
-
-	suite.Equal(expected, init)
-
-	suite.Require().IsType(&run.Uninstall{}, steps[1])
-	actual, _ := steps[1].(*run.Uninstall)
-	expected = &run.Uninstall{
-		Release:     "jetta_id_love_to_change_the_world",
-		DryRun:      true,
-		KeepHistory: true,
-	}
-	suite.Equal(expected, actual)
+	suite.IsType(&run.InitKube{}, steps[0])
+	suite.IsType(&run.Uninstall{}, steps[1])
 }
 
 func (suite *PlanTestSuite) TestUninstallWithUpdateDependencies() {
-	cfg := Config{
+	cfg := env.Config{
 		UpdateDependencies: true,
 	}
 	steps := uninstall(cfg)
@@ -244,94 +161,14 @@ func (suite *PlanTestSuite) TestUninstallWithUpdateDependencies() {
 	suite.IsType(&run.DepUpdate{}, steps[1])
 }
 
-func (suite *PlanTestSuite) TestInitKube() {
-	cfg := Config{
-		KubeToken:      "cXVlZXIgY2hhcmFjdGVyCg==",
-		SkipTLSVerify:  true,
-		Certificate:    "b2Ygd29rZW5lc3MK",
-		APIServer:      "123.456.78.9",
-		ServiceAccount: "helmet",
-	}
-
-	steps := initKube(cfg)
-	suite.Require().Equal(1, len(steps), "initKube should return one step")
-	suite.Require().IsType(&run.InitKube{}, steps[0])
-	init, _ := steps[0].(*run.InitKube)
-
-	expected := &run.InitKube{
-		SkipTLSVerify:  true,
-		Certificate:    "b2Ygd29rZW5lc3MK",
-		APIServer:      "123.456.78.9",
-		ServiceAccount: "helmet",
-		Token:          "cXVlZXIgY2hhcmFjdGVyCg==",
-		TemplateFile:   kubeConfigTemplate,
-		ConfigFile:     kubeConfigFile,
-	}
-	suite.Equal(expected, init)
-}
-
-func (suite *PlanTestSuite) TestDepUpdate() {
-	cfg := Config{
-		UpdateDependencies: true,
-		Chart:              "scatterplot",
-	}
-
-	steps := depUpdate(cfg)
-	suite.Require().Equal(1, len(steps), "depUpdate should return one step")
-	suite.Require().IsType(&run.DepUpdate{}, steps[0])
-	update, _ := steps[0].(*run.DepUpdate)
-
-	expected := &run.DepUpdate{
-		Chart: "scatterplot",
-	}
-	suite.Equal(expected, update)
-}
-
-func (suite *PlanTestSuite) TestAddRepos() {
-	cfg := Config{
-		AddRepos: []string{
-			"first=https://add.repos/one",
-			"second=https://add.repos/two",
-		},
-		RepoCAFile: "state_licensure.repo.cert",
-	}
-	steps := addRepos(cfg)
-	suite.Require().Equal(2, len(steps), "addRepos should add one step per repo")
-	suite.Require().IsType(&run.AddRepo{}, steps[0])
-	suite.Require().IsType(&run.AddRepo{}, steps[1])
-	first := steps[0].(*run.AddRepo)
-	second := steps[1].(*run.AddRepo)
-
-	suite.Equal(first.Repo, "first=https://add.repos/one")
-	suite.Equal(second.Repo, "second=https://add.repos/two")
-	suite.Equal(first.CAFile, "state_licensure.repo.cert")
-	suite.Equal(second.CAFile, "state_licensure.repo.cert")
-}
-
 func (suite *PlanTestSuite) TestLint() {
-	cfg := Config{
-		Chart:        "./flow",
-		Values:       "steadfastness,forthrightness",
-		StringValues: "tensile_strength,flexibility",
-		ValuesFiles:  []string{"/root/price_inventory.yml"},
-		LintStrictly: true,
-	}
-
-	steps := lint(cfg)
-	suite.Equal(1, len(steps))
-
-	want := &run.Lint{
-		Chart:        "./flow",
-		Values:       "steadfastness,forthrightness",
-		StringValues: "tensile_strength,flexibility",
-		ValuesFiles:  []string{"/root/price_inventory.yml"},
-		Strict:       true,
-	}
-	suite.Equal(want, steps[0])
+	steps := lint(env.Config{})
+	suite.Require().Equal(1, len(steps))
+	suite.IsType(&run.Lint{}, steps[0])
 }
 
 func (suite *PlanTestSuite) TestLintWithUpdateDependencies() {
-	cfg := Config{
+	cfg := env.Config{
 		UpdateDependencies: true,
 	}
 	steps := lint(cfg)
@@ -340,7 +177,7 @@ func (suite *PlanTestSuite) TestLintWithUpdateDependencies() {
 }
 
 func (suite *PlanTestSuite) TestLintWithAddRepos() {
-	cfg := Config{
+	cfg := env.Config{
 		AddRepos: []string{"friendczar=https://github.com/logan_pierce/friendczar"},
 	}
 	steps := lint(cfg)
@@ -349,7 +186,7 @@ func (suite *PlanTestSuite) TestLintWithAddRepos() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanUpgradeCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "upgrade",
 	}
 	stepsMaker := determineSteps(cfg)
@@ -357,7 +194,7 @@ func (suite *PlanTestSuite) TestDeterminePlanUpgradeCommand() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanUpgradeFromDroneEvent() {
-	cfg := Config{}
+	cfg := env.Config{}
 
 	upgradeEvents := []string{"push", "tag", "deployment", "pull_request", "promote", "rollback"}
 	for _, event := range upgradeEvents {
@@ -368,7 +205,7 @@ func (suite *PlanTestSuite) TestDeterminePlanUpgradeFromDroneEvent() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanUninstallCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "uninstall",
 	}
 	stepsMaker := determineSteps(cfg)
@@ -377,7 +214,7 @@ func (suite *PlanTestSuite) TestDeterminePlanUninstallCommand() {
 
 // helm_command = delete is provided as an alias for backward-compatibility with drone-helm
 func (suite *PlanTestSuite) TestDeterminePlanDeleteCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "delete",
 	}
 	stepsMaker := determineSteps(cfg)
@@ -385,7 +222,7 @@ func (suite *PlanTestSuite) TestDeterminePlanDeleteCommand() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanDeleteFromDroneEvent() {
-	cfg := Config{
+	cfg := env.Config{
 		DroneEvent: "delete",
 	}
 	stepsMaker := determineSteps(cfg)
@@ -393,7 +230,7 @@ func (suite *PlanTestSuite) TestDeterminePlanDeleteFromDroneEvent() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanLintCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "lint",
 	}
 
@@ -402,7 +239,7 @@ func (suite *PlanTestSuite) TestDeterminePlanLintCommand() {
 }
 
 func (suite *PlanTestSuite) TestDeterminePlanHelpCommand() {
-	cfg := Config{
+	cfg := env.Config{
 		Command: "help",
 	}
 

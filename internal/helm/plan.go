@@ -2,6 +2,7 @@ package helm
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/pelotech/drone-helm3/internal/run"
 	"os"
 )
@@ -13,27 +14,20 @@ const (
 
 // A Step is one step in the plan.
 type Step interface {
-	Prepare(run.Config) error
-	Execute(run.Config) error
+	Prepare() error
+	Execute() error
 }
 
 // A Plan is a series of steps to perform.
 type Plan struct {
-	steps  []Step
-	cfg    Config
-	runCfg run.Config
+	steps []Step
+	cfg   env.Config
 }
 
 // NewPlan makes a plan for running a helm operation.
-func NewPlan(cfg Config) (*Plan, error) {
+func NewPlan(cfg env.Config) (*Plan, error) {
 	p := Plan{
 		cfg: cfg,
-		runCfg: run.Config{
-			Debug:     cfg.Debug,
-			Namespace: cfg.Namespace,
-			Stdout:    cfg.Stdout,
-			Stderr:    cfg.Stderr,
-		},
 	}
 
 	p.steps = (*determineSteps(cfg))(cfg)
@@ -43,7 +37,7 @@ func NewPlan(cfg Config) (*Plan, error) {
 			fmt.Fprintf(os.Stderr, "calling %T.Prepare (step %d)\n", step, i)
 		}
 
-		if err := step.Prepare(p.runCfg); err != nil {
+		if err := step.Prepare(); err != nil {
 			err = fmt.Errorf("while preparing %T step: %w", step, err)
 			return nil, err
 		}
@@ -54,7 +48,7 @@ func NewPlan(cfg Config) (*Plan, error) {
 
 // determineSteps is primarily for the tests' convenience: it allows testing the "which stuff should
 // we do" logic without building a config that meets all the steps' requirements.
-func determineSteps(cfg Config) *func(Config) []Step {
+func determineSteps(cfg env.Config) *func(env.Config) []Step {
 	switch cfg.Command {
 	case "upgrade":
 		return &upgrade
@@ -83,7 +77,7 @@ func (p *Plan) Execute() error {
 			fmt.Fprintf(p.cfg.Stderr, "calling %T.Execute (step %d)\n", step, i)
 		}
 
-		if err := step.Execute(p.runCfg); err != nil {
+		if err := step.Execute(); err != nil {
 			return fmt.Errorf("while executing %T step: %w", step, err)
 		}
 	}
@@ -91,99 +85,43 @@ func (p *Plan) Execute() error {
 	return nil
 }
 
-var upgrade = func(cfg Config) []Step {
-	steps := initKube(cfg)
-	steps = append(steps, addRepos(cfg)...)
-	if cfg.UpdateDependencies {
-		steps = append(steps, depUpdate(cfg)...)
-	}
-	steps = append(steps, &run.Upgrade{
-		Chart:         cfg.Chart,
-		Release:       cfg.Release,
-		ChartVersion:  cfg.ChartVersion,
-		DryRun:        cfg.DryRun,
-		Wait:          cfg.Wait,
-		Values:        cfg.Values,
-		StringValues:  cfg.StringValues,
-		ValuesFiles:   cfg.ValuesFiles,
-		ReuseValues:   cfg.ReuseValues,
-		Timeout:       cfg.Timeout,
-		Force:         cfg.Force,
-		Atomic:        cfg.AtomicUpgrade,
-		CleanupOnFail: cfg.CleanupOnFail,
-		CAFile:        cfg.RepoCAFile,
-	})
-
-	return steps
-}
-
-var uninstall = func(cfg Config) []Step {
-	steps := initKube(cfg)
-	if cfg.UpdateDependencies {
-		steps = append(steps, depUpdate(cfg)...)
-	}
-	steps = append(steps, &run.Uninstall{
-		Release:     cfg.Release,
-		DryRun:      cfg.DryRun,
-		KeepHistory: cfg.KeepHistory,
-	})
-
-	return steps
-}
-
-var lint = func(cfg Config) []Step {
-	steps := addRepos(cfg)
-	if cfg.UpdateDependencies {
-		steps = append(steps, depUpdate(cfg)...)
-	}
-	steps = append(steps, &run.Lint{
-		Chart:        cfg.Chart,
-		Values:       cfg.Values,
-		StringValues: cfg.StringValues,
-		ValuesFiles:  cfg.ValuesFiles,
-		Strict:       cfg.LintStrictly,
-	})
-
-	return steps
-}
-
-var help = func(cfg Config) []Step {
-	help := &run.Help{
-		HelmCommand: cfg.Command,
-	}
-	return []Step{help}
-}
-
-func initKube(cfg Config) []Step {
-	return []Step{
-		&run.InitKube{
-			SkipTLSVerify:  cfg.SkipTLSVerify,
-			Certificate:    cfg.Certificate,
-			APIServer:      cfg.APIServer,
-			ServiceAccount: cfg.ServiceAccount,
-			Token:          cfg.KubeToken,
-			TemplateFile:   kubeConfigTemplate,
-			ConfigFile:     kubeConfigFile,
-		},
-	}
-}
-
-func addRepos(cfg Config) []Step {
-	steps := make([]Step, 0)
+var upgrade = func(cfg env.Config) []Step {
+	var steps []Step
+	steps = append(steps, run.NewInitKube(cfg, kubeConfigTemplate, kubeConfigFile))
 	for _, repo := range cfg.AddRepos {
-		steps = append(steps, &run.AddRepo{
-			Repo:   repo,
-			CAFile: cfg.RepoCAFile,
-		})
+		steps = append(steps, run.NewAddRepo(cfg, repo))
 	}
+	if cfg.UpdateDependencies {
+		steps = append(steps, run.NewDepUpdate(cfg))
+	}
+	steps = append(steps, run.NewUpgrade(cfg))
 
 	return steps
 }
 
-func depUpdate(cfg Config) []Step {
-	return []Step{
-		&run.DepUpdate{
-			Chart: cfg.Chart,
-		},
+var uninstall = func(cfg env.Config) []Step {
+	var steps []Step
+	steps = append(steps, run.NewInitKube(cfg, kubeConfigTemplate, kubeConfigFile))
+	if cfg.UpdateDependencies {
+		steps = append(steps, run.NewDepUpdate(cfg))
 	}
+	steps = append(steps, run.NewUninstall(cfg))
+
+	return steps
+}
+
+var lint = func(cfg env.Config) []Step {
+	var steps []Step
+	for _, repo := range cfg.AddRepos {
+		steps = append(steps, run.NewAddRepo(cfg, repo))
+	}
+	if cfg.UpdateDependencies {
+		steps = append(steps, run.NewDepUpdate(cfg))
+	}
+	steps = append(steps, run.NewLint(cfg))
+	return steps
+}
+
+var help = func(cfg env.Config) []Step {
+	return []Step{run.NewHelp(cfg)}
 }

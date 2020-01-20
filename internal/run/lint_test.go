@@ -1,8 +1,8 @@
 package run
 
 import (
-	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
 	"strings"
 	"testing"
@@ -31,19 +31,36 @@ func TestLintTestSuite(t *testing.T) {
 	suite.Run(t, new(LintTestSuite))
 }
 
+func (suite *LintTestSuite) TestNewLint() {
+	cfg := env.Config{
+		Chart:        "./flow",
+		Values:       "steadfastness,forthrightness",
+		StringValues: "tensile_strength,flexibility",
+		ValuesFiles:  []string{"/root/price_inventory.yml"},
+		LintStrictly: true,
+	}
+	lint := NewLint(cfg)
+	suite.Require().NotNil(lint)
+	suite.Equal("./flow", lint.chart)
+	suite.Equal("steadfastness,forthrightness", lint.values)
+	suite.Equal("tensile_strength,flexibility", lint.stringValues)
+	suite.Equal([]string{"/root/price_inventory.yml"}, lint.valuesFiles)
+	suite.Equal(true, lint.strict)
+	suite.NotNil(lint.config)
+}
+
 func (suite *LintTestSuite) TestPrepareAndExecute() {
 	defer suite.ctrl.Finish()
 
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
 
-	l := Lint{
-		Chart: "./epic/mychart",
-	}
-	cfg := Config{
+	cfg := env.Config{
+		Chart:  "./epic/mychart",
 		Stdout: &stdout,
 		Stderr: &stderr,
 	}
+	l := NewLint(cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
@@ -52,6 +69,7 @@ func (suite *LintTestSuite) TestPrepareAndExecute() {
 		return suite.mockCmd
 	}
 
+	suite.mockCmd.EXPECT().String().AnyTimes()
 	suite.mockCmd.EXPECT().
 		Stdout(&stdout)
 	suite.mockCmd.EXPECT().
@@ -60,9 +78,9 @@ func (suite *LintTestSuite) TestPrepareAndExecute() {
 		Run().
 		Times(1)
 
-	err := l.Prepare(cfg)
+	err := l.Prepare()
 	suite.Require().Nil(err)
-	l.Execute(cfg)
+	l.Execute()
 }
 
 func (suite *LintTestSuite) TestPrepareRequiresChart() {
@@ -70,25 +88,22 @@ func (suite *LintTestSuite) TestPrepareRequiresChart() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
 
-	cfg := Config{}
-	l := Lint{}
-
-	err := l.Prepare(cfg)
+	l := NewLint(env.Config{})
+	err := l.Prepare()
 	suite.EqualError(err, "chart is required", "Chart should be mandatory")
 }
 
 func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 	defer suite.ctrl.Finish()
 
-	cfg := Config{}
-
-	l := Lint{
+	cfg := env.Config{
 		Chart:        "./uk/top_40",
 		Values:       "width=5",
 		StringValues: "version=2.0",
 		ValuesFiles:  []string{"/usr/local/underrides", "/usr/local/overrides"},
-		Strict:       true,
+		LintStrictly: true,
 	}
+	l := NewLint(cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
@@ -105,66 +120,8 @@ func (suite *LintTestSuite) TestPrepareWithLintFlags() {
 
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
+	suite.mockCmd.EXPECT().String().AnyTimes()
 
-	err := l.Prepare(cfg)
+	err := l.Prepare()
 	suite.Require().Nil(err)
-}
-
-func (suite *LintTestSuite) TestPrepareWithDebugFlag() {
-	defer suite.ctrl.Finish()
-
-	stderr := strings.Builder{}
-
-	cfg := Config{
-		Debug:  true,
-		Stderr: &stderr,
-	}
-
-	l := Lint{
-		Chart: "./scotland/top_40",
-	}
-
-	command = func(path string, args ...string) cmd {
-		suite.mockCmd.EXPECT().
-			String().
-			Return(fmt.Sprintf("%s %s", path, strings.Join(args, " ")))
-
-		return suite.mockCmd
-	}
-
-	suite.mockCmd.EXPECT().Stdout(gomock.Any())
-	suite.mockCmd.EXPECT().Stderr(&stderr)
-
-	err := l.Prepare(cfg)
-	suite.Require().Nil(err)
-
-	want := fmt.Sprintf("Generated command: '%s --debug lint ./scotland/top_40'\n", helmBin)
-	suite.Equal(want, stderr.String())
-}
-
-func (suite *LintTestSuite) TestPrepareWithNamespaceFlag() {
-	defer suite.ctrl.Finish()
-
-	cfg := Config{
-		Namespace: "table-service",
-	}
-
-	l := Lint{
-		Chart: "./wales/top_40",
-	}
-
-	actual := []string{}
-	command = func(path string, args ...string) cmd {
-		actual = args
-		return suite.mockCmd
-	}
-
-	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
-	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-
-	err := l.Prepare(cfg)
-	suite.Require().Nil(err)
-
-	expected := []string{"--namespace", "table-service", "lint", "./wales/top_40"}
-	suite.Equal(expected, actual)
 }

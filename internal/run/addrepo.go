@@ -2,55 +2,58 @@ package run
 
 import (
 	"fmt"
+	"github.com/pelotech/drone-helm3/internal/env"
 	"strings"
 )
 
 // AddRepo is an execution step that calls `helm repo add` when executed.
 type AddRepo struct {
-	Repo   string
-	CAFile string
+	*config
+	repo   string
+	caFile string
 	cmd    cmd
 }
 
+// NewAddRepo creates an AddRepo for the given repo-spec. No validation is performed at this time.
+func NewAddRepo(cfg env.Config, repo string) *AddRepo {
+	return &AddRepo{
+		config: newConfig(cfg),
+		repo:   repo,
+		caFile: cfg.RepoCAFile,
+	}
+}
+
 // Execute executes the `helm repo add` command.
-func (a *AddRepo) Execute(_ Config) error {
+func (a *AddRepo) Execute() error {
 	return a.cmd.Run()
 }
 
 // Prepare gets the AddRepo ready to execute.
-func (a *AddRepo) Prepare(cfg Config) error {
-	if a.Repo == "" {
+func (a *AddRepo) Prepare() error {
+	if a.repo == "" {
 		return fmt.Errorf("repo is required")
 	}
-	split := strings.SplitN(a.Repo, "=", 2)
+	split := strings.SplitN(a.repo, "=", 2)
 	if len(split) != 2 {
-		return fmt.Errorf("bad repo spec '%s'", a.Repo)
+		return fmt.Errorf("bad repo spec '%s'", a.repo)
 	}
 
 	name := split[0]
 	url := split[1]
 
-	args := make([]string, 0)
-
-	if cfg.Namespace != "" {
-		args = append(args, "--namespace", cfg.Namespace)
-	}
-	if cfg.Debug {
-		args = append(args, "--debug")
-	}
-
+	args := a.globalFlags()
 	args = append(args, "repo", "add")
-	if a.CAFile != "" {
-		args = append(args, "--ca-file", a.CAFile)
+	if a.caFile != "" {
+		args = append(args, "--ca-file", a.caFile)
 	}
 	args = append(args, name, url)
 
 	a.cmd = command(helmBin, args...)
-	a.cmd.Stdout(cfg.Stdout)
-	a.cmd.Stderr(cfg.Stderr)
+	a.cmd.Stdout(a.stdout)
+	a.cmd.Stderr(a.stderr)
 
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "Generated command: '%s'\n", a.cmd.String())
+	if a.debug {
+		fmt.Fprintf(a.stderr, "Generated command: '%s'\n", a.cmd.String())
 	}
 
 	return nil
