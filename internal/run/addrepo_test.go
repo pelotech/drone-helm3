@@ -43,6 +43,7 @@ func (suite *AddRepoTestSuite) TestNewAddRepo() {
 	suite.Require().NotNil(repo)
 	suite.Equal("picompress=https://github.com/caleb_phipps/picompress", repo.repo)
 	suite.NotNil(repo.config)
+	suite.NotNil(repo.certs)
 }
 
 func (suite *AddRepoTestSuite) TestPrepareAndExecute() {
@@ -100,10 +101,11 @@ func (suite *AddRepoTestSuite) TestPrepareWithEqualSignInURL() {
 func (suite *AddRepoTestSuite) TestRepoAddFlags() {
 	suite.mockCmd.EXPECT().Stdout(gomock.Any()).AnyTimes()
 	suite.mockCmd.EXPECT().Stderr(gomock.Any()).AnyTimes()
-	cfg := env.Config{
-		RepoCAFile: "./helm/reporepo.cert",
-	}
+	cfg := env.Config{}
 	a := NewAddRepo(cfg, "machine=https://github.com/harold_finch/themachine")
+
+	// inject a ca cert filename so repoCerts won't create any files that we'd have to clean up
+	a.certs.caCertFilename = "./helm/reporepo.cert"
 	suite.NoError(a.Prepare())
 	suite.Equal([]string{"repo", "add", "--ca-file", "./helm/reporepo.cert",
 		"machine", "https://github.com/harold_finch/themachine"}, suite.commandArgs)

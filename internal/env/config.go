@@ -24,7 +24,8 @@ type Config struct {
 	DroneEvent         string   `envconfig:"drone_build_event"`      // Drone event that invoked this plugin.
 	UpdateDependencies bool     `split_words:"true"`                 // Call `helm dependency update` before the main command
 	AddRepos           []string `split_words:"true"`                 // Call `helm repo add` before the main command
-	RepoCAFile         string   `envconfig:"repo_ca_file"`           // CA certificate for `helm repo add`
+	RepoCertificate    string   `envconfig:"repo_certificate"`       // The Helm chart repository's self-signed certificate (must be base64-encoded)
+	RepoCACertificate  string   `envconfig:"repo_ca_certificate"`    // The Helm chart repository CA's self-signed certificate (must be base64-encoded)
 	Debug              bool     ``                                   // Generate debug output and pass --debug to all helm commands
 	Values             string   ``                                   // Argument to pass to --set in applicable helm commands
 	StringValues       string   `split_words:"true"`                 // Argument to pass to --set-string in applicable helm commands

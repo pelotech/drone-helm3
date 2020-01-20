@@ -64,6 +64,7 @@ func (suite *UpgradeTestSuite) TestNewUpgrade() {
 	suite.Equal(true, up.atomic)
 	suite.Equal(true, up.cleanupOnFail)
 	suite.NotNil(up.config)
+	suite.NotNil(up.certs)
 }
 
 func (suite *UpgradeTestSuite) TestPrepareAndExecute() {
@@ -136,9 +137,10 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 		Force:         true,
 		AtomicUpgrade: true,
 		CleanupOnFail: true,
-		RepoCAFile:    "local_ca.cert",
 	}
 	u := NewUpgrade(cfg)
+	// inject a ca cert filename so repoCerts won't create any files that we'd have to clean up
+	u.certs.caCertFilename = "local_ca.cert"
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
