@@ -143,6 +143,7 @@ func (suite *PlanTestSuite) TestUpgrade() {
 		Force:         true,
 		AtomicUpgrade: true,
 		CleanupOnFail: true,
+		RepoCAFile:    "state_licensure.repo.cert",
 	}
 
 	steps := upgrade(cfg)
@@ -166,6 +167,7 @@ func (suite *PlanTestSuite) TestUpgrade() {
 		Force:         cfg.Force,
 		Atomic:        true,
 		CleanupOnFail: true,
+		CAFile:        "state_licensure.repo.cert",
 	}
 
 	suite.Equal(expected, upgrade)
@@ -291,6 +293,7 @@ func (suite *PlanTestSuite) TestAddRepos() {
 			"first=https://add.repos/one",
 			"second=https://add.repos/two",
 		},
+		RepoCAFile: "state_licensure.repo.cert",
 	}
 	steps := addRepos(cfg)
 	suite.Require().Equal(2, len(steps), "addRepos should add one step per repo")
@@ -301,6 +304,8 @@ func (suite *PlanTestSuite) TestAddRepos() {
 
 	suite.Equal(first.Repo, "first=https://add.repos/one")
 	suite.Equal(second.Repo, "second=https://add.repos/two")
+	suite.Equal(first.CAFile, "state_licensure.repo.cert")
+	suite.Equal(second.CAFile, "state_licensure.repo.cert")
 }
 
 func (suite *PlanTestSuite) TestLint() {

@@ -7,8 +7,9 @@ import (
 
 // AddRepo is an execution step that calls `helm repo add` when executed.
 type AddRepo struct {
-	Repo string
-	cmd  cmd
+	Repo   string
+	CAFile string
+	cmd    cmd
 }
 
 // Execute executes the `helm repo add` command.
@@ -38,7 +39,11 @@ func (a *AddRepo) Prepare(cfg Config) error {
 		args = append(args, "--debug")
 	}
 
-	args = append(args, "repo", "add", name, url)
+	args = append(args, "repo", "add")
+	if a.CAFile != "" {
+		args = append(args, "--ca-file", a.CAFile)
+	}
+	args = append(args, name, url)
 
 	a.cmd = command(helmBin, args...)
 	a.cmd.Stdout(cfg.Stdout)

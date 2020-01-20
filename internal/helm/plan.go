@@ -111,6 +111,7 @@ var upgrade = func(cfg Config) []Step {
 		Force:         cfg.Force,
 		Atomic:        cfg.AtomicUpgrade,
 		CleanupOnFail: cfg.CleanupOnFail,
+		CAFile:        cfg.RepoCAFile,
 	})
 
 	return steps
@@ -171,7 +172,8 @@ func addRepos(cfg Config) []Step {
 	steps := make([]Step, 0)
 	for _, repo := range cfg.AddRepos {
 		steps = append(steps, &run.AddRepo{
-			Repo: repo,
+			Repo:   repo,
+			CAFile: cfg.RepoCAFile,
 		})
 	}
 
