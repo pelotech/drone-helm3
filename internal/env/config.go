@@ -93,9 +93,29 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		cfg.logDebug()
 	}
 
+	cfg.loadValuesSecrets()
+
 	cfg.deprecationWarn()
 
 	return &cfg, nil
+}
+
+func (cfg *Config) loadValuesSecrets() {
+	findVar := regexp.MustCompile(`\$\{?(\w+)\}?`)
+
+	replacer := func(varName string) string {
+		sigils := regexp.MustCompile(`[${}]`)
+		varName = sigils.ReplaceAllString(varName, "")
+
+		if value, ok := os.LookupEnv(varName); ok {
+			return value
+		}
+
+		return ""
+	}
+
+	cfg.Values = findVar.ReplaceAllStringFunc(cfg.Values, replacer)
+	cfg.StringValues = findVar.ReplaceAllStringFunc(cfg.StringValues, replacer)
 }
 
 func (cfg Config) logDebug() {

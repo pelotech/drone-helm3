@@ -183,6 +183,21 @@ func (suite *ConfigTestSuite) TestLogDebugCensorsKubeToken() {
 	suite.Equal(kubeToken, cfg.KubeToken) // The actual config value should be left unchanged
 }
 
+func (suite *ConfigTestSuite) TestNewConfigWithValuesSecrets() {
+	suite.unsetenv("VALUES")
+	suite.unsetenv("STRING_VALUES")
+	suite.setenv("SECRET_FIRE", "Eru_Ilúvatar")
+	suite.setenv("SECRET_RINGS", "1")
+	suite.setenv("PLUGIN_VALUES", "fire=$SECRET_FIRE,water=${SECRET_WATER}")
+	suite.setenv("PLUGIN_STRING_VALUES", "rings=${SECRET_RINGS}")
+
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	suite.Require().NoError(err)
+
+	suite.Equal("fire=Eru_Ilúvatar,water=", cfg.Values)
+	suite.Equal("rings=1", cfg.StringValues)
+}
+
 func (suite *ConfigTestSuite) setenv(key, val string) {
 	orig, ok := os.LookupEnv(key)
 	if ok {
