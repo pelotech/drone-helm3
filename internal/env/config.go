@@ -89,11 +89,11 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		cfg.Timeout = fmt.Sprintf("%ss", cfg.Timeout)
 	}
 
+	cfg.loadValuesSecrets()
+
 	if cfg.Debug && cfg.Stderr != nil {
 		cfg.logDebug()
 	}
-
-	cfg.loadValuesSecrets()
 
 	cfg.deprecationWarn()
 
@@ -108,9 +108,6 @@ func (cfg *Config) loadValuesSecrets() {
 		varName = sigils.ReplaceAllString(varName, "")
 
 		if value, ok := os.LookupEnv(varName); ok {
-			if cfg.Debug {
-				fmt.Fprintf(cfg.Stderr, "Replaced $%s with value in environment\n", varName)
-			}
 			return value
 		}
 
@@ -120,13 +117,7 @@ func (cfg *Config) loadValuesSecrets() {
 		return ""
 	}
 
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "Replacing environment variable references in Values\n")
-	}
 	cfg.Values = findVar.ReplaceAllStringFunc(cfg.Values, replacer)
-	if cfg.Debug {
-		fmt.Fprintf(cfg.Stderr, "Replacing environment variable references in StringValues\n")
-	}
 	cfg.StringValues = findVar.ReplaceAllStringFunc(cfg.StringValues, replacer)
 }
 

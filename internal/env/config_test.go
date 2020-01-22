@@ -208,15 +208,8 @@ func (suite *ConfigTestSuite) TestValuesSecretsWithDebugLogging() {
 	_, err := NewConfig(&strings.Builder{}, &stderr)
 	suite.Require().NoError(err)
 
-	// Make a good-faith effort to avoid putting secrets in the log output, but still mention they were found
-	suite.Contains(stderr.String(), "Values:fire=$SECRET_FIRE,water=$SECRET_WATER")
-	suite.Contains(stderr.String(), `
-Replacing environment variable references in Values
-Replaced $SECRET_FIRE with value in environment
-$SECRET_WATER not present in environment, replaced with ""
-Replacing environment variable references in StringValues
-Replaced $SECRET_FIRE with value in environment
-`)
+	suite.Contains(stderr.String(), "Values:fire=Eru_Ilúvatar,water=")
+	suite.Contains(stderr.String(), `$SECRET_WATER not present in environment, replaced with ""`)
 }
 
 func (suite *ConfigTestSuite) setenv(key, val string) {
