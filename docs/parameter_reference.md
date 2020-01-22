@@ -95,6 +95,26 @@ values_files: [ "./over_9,000.yml" ]
 values_files: [ "./over_9", "000.yml" ]
 ```
 
+### Interpolating secrets into the `values` and `string_values` settings
+
+If you want to send secrets to your charts, you can use syntax similar to shell variable interpolation--either `$VARNAME` or `$${VARNAME}`. The double dollar-sign is necessary when using curly brackets; using curly brackets with a single dollar-sign will trigger Drone's string substitution (which can't use arbitrary environment variables). If an environment variable is not set, it will be treated as if it were set to the empty string.
+
+```yaml
+environment:
+  DB_PASSWORD:
+    from_secret: db_password
+  SESSION_KEY:
+    from_secret: session_key
+settings:
+  values:
+    - db_password=$DB_PASSWORD    # db_password will be set to the contents of the db_password secret
+    - db_pass=$DB_PASS            # db_pass will be set to "" since $DB_PASS is not set
+    - session_key=$${SESSION_KEY} # session_key will be set to the contents of the session_key secret
+    - sess_key=${SESSION_KEY}     # sess_key will be set to "" by Drone's variable substitution
+```
+
+Variables intended for interpolation must be set in the `environment` section, not `settings`.
+
 ### Backward-compatibility aliases
 
 Some settings have alternate names, for backward-compatibility with drone-helm. We recommend using the canonical name unless you require the backward-compatible form.
