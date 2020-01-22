@@ -183,6 +183,37 @@ func (suite *ConfigTestSuite) TestLogDebugCensorsKubeToken() {
 	suite.Equal(kubeToken, cfg.KubeToken) // The actual config value should be left unchanged
 }
 
+func (suite *ConfigTestSuite) TestNewConfigWithValuesSecrets() {
+	suite.unsetenv("VALUES")
+	suite.unsetenv("STRING_VALUES")
+	suite.unsetenv("SECRET_WATER")
+	suite.setenv("SECRET_FIRE", "Eru_Ilúvatar")
+	suite.setenv("SECRET_RINGS", "1")
+	suite.setenv("PLUGIN_VALUES", "fire=$SECRET_FIRE,water=${SECRET_WATER}")
+	suite.setenv("PLUGIN_STRING_VALUES", "rings=${SECRET_RINGS}")
+
+	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
+	suite.Require().NoError(err)
+
+	suite.Equal("fire=Eru_Ilúvatar,water=", cfg.Values)
+	suite.Equal("rings=1", cfg.StringValues)
+}
+
+func (suite *ConfigTestSuite) TestValuesSecretsWithDebugLogging() {
+	suite.unsetenv("VALUES")
+	suite.unsetenv("SECRET_WATER")
+	suite.setenv("SECRET_FIRE", "Eru_Ilúvatar")
+	suite.setenv("PLUGIN_DEBUG", "true")
+	suite.setenv("PLUGIN_STRING_VALUES", "fire=$SECRET_FIRE")
+	suite.setenv("PLUGIN_VALUES", "fire=$SECRET_FIRE,water=$SECRET_WATER")
+	stderr := strings.Builder{}
+	_, err := NewConfig(&strings.Builder{}, &stderr)
+	suite.Require().NoError(err)
+
+	suite.Contains(stderr.String(), "Values:fire=Eru_Ilúvatar,water=")
+	suite.Contains(stderr.String(), `$SECRET_WATER not present in environment, replaced with ""`)
+}
+
 func (suite *ConfigTestSuite) setenv(key, val string) {
 	orig, ok := os.LookupEnv(key)
 	if ok {

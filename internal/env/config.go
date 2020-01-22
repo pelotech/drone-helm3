@@ -89,6 +89,8 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		cfg.Timeout = fmt.Sprintf("%ss", cfg.Timeout)
 	}
 
+	cfg.loadValuesSecrets()
+
 	if cfg.Debug && cfg.Stderr != nil {
 		cfg.logDebug()
 	}
@@ -96,6 +98,27 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 	cfg.deprecationWarn()
 
 	return &cfg, nil
+}
+
+func (cfg *Config) loadValuesSecrets() {
+	findVar := regexp.MustCompile(`\$\{?(\w+)\}?`)
+
+	replacer := func(varName string) string {
+		sigils := regexp.MustCompile(`[${}]`)
+		varName = sigils.ReplaceAllString(varName, "")
+
+		if value, ok := os.LookupEnv(varName); ok {
+			return value
+		}
+
+		if cfg.Debug {
+			fmt.Fprintf(cfg.Stderr, "$%s not present in environment, replaced with \"\"\n", varName)
+		}
+		return ""
+	}
+
+	cfg.Values = findVar.ReplaceAllStringFunc(cfg.Values, replacer)
+	cfg.StringValues = findVar.ReplaceAllStringFunc(cfg.StringValues, replacer)
 }
 
 func (cfg Config) logDebug() {
