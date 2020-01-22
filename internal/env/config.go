@@ -108,13 +108,25 @@ func (cfg *Config) loadValuesSecrets() {
 		varName = sigils.ReplaceAllString(varName, "")
 
 		if value, ok := os.LookupEnv(varName); ok {
+			if cfg.Debug {
+				fmt.Fprintf(cfg.Stderr, "Replaced $%s with value in environment\n", varName)
+			}
 			return value
 		}
 
+		if cfg.Debug {
+			fmt.Fprintf(cfg.Stderr, "$%s not present in environment, replaced with \"\"\n", varName)
+		}
 		return ""
 	}
 
+	if cfg.Debug {
+		fmt.Fprintf(cfg.Stderr, "Replacing environment variable references in Values\n")
+	}
 	cfg.Values = findVar.ReplaceAllStringFunc(cfg.Values, replacer)
+	if cfg.Debug {
+		fmt.Fprintf(cfg.Stderr, "Replacing environment variable references in StringValues\n")
+	}
 	cfg.StringValues = findVar.ReplaceAllStringFunc(cfg.StringValues, replacer)
 }
 

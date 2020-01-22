@@ -198,6 +198,27 @@ func (suite *ConfigTestSuite) TestNewConfigWithValuesSecrets() {
 	suite.Equal("rings=1", cfg.StringValues)
 }
 
+func (suite *ConfigTestSuite) TestValuesSecretsWithDebugLogging() {
+	suite.unsetenv("VALUES")
+	suite.setenv("SECRET_FIRE", "Eru_Ilúvatar")
+	suite.setenv("PLUGIN_DEBUG", "true")
+	suite.setenv("PLUGIN_STRING_VALUES", "fire=$SECRET_FIRE")
+	suite.setenv("PLUGIN_VALUES", "fire=$SECRET_FIRE,water=$SECRET_WATER")
+	stderr := strings.Builder{}
+	_, err := NewConfig(&strings.Builder{}, &stderr)
+	suite.Require().NoError(err)
+
+	// Make a good-faith effort to avoid putting secrets in the log output, but still mention they were found
+	suite.Contains(stderr.String(), "Values:fire=$SECRET_FIRE,water=$SECRET_WATER")
+	suite.Contains(stderr.String(), `
+Replacing environment variable references in Values
+Replaced $SECRET_FIRE with value in environment
+$SECRET_WATER not present in environment, replaced with ""
+Replacing environment variable references in StringValues
+Replaced $SECRET_FIRE with value in environment
+`)
+}
+
 func (suite *ConfigTestSuite) setenv(key, val string) {
 	orig, ok := os.LookupEnv(key)
 	if ok {
