@@ -186,6 +186,7 @@ func (suite *ConfigTestSuite) TestLogDebugCensorsKubeToken() {
 func (suite *ConfigTestSuite) TestNewConfigWithValuesSecrets() {
 	suite.unsetenv("VALUES")
 	suite.unsetenv("STRING_VALUES")
+	suite.unsetenv("SECRET_WATER")
 	suite.setenv("SECRET_FIRE", "Eru_Ilúvatar")
 	suite.setenv("SECRET_RINGS", "1")
 	suite.setenv("PLUGIN_VALUES", "fire=$SECRET_FIRE,water=${SECRET_WATER}")
@@ -200,6 +201,7 @@ func (suite *ConfigTestSuite) TestNewConfigWithValuesSecrets() {
 
 func (suite *ConfigTestSuite) TestValuesSecretsWithDebugLogging() {
 	suite.unsetenv("VALUES")
+	suite.unsetenv("SECRET_WATER")
 	suite.setenv("SECRET_FIRE", "Eru_Ilúvatar")
 	suite.setenv("PLUGIN_DEBUG", "true")
 	suite.setenv("PLUGIN_STRING_VALUES", "fire=$SECRET_FIRE")
