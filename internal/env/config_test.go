@@ -2,10 +2,11 @@ package env
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/suite"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
 type ConfigTestSuite struct {
@@ -191,12 +192,14 @@ func (suite *ConfigTestSuite) TestNewConfigWithValuesSecrets() {
 	suite.setenv("SECRET_RINGS", "1")
 	suite.setenv("PLUGIN_VALUES", "fire=$SECRET_FIRE,water=${SECRET_WATER}")
 	suite.setenv("PLUGIN_STRING_VALUES", "rings=${SECRET_RINGS}")
+	suite.setenv("PLUGIN_ADD_REPOS", "testrepo=https://user:${SECRET_FIRE}@testrepo.test")
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 
 	suite.Equal("fire=Eru_Ilúvatar,water=", cfg.Values)
 	suite.Equal("rings=1", cfg.StringValues)
+	suite.Equal(fmt.Sprintf("testrepo=https://user:%s@testrepo.test", os.Getenv("SECRET_FIRE")), cfg.AddRepos[0])
 }
 
 func (suite *ConfigTestSuite) TestValuesSecretsWithDebugLogging() {
