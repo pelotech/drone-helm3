@@ -95,7 +95,7 @@ values_files: [ "./over_9,000.yml" ]
 values_files: [ "./over_9", "000.yml" ]
 ```
 
-### Interpolating secrets into the `values` and `string_values` settings
+### Interpolating secrets into the `values`, `string_values` and `add_repos` settings
 
 If you want to send secrets to your charts, you can use syntax similar to shell variable interpolation--either `$VARNAME` or `$${VARNAME}`. The double dollar-sign is necessary when using curly brackets; using curly brackets with a single dollar-sign will trigger Drone's string substitution (which can't use arbitrary environment variables). If an environment variable is not set, it will be treated as if it were set to the empty string.
 

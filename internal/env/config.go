@@ -2,11 +2,12 @@ package env
 
 import (
 	"fmt"
-	"github.com/kelseyhightower/envconfig"
 	"io"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
 var (
@@ -119,6 +120,10 @@ func (cfg *Config) loadValuesSecrets() {
 
 	cfg.Values = findVar.ReplaceAllStringFunc(cfg.Values, replacer)
 	cfg.StringValues = findVar.ReplaceAllStringFunc(cfg.StringValues, replacer)
+
+	for i := 0; i < len(cfg.AddRepos); i++ {
+		cfg.AddRepos[i] = findVar.ReplaceAllStringFunc(cfg.AddRepos[i], replacer)
+	}
 }
 
 func (cfg Config) logDebug() {
