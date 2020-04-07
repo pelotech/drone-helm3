@@ -1,6 +1,7 @@
 package helm
 
 import (
+	"errors"
 	"fmt"
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/pelotech/drone-helm3/internal/run"
@@ -28,6 +29,10 @@ type Plan struct {
 func NewPlan(cfg env.Config) (*Plan, error) {
 	p := Plan{
 		cfg: cfg,
+	}
+
+	if cfg.UpdateDependencies && cfg.DependenciesAction != "" {
+		return nil, errors.New("update_dependencies is deprecated and cannot be provided together with dependencies_action")
 	}
 
 	p.steps = (*determineSteps(cfg))(cfg)
@@ -91,9 +96,15 @@ var upgrade = func(cfg env.Config) []Step {
 	for _, repo := range cfg.AddRepos {
 		steps = append(steps, run.NewAddRepo(cfg, repo))
 	}
+
+	if cfg.DependenciesAction != "" {
+		steps = append(steps, run.NewDepAction(cfg))
+	}
+
 	if cfg.UpdateDependencies {
 		steps = append(steps, run.NewDepUpdate(cfg))
 	}
+
 	steps = append(steps, run.NewUpgrade(cfg))
 
 	return steps

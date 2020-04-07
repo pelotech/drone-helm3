@@ -23,7 +23,8 @@ type Config struct {
 	// Configuration for drone-helm itself
 	Command            string   `envconfig:"mode"`                   // Helm command to run
 	DroneEvent         string   `envconfig:"drone_build_event"`      // Drone event that invoked this plugin.
-	UpdateDependencies bool     `split_words:"true"`                 // Call `helm dependency update` before the main command
+	UpdateDependencies bool     `split_words:"true"`                 // [Deprecated] Call `helm dependency update` before the main command (deprecated, use dependencies_action: update instead)
+	DependenciesAction string   `split_words:"true"`                 // Call `helm dependency build` or `helm dependency update` before the main command
 	AddRepos           []string `split_words:"true"`                 // Call `helm repo add` before the main command
 	RepoCertificate    string   `envconfig:"repo_certificate"`       // The Helm chart repository's self-signed certificate (must be base64-encoded)
 	RepoCACertificate  string   `envconfig:"repo_ca_certificate"`    // The Helm chart repository CA's self-signed certificate (must be base64-encoded)

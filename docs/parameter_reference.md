@@ -37,6 +37,7 @@ Installations are triggered when the `mode` setting is "upgrade." They can also 
 | kube_certificate       | string         |          | kubernetes_certificate | Base64 encoded TLS certificate used by the Kubernetes cluster's certificate authority. |
 | chart_version          | string         |          |                        | Specific chart version to install. |
 | dry_run                | boolean        |          |                        | Pass `--dry-run` to `helm upgrade`. |
+| dependencies_action    | string         |          |                        | Calls `helm dependency build` OR `helm dependency update` before running the main command. Possible values: `build`, `update`. |
 | wait_for_upgrade       | boolean        |          | wait                   | Wait until kubernetes resources are in a ready state before marking the installation successful. |
 | timeout                | duration       |          |                        | Timeout for any *individual* Kubernetes operation. The installation's full runtime may exceed this duration. |
 | force_upgrade          | boolean        |          | force                  | Pass `--force` to `helm upgrade`. |
