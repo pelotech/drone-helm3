@@ -3,9 +3,10 @@ package helm
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/pelotech/drone-helm3/internal/run"
-	"os"
 )
 
 const (
@@ -61,6 +62,8 @@ func determineSteps(cfg env.Config) *func(env.Config) []Step {
 		return &uninstall
 	case "lint":
 		return &lint
+	case "publish":
+		return &publish
 	case "help":
 		return &help
 	default:
@@ -135,4 +138,15 @@ var lint = func(cfg env.Config) []Step {
 
 var help = func(cfg env.Config) []Step {
 	return []Step{run.NewHelp(cfg)}
+}
+
+var publish = func(cfg env.Config) []Step {
+	fmt.Println("inside publish")
+	var steps []Step
+
+	os.Setenv("HELM_EXPERIMENTAL_OCI", "1")
+
+	steps = append(steps, run.NewRegistry("login", cfg))
+	steps = append(steps, run.NewRegistry("logout", cfg))
+	return steps
 }

@@ -21,35 +21,40 @@ var (
 // not have the `PLUGIN_` prefix.
 type Config struct {
 	// Configuration for drone-helm itself
-	Command            string   `envconfig:"mode"`                   // Helm command to run
-	DroneEvent         string   `envconfig:"drone_build_event"`      // Drone event that invoked this plugin.
-	UpdateDependencies bool     `split_words:"true"`                 // [Deprecated] Call `helm dependency update` before the main command (deprecated, use dependencies_action: update instead)
-	DependenciesAction string   `split_words:"true"`                 // Call `helm dependency build` or `helm dependency update` before the main command
-	AddRepos           []string `split_words:"true"`                 // Call `helm repo add` before the main command
-	RepoCertificate    string   `envconfig:"repo_certificate"`       // The Helm chart repository's self-signed certificate (must be base64-encoded)
-	RepoCACertificate  string   `envconfig:"repo_ca_certificate"`    // The Helm chart repository CA's self-signed certificate (must be base64-encoded)
-	Debug              bool     ``                                   // Generate debug output and pass --debug to all helm commands
-	Values             string   ``                                   // Argument to pass to --set in applicable helm commands
-	StringValues       string   `split_words:"true"`                 // Argument to pass to --set-string in applicable helm commands
-	ValuesFiles        []string `split_words:"true"`                 // Arguments to pass to --values in applicable helm commands
-	Namespace          string   ``                                   // Kubernetes namespace for all helm commands
-	KubeToken          string   `split_words:"true"`                 // Kubernetes authentication token to put in .kube/config
-	SkipTLSVerify      bool     `envconfig:"skip_tls_verify"`        // Put insecure-skip-tls-verify in .kube/config
-	Certificate        string   `envconfig:"kube_certificate"`       // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
-	APIServer          string   `envconfig:"kube_api_server"`        // The Kubernetes cluster's API endpoint
-	ServiceAccount     string   `envconfig:"kube_service_account"`   // Account to use for connecting to the Kubernetes cluster
-	ChartVersion       string   `split_words:"true"`                 // Specific chart version to use in `helm upgrade`
-	DryRun             bool     `split_words:"true"`                 // Pass --dry-run to applicable helm commands
-	Wait               bool     `envconfig:"wait_for_upgrade"`       // Pass --wait to applicable helm commands
-	ReuseValues        bool     `split_words:"true"`                 // Pass --reuse-values to `helm upgrade`
-	KeepHistory        bool     `split_words:"true"`                 // Pass --keep-history to `helm uninstall`
-	Timeout            string   ``                                   // Argument to pass to --timeout in applicable helm commands
-	Chart              string   ``                                   // Chart argument to use in applicable helm commands
-	Release            string   ``                                   // Release argument to use in applicable helm commands
-	Force              bool     `envconfig:"force_upgrade"`          // Pass --force to applicable helm commands
-	AtomicUpgrade      bool     `split_words:"true"`                 // Pass --atomic to `helm upgrade`
-	CleanupOnFail      bool     `envconfig:"cleanup_failed_upgrade"` // Pass --cleanup-on-fail to `helm upgrade`
-	LintStrictly       bool     `split_words:"true"`                 // Pass --strict to `helm lint`
+	Command               string   `envconfig:"mode"`                    // Helm command to run
+	DroneEvent            string   `envconfig:"drone_build_event"`       // Drone event that invoked this plugin.
+	UpdateDependencies    bool     `split_words:"true"`                  // [Deprecated] Call `helm dependency update` before the main command (deprecated, use dependencies_action: update instead)
+	DependenciesAction    string   `split_words:"true"`                  // Call `helm dependency build` or `helm dependency update` before the main command
+	AddRepos              []string `split_words:"true"`                  // Call `helm repo add` before the main command
+	RepoCertificate       string   `envconfig:"repo_certificate"`        // The Helm chart repository's self-signed certificate (must be base64-encoded)
+	RepoCACertificate     string   `envconfig:"repo_ca_certificate"`     // The Helm chart repository CA's self-signed certificate (must be base64-encoded)
+	Debug                 bool     ``                                    // Generate debug output and pass --debug to all helm commands
+	Values                string   ``                                    // Argument to pass to --set in applicable helm commands
+	StringValues          string   `split_words:"true"`                  // Argument to pass to --set-string in applicable helm commands
+	ValuesFiles           []string `split_words:"true"`                  // Arguments to pass to --values in applicable helm commands
+	Namespace             string   ``                                    // Kubernetes namespace for all helm commands
+	KubeToken             string   `split_words:"true"`                  // Kubernetes authentication token to put in .kube/config
+	SkipTLSVerify         bool     `envconfig:"skip_tls_verify"`         // Put insecure-skip-tls-verify in .kube/config
+	Certificate           string   `envconfig:"kube_certificate"`        // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
+	APIServer             string   `envconfig:"kube_api_server"`         // The Kubernetes cluster's API endpoint
+	ServiceAccount        string   `envconfig:"kube_service_account"`    // Account to use for connecting to the Kubernetes cluster
+	ChartVersion          string   `split_words:"true"`                  // Specific chart version to use in `helm upgrade`
+	DryRun                bool     `split_words:"true"`                  // Pass --dry-run to applicable helm commands
+	Wait                  bool     `envconfig:"wait_for_upgrade"`        // Pass --wait to applicable helm commands
+	ReuseValues           bool     `split_words:"true"`                  // Pass --reuse-values to `helm upgrade`
+	KeepHistory           bool     `split_words:"true"`                  // Pass --keep-history to `helm uninstall`
+	Timeout               string   ``                                    // Argument to pass to --timeout in applicable helm commands
+	Chart                 string   ``                                    // Chart argument to use in applicable helm commands
+	Release               string   ``                                    // Release argument to use in applicable helm commands
+	Force                 bool     `envconfig:"force_upgrade"`           // Pass --force to applicable helm commands
+	AtomicUpgrade         bool     `split_words:"true"`                  // Pass --atomic to `helm upgrade`
+	CleanupOnFail         bool     `envconfig:"cleanup_failed_upgrade"`  // Pass --cleanup-on-fail to `helm upgrade`
+	LintStrictly          bool     `split_words:"true"`                  // Pass --strict to `helm lint`
+	RegistryURL           string   `envconfig:"registry_url"`            // Helm Registry URL
+	RegistryLoginUserID   string   `envconfig:"registry_login_user_id"`  // Helm Registry login user ID
+	RegistryLoginPassword string   `envconfig:"registry_login_password"` // Helm Registry login password
+	RegistryRepoName      string   `envconfig:"registry_repo_name"`      // Helm Registry repository name
+	ChartName             string   `envconfig:"chart_name"`              // Helm Chart name
 
 	Stdout io.Writer `ignored:"true"`
 	Stderr io.Writer `ignored:"true"`
@@ -67,14 +72,19 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 	}
 
 	cfg := Config{
-		Command:        aliases.Command,
-		AddRepos:       aliases.AddRepos,
-		APIServer:      aliases.APIServer,
-		ServiceAccount: aliases.ServiceAccount,
-		Wait:           aliases.Wait,
-		Force:          aliases.Force,
-		KubeToken:      aliases.KubeToken,
-		Certificate:    aliases.Certificate,
+		Command:               aliases.Command,
+		AddRepos:              aliases.AddRepos,
+		APIServer:             aliases.APIServer,
+		ServiceAccount:        aliases.ServiceAccount,
+		Wait:                  aliases.Wait,
+		Force:                 aliases.Force,
+		KubeToken:             aliases.KubeToken,
+		Certificate:           aliases.Certificate,
+		RegistryURL:           aliases.RegistryURL,
+		RegistryLoginUserID:   aliases.RegistryLoginUserID,
+		RegistryLoginPassword: aliases.RegistryLoginPassword,
+		RegistryRepoName:      aliases.RegistryRepoName,
+		ChartName:             aliases.ChartName,
 
 		Stdout: stdout,
 		Stderr: stderr,
@@ -145,12 +155,17 @@ func (cfg *Config) deprecationWarn() {
 }
 
 type settingAliases struct {
-	Command        string   `envconfig:"helm_command"`
-	AddRepos       []string `envconfig:"helm_repos"`
-	APIServer      string   `envconfig:"api_server"`
-	ServiceAccount string   `split_words:"true"`
-	Wait           bool     ``
-	Force          bool     ``
-	KubeToken      string   `envconfig:"kubernetes_token"`
-	Certificate    string   `envconfig:"kubernetes_certificate"`
+	Command               string   `envconfig:"helm_command"`
+	AddRepos              []string `envconfig:"helm_repos"`
+	APIServer             string   `envconfig:"api_server"`
+	ServiceAccount        string   `split_words:"true"`
+	Wait                  bool     ``
+	Force                 bool     ``
+	KubeToken             string   `envconfig:"kubernetes_token"`
+	Certificate           string   `envconfig:"kubernetes_certificate"`
+	RegistryURL           string   `envconfig:"registry_url"`
+	RegistryLoginUserID   string   `envconfig:"registry_login_user_id"`
+	RegistryLoginPassword string   `envconfig:"registry_login_password"`
+	RegistryRepoName      string   `envconfig:"registry_repo_name"`
+	ChartName             string   `envconfig:"registry_chart_name"`
 }
