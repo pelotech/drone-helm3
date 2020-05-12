@@ -66,6 +66,20 @@ Uninstallations are triggered when the `mode` setting is "uninstall" or "delete.
 | skip_tls_verify        | boolean  |          |                        | Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. |
 | chart                  | string   |          |                        | Required when the global `update_dependencies` parameter is true. No effect otherwise. |
 
+## Publish
+
+Publish are triggered when the `mode` setting is "publish."
+
+| Param name             | Type     | Required | Alias                  | Purpose |
+|------------------------|----------|----------|------------------------|---------|
+| registry_url           | string   | yes      |                        | Registry url to where the chart be published|
+| registry_login_user_id | string   | yes      |              | Login ID for the Helm registry |
+| registry_login_password| string   | yes      |        | Login Password for the Helm registry |
+| registry_repo_name     | string   | yes      |        | Repository name in the Helm registry |
+| chart_version       | string   |   yes  |  | Version of the chart |
+| chart                  | string   |          |                        | Local path of the chart |
+
+
 ### Where to put settings
 
 Any setting can go in either the `settings` or `environment` section. If a setting exists in _both_ sections, the version in `environment` will override the version in `settings`.

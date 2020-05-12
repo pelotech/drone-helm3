@@ -9,6 +9,7 @@ This plugin provides an interface between [Drone](https://drone.io/) and [Helm 3
 * Lint your charts
 * Deploy your service
 * Delete your service
+* Publish it to a Helm Registry (OCI-based registries)
 
 The plugin is inpsired by [drone-helm](https://github.com/ipedrazas/drone-helm), which fills the same role for Helm 2. It provides a comparable feature-set and the configuration settings are backward-compatible.
 
@@ -56,6 +57,26 @@ steps:
       KUBE_API_SERVER: https://my.kubernetes.installation/clusters/a-1234
       KUBE_TOKEN:
         from_secret: kubernetes_token
+```
+
+### Publish
+
+```yaml
+steps:
+  - name: publish
+    image: pelotech/drone-helm3
+    settings:
+      mode: publish
+      chart: ./
+    environment:
+      REGISTRY_URL: 
+        from_secret: registry_url
+      REGISTRY_LOGIN_USER_ID: 
+        from_secret: registry_login_user_id
+      REGISTRY_LOGIN_PASSWORD:
+        from_secret: registry_login_password
+      REGISTRY_REPO_NAME: <helm_repository_name>
+      CHART_VERSION: <version>
 ```
 
 ## Upgrading from drone-helm
