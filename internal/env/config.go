@@ -54,7 +54,6 @@ type Config struct {
 	RegistryLoginUserID   string   `envconfig:"registry_login_user_id"`  // Helm Registry login user ID
 	RegistryLoginPassword string   `envconfig:"registry_login_password"` // Helm Registry login password
 	RegistryRepoName      string   `envconfig:"registry_repo_name"`      // Helm Registry repository name
-	ChartName             string   `envconfig:"chart_name"`              // Helm Chart name
 
 	Stdout io.Writer `ignored:"true"`
 	Stderr io.Writer `ignored:"true"`
@@ -84,7 +83,6 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		RegistryLoginUserID:   aliases.RegistryLoginUserID,
 		RegistryLoginPassword: aliases.RegistryLoginPassword,
 		RegistryRepoName:      aliases.RegistryRepoName,
-		ChartName:             aliases.ChartName,
 
 		Stdout: stdout,
 		Stderr: stderr,
@@ -167,5 +165,4 @@ type settingAliases struct {
 	RegistryLoginUserID   string   `envconfig:"registry_login_user_id"`
 	RegistryLoginPassword string   `envconfig:"registry_login_password"`
 	RegistryRepoName      string   `envconfig:"registry_repo_name"`
-	ChartName             string   `envconfig:"registry_chart_name"`
 }

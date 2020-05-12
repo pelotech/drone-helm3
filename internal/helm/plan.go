@@ -147,6 +147,8 @@ var publish = func(cfg env.Config) []Step {
 	os.Setenv("HELM_EXPERIMENTAL_OCI", "1")
 
 	steps = append(steps, run.NewRegistry("login", cfg))
+	steps = append(steps, run.NewChart("save", cfg))
+	steps = append(steps, run.NewChart("push", cfg))
 	steps = append(steps, run.NewRegistry("logout", cfg))
 	return steps
 }
