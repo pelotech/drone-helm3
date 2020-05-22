@@ -144,6 +144,10 @@ func (cfg *Config) deprecationWarn() {
 	}
 }
 
+// settingAliases provides alternate environment variable names for certain settings, either because
+// they were renamed during drone-helm3's lifetime or for backward-compatibility with the original
+// drone-helm. Most config options don't need to be included here; adding them to the main Config
+// struct is sufficient.
 type settingAliases struct {
 	Command        string   `envconfig:"helm_command"`
 	AddRepos       []string `envconfig:"helm_repos"`
