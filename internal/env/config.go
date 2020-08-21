@@ -33,6 +33,7 @@ type Config struct {
 	StringValues       string   `split_words:"true"`                 // Argument to pass to --set-string in applicable helm commands
 	ValuesFiles        []string `split_words:"true"`                 // Arguments to pass to --values in applicable helm commands
 	Namespace          string   ``                                   // Kubernetes namespace for all helm commands
+	KubeInitSkip       bool     `envconfig:"kube_init_skip"`         // Skip kubeconfig creation
 	KubeToken          string   `split_words:"true"`                 // Kubernetes authentication token to put in .kube/config
 	SkipTLSVerify      bool     `envconfig:"skip_tls_verify"`        // Put insecure-skip-tls-verify in .kube/config
 	Certificate        string   `envconfig:"kube_certificate"`       // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
