@@ -31,10 +31,11 @@ Installations are triggered when the `mode` setting is "upgrade." They can also 
 |------------------------|----------------|----------|------------------------|---------|
 | chart                  | string         | yes      |                        | The chart to use for this installation. |
 | release                | string         | yes      |                        | The release name for helm to use. |
-| kube_api_server        | string         | yes      | api_server             | API endpoint for the Kubernetes cluster. |
-| kube_token             | string         | yes      | kubernetes_token       | Token for authenticating to Kubernetes. |
-| kube_service_account   | string         |          | service_account        | Service account for authenticating to Kubernetes. Default is `helm`. |
-| kube_certificate       | string         |          | kubernetes_certificate | Base64 encoded TLS certificate used by the Kubernetes cluster's certificate authority. |
+| skip_kubeconfig        | boolean        |          |                        | Whether to skip kubeconfig file creation. |
+| kube_api_server        | string         | yes      | api_server             | API endpoint for the Kubernetes cluster. This is ignored if `skip_kubeconfig` is `true`. |
+| kube_token             | string         | yes      | kubernetes_token       | Token for authenticating to Kubernetes. This is ignored if `skip_kubeconfig` is `true`. |
+| kube_service_account   | string         |          | service_account        | Service account for authenticating to Kubernetes. Default is `helm`. This is ignored if `skip_kubeconfig` is `true`. |
+| kube_certificate       | string         |          | kubernetes_certificate | Base64 encoded TLS certificate used by the Kubernetes cluster's certificate authority. This is ignored if `skip_kubeconfig` is `true`. |
 | chart_version          | string         |          |                        | Specific chart version to install. |
 | dry_run                | boolean        |          |                        | Pass `--dry-run` to `helm upgrade`. |
 | dependencies_action    | string         |          |                        | Calls `helm dependency build` OR `helm dependency update` before running the main command. Possible values: `build`, `update`. |
@@ -47,7 +48,7 @@ Installations are triggered when the `mode` setting is "upgrade." They can also 
 | string_values          | list\<string\> |          |                        | Chart values to use as the `--set-string` argument to `helm upgrade`. |
 | values_files           | list\<string\> |          |                        | Values to use as `--values` arguments to `helm upgrade`. |
 | reuse_values           | boolean        |          |                        | Reuse the values from a previous release. |
-| skip_tls_verify        | boolean        |          |                        | Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. |
+| skip_tls_verify        | boolean        |          |                        | Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. This is ignored if `skip_kubeconfig` is `true`. |
 
 ## Uninstallation
 
@@ -56,14 +57,15 @@ Uninstallations are triggered when the `mode` setting is "uninstall" or "delete.
 | Param name             | Type     | Required | Alias                  | Purpose |
 |------------------------|----------|----------|------------------------|---------|
 | release                | string   | yes      |                        | The release name for helm to use. |
-| kube_api_server        | string   | yes      | api_server             | API endpoint for the Kubernetes cluster. |
-| kube_token             | string   | yes      | kubernetes_token       | Token for authenticating to Kubernetes. |
-| kube_service_account   | string   |          | service_account        | Service account for authenticating to Kubernetes. Default is `helm`. |
-| kube_certificate       | string   |          | kubernetes_certificate | Base64 encoded TLS certificate used by the Kubernetes cluster's certificate authority. |
+| skip_kubeconfig        | boolean  |          |                        | Whether to skip kubeconfig file creation. |
+| kube_api_server        | string   | yes      | api_server             | API endpoint for the Kubernetes cluster. This is ignored if `skip_kubeconfig` is `true`. |
+| kube_token             | string   | yes      | kubernetes_token       | Token for authenticating to Kubernetes. This is ignored if `skip_kubeconfig` is `true`. |
+| kube_service_account   | string   |          | service_account        | Service account for authenticating to Kubernetes. Default is `helm`. This is ignored if `skip_kubeconfig` is `true`. |
+| kube_certificate       | string   |          | kubernetes_certificate | Base64 encoded TLS certificate used by the Kubernetes cluster's certificate authority. This is ignored if `skip_kubeconfig` is `true`. |
 | keep_history           | boolean  |          |                        | Pass `--keep-history` to `helm uninstall`, to retain the release history. |
 | dry_run                | boolean  |          |                        | Pass `--dry-run` to `helm uninstall`. |
 | timeout                | duration |          |                        | Timeout for any *individual* Kubernetes operation. The uninstallation's full runtime may exceed this duration. |
-| skip_tls_verify        | boolean  |          |                        | Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. |
+| skip_tls_verify        | boolean  |          |                        | Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. This is ignored if `skip_kubeconfig` is `true`. |
 | chart                  | string   |          |                        | Required when the global `update_dependencies` parameter is true. No effect otherwise. |
 
 ### Where to put settings
