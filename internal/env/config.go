@@ -35,6 +35,7 @@ type Config struct {
 	Namespace          string   ``                                   // Kubernetes namespace for all helm commands
 	CreateNamespace    bool     `split_words:"true"`                 // Pass --create-namespace to `helm upgrade`
 	KubeToken          string   `split_words:"true"`                 // Kubernetes authentication token to put in .kube/config
+	SkipKubeconfig     bool     `envconfig:"skip_kubeconfig"`        // Skip kubeconfig creation
 	SkipTLSVerify      bool     `envconfig:"skip_tls_verify"`        // Put insecure-skip-tls-verify in .kube/config
 	Certificate        string   `envconfig:"kube_certificate"`       // The Kubernetes cluster CA's self-signed certificate (must be base64-encoded)
 	APIServer          string   `envconfig:"kube_api_server"`        // The Kubernetes cluster's API endpoint
@@ -86,6 +87,12 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 
 	if err := envconfig.Process("", &cfg); err != nil {
 		return nil, err
+	}
+
+	if cfg.SkipKubeconfig {
+		if cfg.KubeToken != "" || cfg.Certificate != "" || cfg.APIServer != "" || cfg.ServiceAccount != "" || cfg.SkipTLSVerify {
+			fmt.Fprintf(cfg.Stderr, "Warning: skip_kubeconfig is set. The following kubeconfig-related settings will be ignored: kube_config, kube_certificate, kube_api_server, kube_service_account, skip_tls_verify.")
+		}
 	}
 
 	if justNumbers.MatchString(cfg.Timeout) {
