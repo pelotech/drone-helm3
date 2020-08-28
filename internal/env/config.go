@@ -33,6 +33,7 @@ type Config struct {
 	StringValues       string   `split_words:"true"`                 // Argument to pass to --set-string in applicable helm commands
 	ValuesFiles        []string `split_words:"true"`                 // Arguments to pass to --values in applicable helm commands
 	Namespace          string   ``                                   // Kubernetes namespace for all helm commands
+	CreateNamespace    bool     `split_words:"true"`                 // Pass --create-namespace to `helm upgrade`
 	KubeToken          string   `split_words:"true"`                 // Kubernetes authentication token to put in .kube/config
 	SkipKubeconfig     bool     `envconfig:"skip_kubeconfig"`        // Skip kubeconfig creation
 	SkipTLSVerify      bool     `envconfig:"skip_tls_verify"`        // Put insecure-skip-tls-verify in .kube/config

@@ -49,6 +49,7 @@ Installations are triggered when the `mode` setting is "upgrade." They can also 
 | values_files           | list\<string\> |          |                        | Values to use as `--values` arguments to `helm upgrade`. |
 | reuse_values           | boolean        |          |                        | Reuse the values from a previous release. |
 | skip_tls_verify        | boolean        |          |                        | Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. This is ignored if `skip_kubeconfig` is `true`. |
+| create_namespace       | boolean        |          |                        | Pass --create-namespace to `helm upgrade`. |
 
 ## Uninstallation
 
