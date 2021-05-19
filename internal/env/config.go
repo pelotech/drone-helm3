@@ -10,6 +10,10 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+const (
+	DefaultHistoryMax = 10
+)
+
 var (
 	justNumbers    = regexp.MustCompile(`^\d+$`)
 	deprecatedVars = []string{"PURGE", "RECREATE_PODS", "TILLER_NS", "UPGRADE", "CANARY_IMAGE", "CLIENT_ONLY", "STABLE_REPO_URL"}
@@ -45,6 +49,7 @@ type Config struct {
 	Wait               bool     `envconfig:"wait_for_upgrade"`       // Pass --wait to applicable helm commands
 	ReuseValues        bool     `split_words:"true"`                 // Pass --reuse-values to `helm upgrade`
 	KeepHistory        bool     `split_words:"true"`                 // Pass --keep-history to `helm uninstall`
+	HistoryMax         int      `split_words:"true"`                 // Pass --history-max option
 	Timeout            string   ``                                   // Argument to pass to --timeout in applicable helm commands
 	Chart              string   ``                                   // Chart argument to use in applicable helm commands
 	Release            string   ``                                   // Release argument to use in applicable helm commands
@@ -78,6 +83,9 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		Force:          aliases.Force,
 		KubeToken:      aliases.KubeToken,
 		Certificate:    aliases.Certificate,
+
+		// set to same default as helm CLI
+		HistoryMax: DefaultHistoryMax,
 
 		Stdout: stdout,
 		Stderr: stderr,
