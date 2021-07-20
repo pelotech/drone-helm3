@@ -24,6 +24,7 @@ type Upgrade struct {
 	cleanupOnFail   bool
 	certs           *repoCerts
 	createNamespace bool
+	skipCrds        bool
 
 	cmd cmd
 }
@@ -47,6 +48,7 @@ func NewUpgrade(cfg env.Config) *Upgrade {
 		cleanupOnFail:   cfg.CleanupOnFail,
 		certs:           newRepoCerts(cfg),
 		createNamespace: cfg.CreateNamespace,
+		skipCrds:        cfg.SkipCrds,
 	}
 }
 
@@ -99,6 +101,9 @@ func (u *Upgrade) Prepare() error {
 	}
 	if u.createNamespace {
 		args = append(args, "--create-namespace")
+	}
+	if u.skipCrds {
+		args = append(args, "--skip-crds")
 	}
 	for _, vFile := range u.valuesFiles {
 		args = append(args, "--values", vFile)
