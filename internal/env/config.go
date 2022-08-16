@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DefaultHistoryMax = 10
+	defaultHistoryMax = 10
 )
 
 var (
@@ -85,7 +85,7 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		Certificate:    aliases.Certificate,
 
 		// set to same default as helm CLI
-		HistoryMax: DefaultHistoryMax,
+		HistoryMax: defaultHistoryMax,
 
 		Stdout: stdout,
 		Stderr: stderr,
