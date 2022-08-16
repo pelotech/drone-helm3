@@ -2,11 +2,12 @@ package run
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
-	"strings"
-	"testing"
 )
 
 type UpgradeTestSuite struct {
@@ -228,16 +229,16 @@ func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 func (suite *UpgradeTestSuite) TestPrepareSkipCrdsFlag() {
 	defer suite.ctrl.Finish()
 
-	cfg := env.Config{
-		Chart:    "at40",
-		Release:  "cabbages_smell_great",
-		SkipCrds: true,
-	}
-	u := NewUpgrade(cfg)
+	cfg := env.NewTestConfig(suite.T())
+	cfg.Chart = "at40"
+	cfg.Release = "cabbages_smell_great"
+	cfg.SkipCrds = true
+
+	u := NewUpgrade(*cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
-		suite.Equal([]string{"upgrade", "--install", "--skip-crds", "cabbages_smell_great", "at40"}, args)
+		suite.Equal([]string{"upgrade", "--install", "--skip-crds", "--history-max=10", "cabbages_smell_great", "at40"}, args)
 
 		return suite.mockCmd
 	}
