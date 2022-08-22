@@ -2,11 +2,12 @@ package run
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/stretchr/testify/suite"
-	"strings"
-	"testing"
 )
 
 type UpgradeTestSuite struct {
@@ -33,23 +34,23 @@ func TestUpgradeTestSuite(t *testing.T) {
 }
 
 func (suite *UpgradeTestSuite) TestNewUpgrade() {
-	cfg := env.Config{
-		ChartVersion:  "seventeen",
-		DryRun:        true,
-		Wait:          true,
-		Values:        "steadfastness,forthrightness",
-		StringValues:  "tensile_strength,flexibility",
-		ValuesFiles:   []string{"/root/price_inventory.yml"},
-		ReuseValues:   true,
-		Timeout:       "go sit in the corner",
-		Chart:         "billboard_top_100",
-		Release:       "post_malone_circles",
-		Force:         true,
-		AtomicUpgrade: true,
-		CleanupOnFail: true,
-	}
+	cfg := env.NewTestConfig(suite.T())
+	cfg.ChartVersion = "seventeen"
+	cfg.DryRun = true
+	cfg.Wait = true
+	cfg.Values = "steadfastness,forthrightness"
+	cfg.StringValues = "tensile_strength,flexibility"
+	cfg.ValuesFiles = []string{"/root/price_inventory.yml"}
+	cfg.ReuseValues = true
+	cfg.Timeout = "go sit in the corner"
+	cfg.Chart = "billboard_top_100"
+	cfg.Release = "post_malone_circles"
+	cfg.Force = true
+	cfg.AtomicUpgrade = true
+	cfg.CleanupOnFail = true
 
-	up := NewUpgrade(cfg)
+	up := NewUpgrade(*cfg)
+
 	suite.Equal(cfg.Chart, up.chart)
 	suite.Equal(cfg.Release, up.release)
 	suite.Equal(cfg.ChartVersion, up.chartVersion)
@@ -70,15 +71,15 @@ func (suite *UpgradeTestSuite) TestNewUpgrade() {
 func (suite *UpgradeTestSuite) TestPrepareAndExecute() {
 	defer suite.ctrl.Finish()
 
-	cfg := env.Config{
-		Chart:   "at40",
-		Release: "jonas_brothers_only_human",
-	}
-	u := NewUpgrade(cfg)
+	cfg := env.NewTestConfig(suite.T())
+	cfg.Chart = "at40"
+	cfg.Release = "jonas_brothers_only_human"
+
+	u := NewUpgrade(*cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
-		suite.Equal([]string{"upgrade", "--install", "jonas_brothers_only_human", "at40"}, args)
+		suite.Equal([]string{"upgrade", "--install", "--history-max=10", "jonas_brothers_only_human", "at40"}, args)
 
 		return suite.mockCmd
 	}
@@ -99,16 +100,16 @@ func (suite *UpgradeTestSuite) TestPrepareAndExecute() {
 func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {
 	defer suite.ctrl.Finish()
 
-	cfg := env.Config{
-		Namespace: "melt",
-		Chart:     "at40",
-		Release:   "shaed_trampoline",
-	}
-	u := NewUpgrade(cfg)
+	cfg := env.NewTestConfig(suite.T())
+	cfg.Namespace = "melt"
+	cfg.Chart = "at40"
+	cfg.Release = "shaed_trampoline"
+
+	u := NewUpgrade(*cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
-		suite.Equal([]string{"--namespace", "melt", "upgrade", "--install", "shaed_trampoline", "at40"}, args)
+		suite.Equal([]string{"--namespace", "melt", "upgrade", "--install", "--history-max=10", "shaed_trampoline", "at40"}, args)
 
 		return suite.mockCmd
 	}
@@ -123,22 +124,22 @@ func (suite *UpgradeTestSuite) TestPrepareNamespaceFlag() {
 func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 	defer suite.ctrl.Finish()
 
-	cfg := env.Config{
-		Chart:         "hot_ac",
-		Release:       "maroon_5_memories",
-		ChartVersion:  "radio_edit",
-		DryRun:        true,
-		Wait:          true,
-		Values:        "age=35",
-		StringValues:  "height=5ft10in",
-		ValuesFiles:   []string{"/usr/local/stats", "/usr/local/grades"},
-		ReuseValues:   true,
-		Timeout:       "sit_in_the_corner",
-		Force:         true,
-		AtomicUpgrade: true,
-		CleanupOnFail: true,
-	}
-	u := NewUpgrade(cfg)
+	cfg := env.NewTestConfig(suite.T())
+	cfg.Chart = "hot_ac"
+	cfg.Release = "maroon_5_memories"
+	cfg.ChartVersion = "radio_edit"
+	cfg.DryRun = true
+	cfg.Wait = true
+	cfg.Values = "age=35"
+	cfg.StringValues = "height=5ft10in"
+	cfg.ValuesFiles = []string{"/usr/local/stats", "/usr/local/grades"}
+	cfg.ReuseValues = true
+	cfg.Timeout = "sit_in_the_corner"
+	cfg.Force = true
+	cfg.AtomicUpgrade = true
+	cfg.CleanupOnFail = true
+
+	u := NewUpgrade(*cfg)
 	// inject a ca cert filename so repoCerts won't create any files that we'd have to clean up
 	u.certs.caCertFilename = "local_ca.cert"
 
@@ -158,6 +159,7 @@ func (suite *UpgradeTestSuite) TestPrepareWithUpgradeFlags() {
 			"--values", "/usr/local/stats",
 			"--values", "/usr/local/grades",
 			"--ca-file", "local_ca.cert",
+			"--history-max=10",
 			"maroon_5_memories", "hot_ac"}, args)
 
 		return suite.mockCmd
@@ -191,14 +193,15 @@ func (suite *UpgradeTestSuite) TestRequiresChartAndRelease() {
 func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 	stdout := strings.Builder{}
 	stderr := strings.Builder{}
-	cfg := env.Config{
-		Chart:   "at40",
-		Release: "lewis_capaldi_someone_you_loved",
-		Debug:   true,
-		Stdout:  &stdout,
-		Stderr:  &stderr,
-	}
-	u := NewUpgrade(cfg)
+
+	cfg := env.NewTestConfig(suite.T())
+	cfg.Chart = "at40"
+	cfg.Release = "lewis_capaldi_someone_you_loved"
+	cfg.Debug = true
+	cfg.Stdout = &stdout
+	cfg.Stderr = &stderr
+
+	u := NewUpgrade(*cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.mockCmd.EXPECT().
@@ -215,8 +218,10 @@ func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 
 	u.Prepare()
 
-	want := fmt.Sprintf("Generated command: '%s --debug upgrade "+
-		"--install lewis_capaldi_someone_you_loved at40'\n", helmBin)
+	want := fmt.Sprintf(
+		"Generated command: '%s --debug upgrade --install --history-max=10 lewis_capaldi_someone_you_loved at40'\n",
+		helmBin,
+	)
 	suite.Equal(want, stderr.String())
 	suite.Equal("", stdout.String())
 }
@@ -224,16 +229,16 @@ func (suite *UpgradeTestSuite) TestPrepareDebugFlag() {
 func (suite *UpgradeTestSuite) TestPrepareSkipCrdsFlag() {
 	defer suite.ctrl.Finish()
 
-	cfg := env.Config{
-		Chart:    "at40",
-		Release:  "cabbages_smell_great",
-		SkipCrds: true,
-	}
-	u := NewUpgrade(cfg)
+	cfg := env.NewTestConfig(suite.T())
+	cfg.Chart = "at40"
+	cfg.Release = "cabbages_smell_great"
+	cfg.SkipCrds = true
+
+	u := NewUpgrade(*cfg)
 
 	command = func(path string, args ...string) cmd {
 		suite.Equal(helmBin, path)
-		suite.Equal([]string{"upgrade", "--install", "--skip-crds", "cabbages_smell_great", "at40"}, args)
+		suite.Equal([]string{"upgrade", "--install", "--skip-crds", "--history-max=10", "cabbages_smell_great", "at40"}, args)
 
 		return suite.mockCmd
 	}

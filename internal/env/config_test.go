@@ -217,6 +217,15 @@ func (suite *ConfigTestSuite) TestValuesSecretsWithDebugLogging() {
 	suite.Contains(stderr.String(), `$SECRET_WATER not present in environment, replaced with ""`)
 }
 
+func (suite *ConfigTestSuite) TestHistoryMax() {
+	conf := NewTestConfig(suite.T())
+	suite.Assert().Equal(10, conf.HistoryMax)
+
+	suite.setenv("PLUGIN_HISTORY_MAX", "0")
+	conf = NewTestConfig(suite.T())
+	suite.Assert().Equal(0, conf.HistoryMax)
+}
+
 func (suite *ConfigTestSuite) setenv(key, val string) {
 	orig, ok := os.LookupEnv(key)
 	if ok {
