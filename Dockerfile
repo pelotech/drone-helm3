@@ -1,5 +1,5 @@
 FROM alpine/helm:3.8.1
-MAINTAINER Erin Call <erin@liffft.com>
+MAINTAINER Joachim Hill-Grannec <joachim@pelo.tech>
 
 COPY build/drone-helm /bin/drone-helm
 COPY assets/kubeconfig.tpl /root/.kube/config.tpl
