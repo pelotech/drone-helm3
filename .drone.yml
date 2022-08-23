@@ -19,7 +19,7 @@ steps:
   - name: build
     image: golang:1.13
     commands:
-      - GOOS=linux GOARCH=amd64 go build -o build/drone-helm cmd/drone-helm/main.go
+      - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/drone-helm cmd/drone-helm/main.go
   - name: publish_linux_amd64
     image: plugins/docker
     settings:
