@@ -1,6 +1,8 @@
 FROM alpine/helm:3.8.1
 MAINTAINER Joachim Hill-Grannec <joachim@pelo.tech>
 
+RUN apk add libc6-compat
+
 COPY build/drone-helm /bin/drone-helm
 COPY assets/kubeconfig.tpl /root/.kube/config.tpl
 
