@@ -2,6 +2,9 @@ kind: pipeline
 type: docker
 name: default
 
+platform:
+  os: linux
+  arch: amd64
 
 steps:
   - name: test
@@ -16,7 +19,7 @@ steps:
   - name: build
     image: golang:1.13
     commands:
-      - go build -o build/drone-helm cmd/drone-helm/main.go
+      - GOOS=linux GOARCH=amd64 go build -o build/drone-helm cmd/drone-helm/main.go
   - name: publish_linux_amd64
     image: plugins/docker
     settings:
