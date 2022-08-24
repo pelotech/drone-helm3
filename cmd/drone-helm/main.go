@@ -17,20 +17,32 @@ func main() {
 		return
 	}
 
-	// Make the plan
-	plan, err := helm.NewPlan(*cfg)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%w\n", err)
-		os.Exit(1)
-	}
-
-	// Execute the plan
-	err = plan.Execute()
-
-	// Expect the plan to go off the rails
+	releases, err := helm.DetermineReleases(*cfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
-		// Throw away the plan
 		os.Exit(1)
 	}
+
+	for _, rel := range releases {
+		// Make the plan for each release
+		cfg.Release = rel.Name
+		cfg.Namespace = rel.Namespace
+
+		plan, err := helm.NewPlan(*cfg)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+			os.Exit(1)
+		}
+
+		// Execute the plan
+		err = plan.Execute()
+
+		// Expect the plan to go off the rails
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+			// Throw away the plan
+			os.Exit(1)
+		}
+	}
+
 }

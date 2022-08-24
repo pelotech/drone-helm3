@@ -10,7 +10,7 @@ This plugin provides an interface between [Drone](https://drone.io/) and [Helm 3
 * Deploy your service
 * Delete your service
 
-The plugin is inpsired by [drone-helm](https://github.com/ipedrazas/drone-helm), which fills the same role for Helm 2. It provides a comparable feature-set and the configuration settings are backward-compatible.
+The plugin is inspired by [drone-helm](https://github.com/ipedrazas/drone-helm), which fills the same role for Helm 2. It provides a comparable feature-set and the configuration settings are backward-compatible.
 
 ## Example configuration
 
