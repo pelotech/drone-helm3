@@ -24,7 +24,7 @@ func main() {
 	}
 
 	for _, rel := range releases {
-		// Make the plan for each release
+		// Make a new plan for each matched release
 		cfg.Release = rel.Name
 		cfg.Namespace = rel.Namespace
 

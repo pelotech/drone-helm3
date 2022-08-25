@@ -37,8 +37,8 @@ type Config struct {
 	StringValues       string   `split_words:"true"`                 // Argument to pass to --set-string in applicable helm commands
 	ValuesFiles        []string `split_words:"true"`                 // Arguments to pass to --values in applicable helm commands
 	Namespace          string   ``                                   // Kubernetes namespace for all helm commands
-	ChartSelector      string   ``                                   // Apply the command for multiple release in a cluster level (multi-namespace)
-	IgnoreReleases     []string ``                                   // Ignore releases that match with the chart selector
+	ChartNameSelector  string   `split_words:"true"`                 // Run the command for multiple realeses filtered by its chart's name across the cluster
+	IgnoreReleases     []string `split_words:"true"`                 // Ignore releases that match with the chart selector by its name
 	CreateNamespace    bool     `split_words:"true"`                 // Pass --create-namespace to `helm upgrade`
 	KubeToken          string   `split_words:"true"`                 // Kubernetes authentication token to put in .kube/config
 	SkipKubeconfig     bool     `envconfig:"skip_kubeconfig"`        // Skip kubeconfig creation

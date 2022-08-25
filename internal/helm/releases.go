@@ -6,6 +6,7 @@ import (
 	"github.com/pelotech/drone-helm3/internal/run"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/cli"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"log"
 	"os"
 )
@@ -28,30 +29,34 @@ func DetermineReleases(cfg env.Config) ([]Release, error) {
 		if cfg.Debug {
 			fmt.Fprintf(cfg.Stderr, "calling %T. \n", initKube)
 		}
+		if err := initKube.Prepare(); err != nil {
+			err = fmt.Errorf("while preparing %T: %w", initKube, err)
+			return nil, err
+		}
 		if err := initKube.Execute(); err != nil {
-			err = fmt.Errorf("while during the kubernetes initial configuration: %w", err)
+			err = fmt.Errorf("while executing %T: %w", initKube, err)
 			return nil, err
 		}
 	}
 
-	if cfg.ChartSelector != "" {
+	if cfg.ChartNameSelector != "" {
 		settings := cli.New()
 		actionConfig := new(action.Configuration)
 
 		if err := actionConfig.Init(settings.RESTClientGetter(), "", os.Getenv("HELM_DRIVER"), log.Printf); err != nil {
-			err = fmt.Errorf("while executing helm configuration initialization: %w", err)
+			err = fmt.Errorf("while executing %T: %w", actionConfig, err)
 			return nil, err
 		}
 
 		client := action.NewList(actionConfig)
 		client.AllNamespaces = true
 		client.Deployed = true
-		client.Filter = fmt.Sprintf("^%s-[0-9]*.[0-9]*.[0-9]*", client.Filter)
+		client.Filter = fmt.Sprintf("^%s-[0-9]*.[0-9]*.[0-9]*", cfg.ChartNameSelector)
 
 		results, err := client.Run()
 
 		if err != nil {
-			err = fmt.Errorf("while executing helm releases list: %w", err)
+			err = fmt.Errorf("while executing %T: %w", client, err)
 			return nil, err
 		}
 
@@ -61,8 +66,7 @@ func DetermineReleases(cfg env.Config) ([]Release, error) {
 		}
 
 		for _, rel := range results {
-			// TODO: Check the relase chart name
-			if _, ignore := ignoredReleasesMap[rel.Name]; ignore {
+			if _, ignore := ignoredReleasesMap[rel.Name]; ignore || rel.Chart.Name() != cfg.ChartNameSelector {
 				continue
 			}
 			r := Release{
@@ -71,6 +75,7 @@ func DetermineReleases(cfg env.Config) ([]Release, error) {
 			}
 			releases = append(releases, r)
 		}
+
 	} else {
 		r := Release{
 			Name:      cfg.Release,
