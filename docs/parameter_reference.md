@@ -8,6 +8,8 @@
 | add_repos           | list\<string\>  | helm_repos   | Calls `helm repo add $repo` before running the main command. Each string should be formatted as `repo_name=https://repo.url/`. |
 | repo_certificate    | string          |              | Base64 encoded TLS certificate for a chart repository. |
 | repo_ca_certificate | string          |              | Base64 encoded TLS certificate for a chart repository certificate authority. |
+| chart_name_selector | string          |              | Run the command for multiple releases filtered by its chart's name across the cluster. |
+| ignore_releases     | string          |              | Ignore releases that match with the chart name selector parameter by its name. |
 | namespace           | string          |              | Kubernetes namespace to use for this operation. |
 | debug               | boolean         |              | Generate debug output within drone-helm3 and pass `--debug` to all helm commands. Use with care, since the debug output may include secrets. |
 
