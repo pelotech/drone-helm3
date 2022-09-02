@@ -5,7 +5,7 @@ import (
 	"github.com/pelotech/drone-helm3/internal/env"
 	"github.com/pelotech/drone-helm3/internal/run"
 	"helm.sh/helm/v3/pkg/action"
-	"helm.sh/helm/v3/pkg/cli"
+	"helm.sh/helm/v3/pkg/kube"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"log"
 	"os"
@@ -40,10 +40,10 @@ func DetermineReleases(cfg env.Config) ([]Release, error) {
 	}
 
 	if cfg.ChartNameSelector != "" {
-		settings := cli.New()
 		actionConfig := new(action.Configuration)
+		kubeCfg := kube.GetConfig(kubeConfigFile, "", "")
 
-		if err := actionConfig.Init(settings.RESTClientGetter(), "", os.Getenv("HELM_DRIVER"), log.Printf); err != nil {
+		if err := actionConfig.Init(kubeCfg, "", os.Getenv("HELM_DRIVER"), log.Printf); err != nil {
 			err = fmt.Errorf("while executing %T: %w", actionConfig, err)
 			return nil, err
 		}
