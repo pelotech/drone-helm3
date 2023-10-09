@@ -66,7 +66,10 @@ type Config struct {
 // NewConfig creates a Config and reads environment variables into it, accounting for several possible formats.
 func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 	var aliases settingAliases
-	if err := envconfig.Process("plugin", &aliases); err != nil {
+
+	prefix := getEnvPrefix(stdout)
+
+	if err := envconfig.Process(prefix, &aliases); err != nil {
 		return nil, err
 	}
 
@@ -90,7 +93,7 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		Stdout: stdout,
 		Stderr: stderr,
 	}
-	if err := envconfig.Process("plugin", &cfg); err != nil {
+	if err := envconfig.Process(prefix, &cfg); err != nil {
 		return nil, err
 	}
 
@@ -114,8 +117,7 @@ func NewConfig(stdout, stderr io.Writer) (*Config, error) {
 		cfg.logDebug()
 	}
 
-	cfg.deprecationWarn()
-
+	cfg.deprecationWarn(prefix)
 	return &cfg, nil
 }
 
@@ -151,14 +153,26 @@ func (cfg Config) logDebug() {
 	fmt.Fprintf(cfg.Stderr, "Generated config: %+v\n", cfg)
 }
 
-func (cfg *Config) deprecationWarn() {
+func (cfg *Config) deprecationWarn(prefix string) {
 	for _, varname := range deprecatedVars {
 		_, barePresent := os.LookupEnv(varname)
-		_, prefixedPresent := os.LookupEnv("PLUGIN_" + varname)
+		_, prefixedPresent := os.LookupEnv(prefix + "_" + varname)
 		if barePresent || prefixedPresent {
 			fmt.Fprintf(cfg.Stderr, "Warning: ignoring deprecated '%s' setting\n", strings.ToLower(varname))
 		}
 	}
+}
+
+func getEnvPrefix(stdout io.Writer) string {
+	prefix := "PLUGIN"
+
+	// replace prefix to work with github runner
+	if os.Getenv("runner") == "github" {
+		prefix = "INPUT"
+		fmt.Fprintf(stdout, "Info: running in github runner, `runner` environment set to 'github'.\n")
+	}
+
+	return prefix
 }
 
 // settingAliases provides alternate environment variable names for certain settings, either because

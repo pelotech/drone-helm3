@@ -1,0 +1,55 @@
+---
+name: 'Helm3'
+description: "This plugin provides an interface to Helm 3"
+inputs:
+  mode:
+    description: "Indicates the operation to perform. Recommended, but not required. Valid options are `upgrade`, `uninstall`, `lint`, and `help`."
+    required: true
+  chart:
+    description: "The chart to use for this installation."
+    required: false
+  release:
+    description: "The release name for helm to use."
+    required: false
+  namespace:
+    description: "Kubernetes namespace to use for this operation."
+    required: false
+  values:
+    description: "Chart values to use as the `--set` argument to `helm upgrade`."
+    required: false
+  debug:
+    description: "Generate debug output within drone-helm3 and pass `--debug` to all helm commands. Use with care, since the debug output may include secrets."
+    required: false
+    default: "false"
+  skip_tls_verify:
+    description: "Connect to the Kubernetes cluster without checking for a valid TLS certificate. Not recommended in production. This is ignored if `skip_kubeconfig` is `true`."
+    required: false
+    default: "false"
+  kube_certificate:
+    description: "Base64 encoded TLS certificate used by the Kubernetes cluster's certificate authority. This is ignored if `skip_kubeconfig` is `true`."
+    required: false
+  kube_api_server:
+    description: "API endpoint for the Kubernetes cluster. This is ignored if `skip_kubeconfig` is `true`."
+    required: false
+  kube_token:
+    description: "Token for authenticating to Kubernetes. This is ignored if `skip_kubeconfig` is `true`."
+    required: false
+  kube_service_account:
+    description: "Service account for authenticating to Kubernetes. Default is `helm`. This is ignored if `skip_kubeconfig` is `true`."
+    required: false
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.mode }}
+    - ${{ inputs.chart }}
+    - ${{ inputs.release }}
+    - ${{ inputs.namespace }}
+    - ${{ inputs.values }}
+    - ${{ inputs.debug }}
+    - ${{ inputs.skip_tls_verify }}
+    - ${{ inputs.kube_certificate }}
+    - ${{ inputs.kube_api_server }}
+    - ${{ inputs.kube_token }}
+    - ${{ inputs.kube_service_account }}

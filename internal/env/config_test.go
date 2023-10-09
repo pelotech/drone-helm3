@@ -21,13 +21,15 @@ func TestConfigTestSuite(t *testing.T) {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithPluginPrefix() {
+	prefix := getEnvPrefix(os.Stdout)
+
 	suite.unsetenv("MODE")
 	suite.unsetenv("UPDATE_DEPENDENCIES")
 	suite.unsetenv("DEBUG")
 
-	suite.setenv("PLUGIN_MODE", "iambic")
-	suite.setenv("PLUGIN_UPDATE_DEPENDENCIES", "true")
-	suite.setenv("PLUGIN_DEBUG", "true")
+	suite.setenv(prefix+"_MODE", "iambic")
+	suite.setenv(prefix+"_UPDATE_DEPENDENCIES", "true")
+	suite.setenv(prefix+"_DEBUG", "true")
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
@@ -38,9 +40,11 @@ func (suite *ConfigTestSuite) TestNewConfigWithPluginPrefix() {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithNoPrefix() {
-	suite.unsetenv("PLUGIN_MODE")
-	suite.unsetenv("PLUGIN_UPDATE_DEPENDENCIES")
-	suite.unsetenv("PLUGIN_DEBUG")
+	prefix := getEnvPrefix(os.Stdout)
+
+	suite.unsetenv(prefix + "_MODE")
+	suite.unsetenv(prefix + "_UPDATE_DEPENDENCIES")
+	suite.unsetenv(prefix + "_DEBUG")
 
 	suite.setenv("MODE", "iambic")
 	suite.setenv("UPDATE_DEPENDENCIES", "true")
@@ -55,7 +59,9 @@ func (suite *ConfigTestSuite) TestNewConfigWithNoPrefix() {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithConflictingVariables() {
-	suite.setenv("PLUGIN_MODE", "iambic")
+	prefix := getEnvPrefix(os.Stdout)
+
+	suite.setenv(prefix+"_MODE", "iambic")
 	suite.setenv("MODE", "haiku") // values from the `environment` block override those from `settings`
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
@@ -65,13 +71,16 @@ func (suite *ConfigTestSuite) TestNewConfigWithConflictingVariables() {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigInfersNumbersAreSeconds() {
-	suite.setenv("PLUGIN_TIMEOUT", "42")
+	prefix := getEnvPrefix(os.Stdout)
+	suite.setenv(prefix+"_TIMEOUT", "42")
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
 	suite.Equal("42s", cfg.Timeout)
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
+	prefix := getEnvPrefix(os.Stdout)
+
 	for _, varname := range []string{
 		"MODE",
 		"ADD_REPOS",
@@ -83,16 +92,17 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
 		"KUBE_CERTIFICATE",
 	} {
 		suite.unsetenv(varname)
-		suite.unsetenv("PLUGIN_" + varname)
+		suite.unsetenv(prefix + "_" + varname)
 	}
-	suite.setenv("PLUGIN_HELM_COMMAND", "beware the jabberwock")
-	suite.setenv("PLUGIN_HELM_REPOS", "chortle=http://calloo.callay/frabjous/day")
-	suite.setenv("PLUGIN_API_SERVER", "http://tumtum.tree")
-	suite.setenv("PLUGIN_SERVICE_ACCOUNT", "tulgey")
-	suite.setenv("PLUGIN_WAIT", "true")
-	suite.setenv("PLUGIN_FORCE", "true")
-	suite.setenv("PLUGIN_KUBERNETES_TOKEN", "Y29tZSB0byBteSBhcm1z")
-	suite.setenv("PLUGIN_KUBERNETES_CERTIFICATE", "d2l0aCBpdHMgaGVhZA==")
+
+	suite.setenv(prefix+"_HELM_COMMAND", "beware the jabberwock")
+	suite.setenv(prefix+"_HELM_REPOS", "chortle=http://calloo.callay/frabjous/day")
+	suite.setenv(prefix+"_API_SERVER", "http://tumtum.tree")
+	suite.setenv(prefix+"_SERVICE_ACCOUNT", "tulgey")
+	suite.setenv(prefix+"_WAIT", "true")
+	suite.setenv(prefix+"_FORCE", "true")
+	suite.setenv(prefix+"_KUBERNETES_TOKEN", "Y29tZSB0byBteSBhcm1z")
+	suite.setenv(prefix+"_KUBERNETES_CERTIFICATE", "d2l0aCBpdHMgaGVhZA==")
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
@@ -107,9 +117,11 @@ func (suite *ConfigTestSuite) TestNewConfigWithAliases() {
 }
 
 func (suite *ConfigTestSuite) TestAliasedSettingWithoutPluginPrefix() {
+	prefix := getEnvPrefix(os.Stdout)
+
 	suite.unsetenv("FORCE_UPGRADE")
-	suite.unsetenv("PLUGIN_FORCE_UPGRADE")
-	suite.unsetenv("PLUGIN_FORCE")
+	suite.unsetenv(prefix + "_FORCE_UPGRADE")
+	suite.unsetenv(prefix + "_FORCE")
 	suite.setenv("FORCE", "true")
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
@@ -118,9 +130,11 @@ func (suite *ConfigTestSuite) TestAliasedSettingWithoutPluginPrefix() {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithAliasConflicts() {
+	prefix := getEnvPrefix(os.Stdout)
+
 	suite.unsetenv("FORCE_UPGRADE")
-	suite.setenv("PLUGIN_FORCE", "true")
-	suite.setenv("PLUGIN_FORCE_UPGRADE", "false") // should override even when set to the zero value
+	suite.setenv(prefix+"_FORCE", "true")
+	suite.setenv(prefix+"_FORCE_UPGRADE", "false") // should override even when set to the zero value
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.NoError(err)
@@ -138,13 +152,15 @@ func (suite *ConfigTestSuite) TestNewConfigSetsWriters() {
 }
 
 func (suite *ConfigTestSuite) TestDeprecatedSettingWarnings() {
+	prefix := getEnvPrefix(os.Stdout)
+
 	for _, varname := range deprecatedVars {
 		suite.setenv(varname, "deprecoat") // environment-block entries should cause warnings
 	}
 
 	suite.unsetenv("PURGE")
-	suite.setenv("PLUGIN_PURGE", "true") // settings-block entries should cause warnings
-	suite.setenv("UPGRADE", "")          // entries should cause warnings even when set to empty string
+	suite.setenv(prefix+"_PURGE", "true") // settings-block entries should cause warnings
+	suite.setenv("UPGRADE", "")           // entries should cause warnings even when set to empty string
 
 	stderr := &strings.Builder{}
 	_, err := NewConfig(&strings.Builder{}, stderr)
@@ -164,9 +180,13 @@ func (suite *ConfigTestSuite) TestLogDebug() {
 	_, err := NewConfig(&stdout, &stderr)
 	suite.Require().NoError(err)
 
-	suite.Equal("", stdout.String())
-
-	suite.Regexp(`^Generated config: \{Command:upgrade.*\}`, stderr.String())
+	if os.Getenv("runner") == "github" {
+		suite.Equal("Info: running in github runner, `runner` environment set to 'github'.\n", stdout.String())
+	} else {
+		suite.Equal("", stdout.String())
+	}
+	fmt.Println(stderr.String())
+	suite.Regexp(`^Generated config: \{Command:upgrade(.|\n)*\}`, stderr.String())
 }
 
 func (suite *ConfigTestSuite) TestLogDebugCensorsKubeToken() {
@@ -185,14 +205,16 @@ func (suite *ConfigTestSuite) TestLogDebugCensorsKubeToken() {
 }
 
 func (suite *ConfigTestSuite) TestNewConfigWithValuesSecrets() {
+	prefix := getEnvPrefix(os.Stdout)
+
 	suite.unsetenv("VALUES")
 	suite.unsetenv("STRING_VALUES")
 	suite.unsetenv("SECRET_WATER")
 	suite.setenv("SECRET_FIRE", "Eru_Ilúvatar")
 	suite.setenv("SECRET_RINGS", "1")
-	suite.setenv("PLUGIN_VALUES", "fire=$SECRET_FIRE,water=${SECRET_WATER}")
-	suite.setenv("PLUGIN_STRING_VALUES", "rings=${SECRET_RINGS}")
-	suite.setenv("PLUGIN_ADD_REPOS", "testrepo=https://user:${SECRET_FIRE}@testrepo.test")
+	suite.setenv(prefix+"_VALUES", "fire=$SECRET_FIRE,water=${SECRET_WATER}")
+	suite.setenv(prefix+"_STRING_VALUES", "rings=${SECRET_RINGS}")
+	suite.setenv(prefix+"_ADD_REPOS", "testrepo=https://user:${SECRET_FIRE}@testrepo.test")
 
 	cfg, err := NewConfig(&strings.Builder{}, &strings.Builder{})
 	suite.Require().NoError(err)
@@ -203,12 +225,14 @@ func (suite *ConfigTestSuite) TestNewConfigWithValuesSecrets() {
 }
 
 func (suite *ConfigTestSuite) TestValuesSecretsWithDebugLogging() {
+	prefix := getEnvPrefix(os.Stdout)
+
 	suite.unsetenv("VALUES")
 	suite.unsetenv("SECRET_WATER")
 	suite.setenv("SECRET_FIRE", "Eru_Ilúvatar")
-	suite.setenv("PLUGIN_DEBUG", "true")
-	suite.setenv("PLUGIN_STRING_VALUES", "fire=$SECRET_FIRE")
-	suite.setenv("PLUGIN_VALUES", "fire=$SECRET_FIRE,water=$SECRET_WATER")
+	suite.setenv(prefix+"_DEBUG", "true")
+	suite.setenv(prefix+"_STRING_VALUES", "fire=$SECRET_FIRE")
+	suite.setenv(prefix+"_VALUES", "fire=$SECRET_FIRE,water=$SECRET_WATER")
 	stderr := strings.Builder{}
 	_, err := NewConfig(&strings.Builder{}, &stderr)
 	suite.Require().NoError(err)
@@ -219,9 +243,11 @@ func (suite *ConfigTestSuite) TestValuesSecretsWithDebugLogging() {
 
 func (suite *ConfigTestSuite) TestHistoryMax() {
 	conf := NewTestConfig(suite.T())
-	suite.Assert().Equal(10, conf.HistoryMax)
+	prefix := getEnvPrefix(os.Stdout)
 
-	suite.setenv("PLUGIN_HISTORY_MAX", "0")
+	suite.Assert().Equal(10, conf.HistoryMax)
+	suite.setenv(prefix+"_HISTORY_MAX", "0")
+
 	conf = NewTestConfig(suite.T())
 	suite.Assert().Equal(0, conf.HistoryMax)
 }
